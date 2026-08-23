@@ -1,0 +1,3247 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <title>سامانه پیشرفته مدیریت هزینه‌های مأموریت و پروژه‌ها</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts & Persian Font Vazirmatn -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@100..900&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Chart.js for Analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Vazirmatn', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                            800: '#166534',
+                            900: '#14532d',
+                        }
+                    }
+                }
+            }
+        };
+    </script>
+
+    <style>
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: #f8fafc;
+            min-height: 100vh;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .glass-card {
+            background: rgba(30, 41, 59, 0.75);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .glass-input {
+            background: rgba(15, 23, 42, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #f8fafc;
+            transition: all 0.2s ease-in-out;
+            font-size: 14px;
+        }
+
+        @media (min-width: 768px) {
+            .glass-input {
+                font-size: 12px;
+            }
+        }
+
+        .glass-input:focus {
+            background: rgba(15, 23, 42, 0.95);
+            border-color: #22c55e;
+            box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.25);
+            outline: none;
+        }
+
+        .touch-scroll {
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: thin;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.5);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(51, 65, 85, 0.8);
+            border-radius: 4px;
+        }
+
+        .btn-touch {
+            transition: transform 0.1s ease, background-color 0.15s ease;
+        }
+        .btn-touch:active {
+            transform: scale(0.96);
+        }
+
+        @media print {
+            @page {
+                size: A4 landscape;
+                margin: 4mm 6mm;
+            }
+            body {
+                background: #ffffff !important;
+                color: #000000 !important;
+                font-family: 'Vazirmatn', sans-serif !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            #app, #loginModal, #expenseModal, #usersModal, #projectsModal, #resetPasswordModal, #aiAssistantModal, #customModal, .no-print {
+                display: none !important;
+            }
+            .print-only {
+                display: block !important;
+            }
+            .crystal-report-box {
+                border: 1.5px solid #0f172a !important;
+                background-color: #ffffff !important;
+                color: #000000 !important;
+            }
+            .print-table {
+                width: 100% !important;
+                border-collapse: collapse !important;
+                color: #000000 !important;
+                margin-top: 6px !important;
+            }
+            .print-table th, .print-table td {
+                border: 1px solid #1e293b !important;
+                padding: 4px 5px !important;
+                font-size: 9.5px !important;
+                text-align: center !important;
+                vertical-align: middle !important;
+            }
+            .print-table th {
+                background-color: #f1f5f9 !important;
+                color: #0f172a !important;
+                font-weight: 800 !important;
+            }
+            .print-table tr:nth-child(even) td {
+                background-color: #f8fafc !important;
+            }
+            .crystal-subcard {
+                border: 1px solid #cbd5e1 !important;
+                background-color: #f8fafc !important;
+            }
+        }
+
+        .print-only {
+            display: none;
+        }
+    </style>
+</head>
+<body class="p-2 sm:p-4 md:p-6 pb-12 select-none sm:select-auto">
+
+    <!-- LOGIN MODAL SCREEN -->
+    <div id="loginModal" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4">
+        <div class="glass-card w-full max-w-md rounded-2xl p-5 sm:p-8 shadow-2xl border border-emerald-500/30 max-h-[92vh] overflow-y-auto touch-scroll">
+            
+            <div class="mb-5 p-3.5 rounded-2xl bg-slate-900/80 border border-emerald-500/30 backdrop-blur-md text-center shadow-inner relative overflow-hidden group">
+                <div class="absolute -top-10 -right-10 w-24 h-24 bg-emerald-500/10 rounded-full blur-xl group-hover:bg-emerald-500/20 transition-all"></div>
+                <div class="flex items-center justify-center gap-2 text-emerald-400 text-xs font-bold mb-1">
+                    <i class="fa-solid fa-clock text-amber-400 animate-pulse text-sm"></i>
+                    <span id="loginLiveClock" class="font-mono text-base tracking-wider text-white drop-shadow">۰۰:۰۰:۰۰</span>
+                </div>
+                <div class="flex items-center justify-center gap-1.5 text-[11px] text-slate-300 font-medium">
+                    <i class="fa-solid fa-calendar-days text-emerald-400 text-[10px]"></i>
+                    <span id="loginLiveDate">در حال دریافت تاریخ سیستم...</span>
+                </div>
+            </div>
+
+            <div class="text-center mb-6">
+                <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-tr from-brand-600 to-emerald-400 flex items-center justify-center text-white shadow-lg shadow-emerald-500/30 mx-auto mb-3">
+                    <i class="fa-solid fa-lock text-2xl sm:text-3xl"></i>
+                </div>
+                <h2 class="text-xl sm:text-2xl font-black text-white">ورود به سامانه مأموریت‌ها</h2>
+                <p class="text-xs text-slate-400 mt-1">جهت دسترسی به اطلاعات لطفا وارد شوید</p>
+            </div>
+
+            <form onsubmit="handleLogin(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs text-slate-300 mb-1">نام کاربری</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-user absolute right-3 top-3.5 text-slate-500 text-xs"></i>
+                        <input type="text" id="loginUsername" required placeholder="مثال: admin یا hamed" class="glass-input w-full pr-8 pl-3 py-2.5 rounded-xl">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs text-slate-300 mb-1">کلمه عبور</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-key absolute right-3 top-3.5 text-slate-500 text-xs"></i>
+                        <input type="password" id="loginPassword" required placeholder="••••••••" class="glass-input w-full pr-8 pl-3 py-2.5 rounded-xl">
+                    </div>
+                </div>
+
+                <div id="loginError" class="text-red-400 text-xs text-center hidden bg-red-500/10 py-2 rounded-lg border border-red-500/20">
+                    نام کاربری یا کلمه عبور اشتباه است
+                </div>
+
+                <button type="submit" class="btn-touch w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm transition-all shadow-lg shadow-emerald-600/30 flex items-center justify-center gap-2 min-h-[44px]">
+                    <i class="fa-solid fa-right-to-bracket"></i>
+                    <span>ورود به سیستم</span>
+                </button>
+
+                <div class="mt-4 p-3 bg-slate-900/60 rounded-xl text-xs text-slate-400 text-center border border-slate-800">
+                    <p class="font-bold text-slate-300 mb-1">حساب‌های پیش‌فرض جهت تست:</p>
+                    <p>مدیر: <span class="text-emerald-400 font-mono">admin</span> / رمز: <span class="text-emerald-400 font-mono">123456</span></p>
+                    <p>کارشناس: <span class="text-emerald-400 font-mono">hamed</span> / رمز: <span class="text-emerald-400 font-mono">123456</span></p>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MAIN APP WRAPPER -->
+    <div id="app" class="max-w-7xl mx-auto space-y-4 sm:space-y-6">
+
+        <!-- Top Header Navigation -->
+        <header class="glass-card rounded-2xl p-3.5 sm:p-5 md:p-6 flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4 shadow-2xl border-b border-emerald-500/20">
+            <div class="flex items-center justify-between sm:justify-start gap-3">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-tr from-brand-600 to-emerald-400 flex items-center justify-center text-white shadow-lg shadow-brand-500/30 shrink-0">
+                        <i class="fa-solid fa-file-invoice-dollar text-xl sm:text-2xl"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-[10px] sm:text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">AKASRA</span>
+                            <span class="text-[10px] sm:text-xs text-slate-400 hidden xs:inline">مدیریت و ثبت هزینه مأموریت</span>
+                        </div>
+                        <h1 class="text-base sm:text-xl md:text-2xl font-bold text-white mt-0.5">مدیریت پروژه‌ها و مأموریت‌ها</h1>
+                    </div>
+                </div>
+
+                <div class="lg:hidden flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-slate-800/90 text-slate-300 text-[11px] border border-slate-700 shrink-0">
+                    <span id="syncStatusBadgeMobile" class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span id="syncStatusTextMobile" class="text-[10px]">آنلاین</span>
+                </div>
+            </div>
+
+            <!-- Header Quick Actions & User Bar -->
+            <div class="flex flex-wrap items-center gap-2 justify-between lg:justify-end border-t lg:border-t-0 border-slate-700/60 pt-3 lg:pt-0">
+                <div class="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-800/80 text-slate-300 text-xs border border-slate-700">
+                    <span id="syncStatusBadge" class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span id="syncStatusText">دیتابیس متصل است</span>
+                </div>
+
+                <div class="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2 w-full lg:w-auto">
+                    <button onclick="openUsersModal()" class="btn-touch px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium border border-slate-700 flex items-center justify-center gap-1.5 min-h-[40px]" title="مدیریت کاربران">
+                        <i class="fa-solid fa-users text-amber-400"></i>
+                        <span>کاربران</span>
+                    </button>
+
+                    <button onclick="openProjectsModal()" class="btn-touch px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium border border-slate-700 flex items-center justify-center gap-1.5 min-h-[40px]" title="مدیریت پروژه‌ها">
+                        <i class="fa-solid fa-diagram-project text-sky-400"></i>
+                        <span>پروژه‌ها</span>
+                    </button>
+
+                    <button onclick="openAiAssistantModal()" class="btn-touch px-3 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs transition flex items-center justify-center gap-1.5 shadow-lg shadow-indigo-600/30 border border-purple-400/30 min-h-[40px]">
+                        <i class="fa-solid fa-wand-magic-sparkles text-amber-300 animate-pulse"></i>
+                        <span>دستیار هوشمند Gemini</span>
+                    </button>
+
+                    <button onclick="openExpenseModal()" class="btn-touch px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition flex items-center justify-center gap-1.5 shadow-lg shadow-emerald-600/20 min-h-[40px]">
+                        <i class="fa-solid fa-plus"></i>
+                        <span>ثبت مأموریت</span>
+                    </button>
+
+                    <button onclick="triggerCrystalReportPrint()" class="btn-touch px-3 py-2 rounded-xl bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-white font-bold text-xs transition flex items-center justify-center gap-1.5 shadow-lg shadow-amber-600/30 border border-amber-400/30 min-h-[40px]">
+                        <i class="fa-solid fa-print"></i>
+                        <span>چاپ گزارش</span>
+                    </button>
+                </div>
+
+                <div class="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto mt-2 sm:mt-0 pt-2 sm:pt-0 sm:border-r border-slate-700/80 sm:pr-2">
+                    <div class="text-right flex items-center gap-2 sm:block">
+                        <span id="currentUserDisplay" class="block text-xs font-bold text-white">کاربر</span>
+                        <span id="currentUserRole" class="block text-[10px] text-emerald-400">مدیر سیستم</span>
+                    </div>
+                    <button onclick="handleLogout()" class="btn-touch px-3 py-1.5 sm:p-0 sm:w-8 sm:h-8 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 flex items-center justify-center transition border border-red-500/20 sm:border-none" title="خروج از حساب">
+                        <i class="fa-solid fa-right-from-bracket text-xs ml-1 sm:ml-0"></i>
+                        <span class="text-xs sm:hidden">خروج</span>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Analytics & Summary Cards -->
+        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            <div class="glass-card p-4 sm:p-5 rounded-2xl relative overflow-hidden group">
+                <div class="flex items-center justify-between">
+                    <span class="text-slate-400 text-xs sm:text-sm font-medium">جمع کل هزینه‌ها</span>
+                    <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-400">
+                        <i class="fa-solid fa-wallet text-sm sm:text-base"></i>
+                    </div>
+                </div>
+                <div class="mt-2 sm:mt-3 flex items-baseline gap-1.5">
+                    <span id="statTotalAmount" class="text-xl sm:text-2xl md:text-3xl font-extrabold text-white">0</span>
+                    <span class="text-xs text-slate-400 font-normal">ریال</span>
+                </div>
+                <div class="mt-1.5 sm:mt-2 text-xs text-emerald-400/80 flex items-center gap-1">
+                    <i class="fa-solid fa-arrow-trend-up text-[10px]"></i>
+                    <span id="statTomanText" class="text-[11px] sm:text-xs">0 تومان</span>
+                </div>
+            </div>
+
+            <div class="glass-card p-4 sm:p-5 rounded-2xl relative overflow-hidden group">
+                <div class="flex items-center justify-between">
+                    <span class="text-slate-400 text-xs sm:text-sm font-medium">تعداد مأموریت‌ها</span>
+                    <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-sky-500/10 flex items-center justify-center text-sky-400">
+                        <i class="fa-solid fa-route text-sm sm:text-base"></i>
+                    </div>
+                </div>
+                <div class="mt-2 sm:mt-3 flex items-baseline gap-1.5">
+                    <span id="statTotalCount" class="text-xl sm:text-2xl md:text-3xl font-extrabold text-white">0</span>
+                    <span class="text-xs text-slate-400 font-normal">مورد</span>
+                </div>
+                <div class="mt-1.5 sm:mt-2 text-xs text-slate-400">
+                    <span id="statProjectCountText" class="text-[11px] sm:text-xs">پروژه‌های فعال</span>
+                </div>
+            </div>
+
+            <div class="glass-card p-4 sm:p-5 rounded-2xl relative overflow-hidden group">
+                <div class="flex items-center justify-between">
+                    <span class="text-slate-400 text-xs sm:text-sm font-medium">میانگین هر مأموریت</span>
+                    <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-400">
+                        <i class="fa-solid fa-calculator text-sm sm:text-base"></i>
+                    </div>
+                </div>
+                <div class="mt-2 sm:mt-3 flex items-baseline gap-1.5">
+                    <span id="statAvgAmount" class="text-xl sm:text-2xl md:text-3xl font-extrabold text-white">0</span>
+                    <span class="text-xs text-slate-400 font-normal">ریال</span>
+                </div>
+                <div class="mt-1.5 sm:mt-2 text-xs text-slate-400">
+                    <span class="text-[11px] sm:text-xs">هزینه متوسط هر تردد</span>
+                </div>
+            </div>
+
+            <div class="glass-card p-4 sm:p-5 rounded-2xl relative overflow-hidden group">
+                <div class="flex items-center justify-between">
+                    <span class="text-slate-400 text-xs sm:text-sm font-medium">کاربر فعلی سیستم</span>
+                    <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-400">
+                        <i class="fa-solid fa-user-tie text-sm sm:text-base"></i>
+                    </div>
+                </div>
+                <div class="mt-2 sm:mt-3">
+                    <span id="statExpertName" class="text-base sm:text-lg font-bold text-white block truncate">حامد خیرآبادی</span>
+                    <span id="statUserRoleText" class="text-[11px] sm:text-xs text-slate-400">نقش: مدیر سیستم</span>
+                </div>
+                <div class="mt-1.5 sm:mt-2 text-xs text-emerald-400 flex items-center gap-1">
+                    <i class="fa-solid fa-shield-check text-[10px]"></i>
+                    <span class="text-[11px] sm:text-xs">احراز هویت شده</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Chart & Filter Controls -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+            <div class="glass-card rounded-2xl p-4 sm:p-5 lg:col-span-1 flex flex-col justify-between">
+                <div>
+                    <h3 class="text-sm sm:text-base font-bold text-white mb-1 flex items-center gap-2">
+                        <i class="fa-solid fa-chart-pie text-emerald-400"></i>
+                        <span>سهم پروژه‌ها و سازمان‌ها</span>
+                    </h3>
+                    <p class="text-xs text-slate-400 mb-3">تفکیک هزینه‌ها بر اساس پروژه</p>
+                </div>
+                <div class="relative h-48 sm:h-56 flex items-center justify-center">
+                    <canvas id="expensesChart"></canvas>
+                </div>
+            </div>
+
+            <div class="glass-card rounded-2xl p-4 sm:p-5 lg:col-span-2 flex flex-col justify-between">
+                <div>
+                    <h3 class="text-sm sm:text-base font-bold text-white mb-1 flex items-center gap-2">
+                        <i class="fa-solid fa-filter text-sky-400"></i>
+                        <span>فیلتر و جستجوی هوشمند</span>
+                    </h3>
+                    <p class="text-xs text-slate-400 mb-3">فیلتر بر اساس پروژه، کاربر، روز و تاریخ</p>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5 my-2">
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">جستجو</label>
+                        <div class="relative">
+                            <i class="fa-solid fa-search absolute right-3 top-3 text-slate-500 text-xs"></i>
+                            <input type="text" id="searchInput" oninput="applyFilters()" placeholder="محل، آدرس یا تاریخ..." class="glass-input w-full pr-8 pl-3 py-2 rounded-xl">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">فیلتر پروژه</label>
+                        <select id="projectFilter" onchange="applyFilters()" class="glass-input w-full px-3 py-2 rounded-xl">
+                            <option value="">همه پروژه‌ها</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">فیلتر کاربر</label>
+                        <select id="userFilter" onchange="applyFilters()" class="glass-input w-full px-3 py-2 rounded-xl">
+                            <option value="">همه کاربران</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">روز هفته</label>
+                        <select id="dayFilter" onchange="applyFilters()" class="glass-input w-full px-3 py-2 rounded-xl">
+                            <option value="">همه روزها</option>
+                            <option value="شنبه">شنبه</option>
+                            <option value="یکشنبه">یکشنبه</option>
+                            <option value="دوشنبه">دوشنبه</option>
+                            <option value="سه شنبه">سه شنبه</option>
+                            <option value="چهارشنبه">چهارشنبه</option>
+                            <option value="پنجشنبه">پنجشنبه</option>
+                            <option value="جمعه">جمعه</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">مرتب‌سازی</label>
+                        <select id="sortOrder" onchange="applyFilters()" class="glass-input w-full px-3 py-2 rounded-xl">
+                            <option value="row_asc">بر اساس ردیف (صعودی)</option>
+                            <option value="date_asc">بر اساس تاریخ (قدیمی‌ترین)</option>
+                            <option value="date_desc">بر اساس تاریخ (جدیدترین)</option>
+                            <option value="cost_desc">بر اساس بیشترین هزینه</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between gap-2 mt-4 pt-3 border-t border-slate-700/50">
+                    <span id="filteredResultsCount" class="text-xs text-slate-400">نمایش داده‌ها</span>
+                    <div class="flex items-center gap-2">
+                        <button onclick="resetFilters()" class="btn-touch text-xs text-slate-300 hover:text-white px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 transition border border-slate-700">
+                            <i class="fa-solid fa-rotate-left ml-1 text-amber-400"></i>بازنشانی
+                        </button>
+                        <button onclick="exportToCSV()" class="btn-touch text-xs text-emerald-400 hover:text-emerald-300 px-3 py-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 transition">
+                            <i class="fa-solid fa-file-excel ml-1"></i>خروجی اکسل
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Data Table -->
+        <main class="glass-card rounded-2xl overflow-hidden shadow-2xl border border-slate-700/50">
+            <div class="p-3.5 sm:p-5 border-b border-slate-700/60 flex items-center justify-between flex-wrap gap-2">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-list-check text-emerald-400"></i>
+                    <h2 class="font-bold text-white text-sm sm:text-base">جدول ریز هزینه‌های مأموریت داخلی</h2>
+                </div>
+                <div class="text-[11px] sm:text-xs text-slate-400">
+                    مبالغ به <strong class="text-slate-200">ریال</strong> محاسبه شده‌اند
+                </div>
+            </div>
+
+            <div class="block md:hidden text-[11px] text-slate-400 text-center py-1.5 bg-slate-900/60 border-b border-slate-800">
+                <i class="fa-solid fa-arrows-left-right text-emerald-400 ml-1"></i>برای مشاهده سایر ستون‌ها جدول را به چپ بکشید
+            </div>
+
+            <div class="overflow-x-auto touch-scroll">
+                <table class="w-full text-right text-xs whitespace-nowrap min-w-[800px]">
+                    <thead class="bg-slate-800/90 text-slate-300 border-b border-slate-700 font-semibold uppercase">
+                        <tr>
+                            <th class="p-3 text-center w-12">ردیف</th>
+                            <th class="p-3">تاریخ</th>
+                            <th class="p-3">روز هفته</th>
+                            <th class="p-3">پروژه</th>
+                            <th class="p-3">محل مأموریت</th>
+                            <th class="p-3">آدرس</th>
+                            <th class="p-3 text-center">شروع</th>
+                            <th class="p-3 text-center">خاتمه</th>
+                            <th class="p-3">وسیله رفت</th>
+                            <th class="p-3">مبلغ رفت</th>
+                            <th class="p-3">وسیله برگشت</th>
+                            <th class="p-3">مبلغ برگشت</th>
+                            <th class="p-3 text-emerald-400 font-bold">جمع کل</th>
+                            <th class="p-3 text-center no-print">عملیات</th>
+                        </tr>
+                    </thead>
+                    <tbody id="expenseTableBody" class="divide-y divide-slate-800/60">
+                    </tbody>
+                    <tfoot class="bg-slate-900/90 font-bold text-slate-200 border-t-2 border-slate-700">
+                        <tr>
+                            <td colspan="12" class="p-3.5 text-left font-extrabold text-xs sm:text-sm pl-6">جمع کل هزینه‌ها:</td>
+                            <td id="tableTotalSum" class="p-3.5 text-emerald-400 text-xs sm:text-sm font-black text-right">0</td>
+                            <td class="no-print"></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <!-- MODAL 1: Add / Edit Mission Expense -->
+    <div id="expenseModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+        <div class="glass-card w-full max-w-2xl rounded-2xl p-4 sm:p-6 shadow-2xl my-auto border border-slate-700 relative max-h-[92vh] overflow-y-auto touch-scroll">
+            <button onclick="closeExpenseModal()" class="absolute top-3.5 left-3.5 text-slate-400 hover:text-white w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center transition">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+
+            <div class="flex items-center gap-3 mb-5">
+                <div class="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
+                    <i class="fa-solid fa-pen-to-square text-lg"></i>
+                </div>
+                <div>
+                    <h3 id="modalTitle" class="text-base sm:text-lg font-bold text-white">ثبت هزینه مأموریت جدید</h3>
+                    <p class="text-xs text-slate-400">اطلاعات رفت و آمد و پروژه مربوطه را وارد نمایید</p>
+                </div>
+            </div>
+
+            <form id="expenseForm" onsubmit="handleFormSubmit(event)" class="space-y-3.5">
+                <input type="hidden" id="editId">
+
+                <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-300 mb-1">ردیف <span class="text-emerald-400">*</span></label>
+                        <input type="number" id="formRowNo" required min="1" class="glass-input w-full px-3 py-2 rounded-xl">
+                    </div>
+                    
+                    <div class="sm:col-span-2">
+                        <label class="block text-xs font-medium text-slate-300 mb-1">
+                            تاریخ شمسی <span class="text-emerald-400">*</span>
+                            <span class="text-[10px] text-emerald-400 mr-2" id="autoDayBadge"></span>
+                        </label>
+                        <input type="text" id="formDate" placeholder="۱۴۰۵/۰۳/۰۳" required class="glass-input w-full px-3 py-2 rounded-xl" oninput="handleDateInput(this.value)">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-medium text-slate-300 mb-1">
+                            روز هفته <i class="fa-solid fa-wand-magic-sparkles text-amber-400 text-[10px]" title="محاسبه خودکار"></i>
+                        </label>
+                        <select id="formDay" required class="glass-input w-full px-3 py-2 rounded-xl bg-slate-800">
+                            <option value="شنبه">شنبه</option>
+                            <option value="یکشنبه">یکشنبه</option>
+                            <option value="دوشنبه">دوشنبه</option>
+                            <option value="سه شنبه">سه شنبه</option>
+                            <option value="چهارشنبه">چهارشنبه</option>
+                            <option value="پنجشنبه">پنجشنبه</option>
+                            <option value="جمعه">جمعه</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-300 mb-1">پروژه مربوطه <span class="text-emerald-400">*</span></label>
+                        <select id="formProject" required class="glass-input w-full px-3 py-2 rounded-xl">
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-300 mb-1">محل مأموریت <span class="text-emerald-400">*</span></label>
+                        <input type="text" id="formLocation" required placeholder="مثال: بهداشت و درمان صنعت نفت" class="glass-input w-full px-3 py-2 rounded-xl">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-300 mb-1">آدرس محل مأموریت</label>
+                        <input type="text" id="formAddress" placeholder="مثال: خیابان به آفرین" class="glass-input w-full px-3 py-2 rounded-xl">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-300 mb-1">ساعت شروع</label>
+                        <input type="text" id="formStartTime" placeholder="۰۷:۵۸" class="glass-input w-full px-3 py-2 rounded-xl">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-300 mb-1">ساعت خاتمه</label>
+                        <input type="text" id="formEndTime" placeholder="۱۰:۱۰" class="glass-input w-full px-3 py-2 rounded-xl">
+                    </div>
+                </div>
+
+                <div class="p-3.5 rounded-xl bg-slate-900/60 border border-slate-700/50 space-y-2.5">
+                    <h4 class="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+                        <i class="fa-solid fa-route text-sky-400"></i> جزئیات رفت
+                    </h4>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1">وسیله رفت</label>
+                            <select id="formOutboundVehicle" class="glass-input w-full px-3 py-2 rounded-xl">
+                                <option value="شخصی">شخصی</option>
+                                <option value="اسنپ/تپسی">اسنپ / تپسی</option>
+                                <option value="آژانس">آژانس</option>
+                                <option value="حمل و نقل عمومی">حمل و نقل عمومی</option>
+                                <option value="خودرو شرکت">خودرو شرکت</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1">مبلغ رفت (ریال)</label>
+                            <input type="number" id="formOutboundCost" placeholder="۹۰۰۰۰۰" oninput="calculateTotalFormSum()" class="glass-input w-full px-3 py-2 rounded-xl">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-3.5 rounded-xl bg-slate-900/60 border border-slate-700/50 space-y-2.5">
+                    <h4 class="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+                        <i class="fa-solid fa-arrow-left text-purple-400"></i> جزئیات برگشت
+                    </h4>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1">وسیله برگشت</label>
+                            <select id="formInboundVehicle" class="glass-input w-full px-3 py-2 rounded-xl">
+                                <option value="شخصی">شخصی</option>
+                                <option value="اسنپ/تپسی">اسنپ / تپسی</option>
+                                <option value="آژانس">آژانس</option>
+                                <option value="حمل و نقل عمومی">حمل و نقل عمومی</option>
+                                <option value="خودرو شرکت">خودرو شرکت</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1">مبلغ برگشت (ریال)</label>
+                            <input type="number" id="formInboundCost" placeholder="۹۰۰۰۰۰" oninput="calculateTotalFormSum()" class="glass-input w-full px-3 py-2 rounded-xl">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-3 rounded-xl bg-emerald-950/40 border border-emerald-500/30 flex items-center justify-between">
+                    <span class="text-xs font-bold text-emerald-300">جمع کل این مأموریت:</span>
+                    <span id="formCalculatedTotal" class="text-sm sm:text-base font-extrabold text-emerald-400">۰ ریال</span>
+                </div>
+
+                <div class="flex items-center justify-end gap-2.5 pt-2">
+                    <button type="button" onclick="closeExpenseModal()" class="btn-touch px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs transition">
+                        انصراف
+                    </button>
+                    <button type="submit" class="btn-touch px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-xs transition flex items-center gap-1.5 shadow-lg shadow-emerald-600/30">
+                        <i class="fa-solid fa-check"></i>
+                        <span>ذخیره مأموریت</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 2: USER MANAGEMENT -->
+    <div id="usersModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+        <div class="glass-card w-full max-w-3xl rounded-2xl p-4 sm:p-6 shadow-2xl my-auto border border-slate-700 relative max-h-[92vh] overflow-y-auto touch-scroll">
+            <button onclick="closeUsersModal()" class="absolute top-3.5 left-3.5 text-slate-400 hover:text-white w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center transition">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0">
+                    <i class="fa-solid fa-user-plus text-lg"></i>
+                </div>
+                <div>
+                    <h3 class="text-base sm:text-lg font-bold text-white">مدیریت کاربران و امضای دیجیتال</h3>
+                    <p class="text-xs text-slate-400">ایجاد کاربر جدید، بارگذاری تصویر امضا و مدیریت کاربران</p>
+                </div>
+            </div>
+
+            <div class="flex flex-wrap items-center justify-between gap-2 p-2.5 mb-4 bg-slate-900/80 rounded-xl border border-slate-800 text-xs">
+                <span class="text-slate-300 font-medium flex items-center gap-1.5">
+                    <i class="fa-solid fa-database text-emerald-400"></i>
+                    <span>پشتیبان‌گیری کامل اطلاعات و کاربران:</span>
+                </span>
+                <div class="flex items-center gap-2">
+                    <button onclick="exportSystemBackup()" class="btn-touch px-3 py-1.5 rounded-lg bg-emerald-600/20 text-emerald-300 hover:bg-emerald-600/30 border border-emerald-500/30 font-semibold transition flex items-center gap-1">
+                        <i class="fa-solid fa-download"></i>
+                        <span>دانلود پشتیبان (JSON)</span>
+                    </button>
+                    <label class="btn-touch px-3 py-1.5 rounded-lg bg-sky-600/20 text-sky-300 hover:bg-sky-600/30 border border-sky-500/30 font-semibold transition cursor-pointer flex items-center gap-1">
+                        <i class="fa-solid fa-upload"></i>
+                        <span>بازیابی فایل</span>
+                        <input type="file" accept=".json" class="hidden" onchange="importSystemBackup(event)">
+                    </label>
+                </div>
+            </div>
+
+            <form id="addUserForm" onsubmit="handleCreateUser(event)" class="bg-slate-900/60 p-3.5 rounded-xl border border-slate-800 mb-5 space-y-3">
+                <h4 class="text-xs font-bold text-amber-400">تعریف کاربر جدید</h4>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5">
+                    <div>
+                        <label class="block text-[11px] text-slate-400 mb-1">نام و نام خانوادگی</label>
+                        <input type="text" id="newFullName" required placeholder="مثال: علی محمدی" class="glass-input w-full px-2.5 py-1.5 rounded-lg">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] text-slate-400 mb-1">نام کاربری</label>
+                        <input type="text" id="newUsername" required placeholder="alim" class="glass-input w-full px-2.5 py-1.5 rounded-lg">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] text-slate-400 mb-1">کلمه عبور</label>
+                        <input type="password" id="newPassword" required placeholder="••••••" class="glass-input w-full px-2.5 py-1.5 rounded-lg">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] text-slate-400 mb-1">نقش کاربر</label>
+                        <select id="newRole" class="glass-input w-full px-2.5 py-1.5 rounded-lg">
+                            <option value="کارشناس">کارشناس</option>
+                            <option value="مدیر سیستم">مدیر سیستم</option>
+                            <option value="حسابدار">حسابدار</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[11px] text-slate-400 mb-1">تصویر امضا</label>
+                        <input type="file" id="newSignatureFile" accept="image/*" class="glass-input w-full px-2 py-1 rounded-lg text-[10px] text-slate-300">
+                    </div>
+                </div>
+                <div class="text-left pt-1">
+                    <button type="submit" class="btn-touch px-4 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-500 text-white font-medium text-xs transition">
+                        <i class="fa-solid fa-plus ml-1"></i>ایجاد کاربر
+                    </button>
+                </div>
+            </form>
+
+            <div class="overflow-x-auto max-h-56 rounded-xl border border-slate-800 touch-scroll">
+                <table class="w-full text-right text-xs whitespace-nowrap min-w-[550px]">
+                    <thead class="bg-slate-900 text-slate-400">
+                        <tr>
+                            <th class="p-2.5">نام و نام خانوادگی</th>
+                            <th class="p-2.5">نام کاربری</th>
+                            <th class="p-2.5">نقش</th>
+                            <th class="p-2.5 text-center">پیش‌نمایش امضا</th>
+                            <th class="p-2.5 text-center">عملیات</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersTableBody" class="divide-y divide-slate-800">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: RESET PASSWORD -->
+    <div id="resetPasswordModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-[110] hidden flex items-center justify-center p-3 sm:p-4">
+        <div class="glass-card w-full max-w-sm rounded-2xl p-5 shadow-2xl border border-slate-700 relative text-right space-y-3.5 my-auto">
+            <button onclick="closeResetPasswordModal()" class="absolute top-3.5 left-3.5 text-slate-400 hover:text-white w-7 h-7 rounded-full bg-slate-800 flex items-center justify-center transition">
+                <i class="fa-solid fa-xmark text-sm"></i>
+            </button>
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-sky-500/20 text-sky-400 flex items-center justify-center shrink-0">
+                    <i class="fa-solid fa-key text-lg"></i>
+                </div>
+                <div>
+                    <h3 class="text-sm font-bold text-white">تغییر / ریست رمز عبور</h3>
+                    <p id="resetPassTargetUser" class="text-xs text-slate-400">کاربر: -</p>
+                </div>
+            </div>
+            <form onsubmit="handleResetPasswordSubmit(event)" class="space-y-3">
+                <input type="hidden" id="resetPassUserId">
+                <div>
+                    <label class="block text-xs text-slate-300 mb-1">کلمه عبور جدید</label>
+                    <input type="password" id="newResetPassword" required minlength="4" placeholder="رمز عبور جدید را وارد کنید" class="glass-input w-full px-3 py-2 rounded-xl">
+                </div>
+                <div class="flex items-center justify-end gap-2 pt-2">
+                    <button type="button" onclick="closeResetPasswordModal()" class="btn-touch px-4 py-1.5 rounded-xl bg-slate-800 text-slate-300 text-xs hover:bg-slate-700 transition">انصراف</button>
+                    <button type="submit" class="btn-touch px-4 py-1.5 rounded-xl bg-sky-600 text-white text-xs hover:bg-sky-500 font-bold transition">ثبت رمز جدید</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 3: PROJECT MANAGEMENT -->
+    <div id="projectsModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+        <div class="glass-card w-full max-w-2xl rounded-2xl p-4 sm:p-6 shadow-2xl my-auto border border-slate-700 relative max-h-[92vh] overflow-y-auto touch-scroll">
+            <button onclick="closeProjectsModal()" class="absolute top-3.5 left-3.5 text-slate-400 hover:text-white w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center transition">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+
+            <div class="flex items-center gap-3 mb-5">
+                <div class="w-10 h-10 rounded-xl bg-sky-500/20 text-sky-400 flex items-center justify-center shrink-0">
+                    <i class="fa-solid fa-diagram-project text-lg"></i>
+                </div>
+                <div>
+                    <h3 class="text-base sm:text-lg font-bold text-white">مدیریت پروژه‌ها</h3>
+                    <p class="text-xs text-slate-400">تعریف پروژه‌های سازمان و کارفرمای مربوطه</p>
+                </div>
+            </div>
+
+            <form onsubmit="handleCreateProject(event)" class="bg-slate-900/60 p-3.5 rounded-xl border border-slate-800 mb-5 space-y-3">
+                <h4 class="text-xs font-bold text-sky-400">تعریف پروژه جدید</h4>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                    <div>
+                        <label class="block text-[11px] text-slate-400 mb-1">عنوان پروژه</label>
+                        <input type="text" id="newProjectTitle" required placeholder="مثال: پروژه نوسازی" class="glass-input w-full px-2.5 py-1.5 rounded-lg">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] text-slate-400 mb-1">کد پروژه</label>
+                        <input type="text" id="newProjectCode" required placeholder="PRJ-101" class="glass-input w-full px-2.5 py-1.5 rounded-lg">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] text-slate-400 mb-1">کارفرما / سازمان</label>
+                        <input type="text" id="newProjectClient" required placeholder="اداره کل نوسازی" class="glass-input w-full px-2.5 py-1.5 rounded-lg">
+                    </div>
+                </div>
+                <div class="text-left pt-1">
+                    <button type="submit" class="btn-touch px-4 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-500 text-white font-medium text-xs transition">
+                        <i class="fa-solid fa-plus ml-1"></i>افزودن پروژه
+                    </button>
+                </div>
+            </form>
+
+            <div class="overflow-x-auto max-h-52 rounded-xl border border-slate-800 touch-scroll">
+                <table class="w-full text-right text-xs whitespace-nowrap min-w-[450px]">
+                    <thead class="bg-slate-900 text-slate-400">
+                        <tr>
+                            <th class="p-2.5">نام پروژه</th>
+                            <th class="p-2.5">کد پروژه</th>
+                            <th class="p-2.5">کارفرما</th>
+                            <th class="p-2.5 text-center">عملیات</th>
+                        </tr>
+                    </thead>
+                    <tbody id="projectsTableBody" class="divide-y divide-slate-800">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 4: GEMINI AI ASSISTANT -->
+    <div id="aiAssistantModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+        <div class="glass-card w-full max-w-3xl rounded-2xl p-4 sm:p-6 shadow-2xl my-auto border border-purple-500/30 relative max-h-[92vh] overflow-y-auto touch-scroll">
+            <button onclick="closeAiAssistantModal()" class="absolute top-3.5 left-3.5 text-slate-400 hover:text-white w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center transition">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-purple-600 to-indigo-500 text-white flex items-center justify-center shrink-0 shadow-lg shadow-purple-500/30">
+                    <i class="fa-solid fa-brain text-lg"></i>
+                </div>
+                <div>
+                    <h3 class="text-base sm:text-lg font-bold text-white flex items-center gap-2">
+                        <span>دستیار هوشمند Gemini</span>
+                        <span class="text-[10px] bg-purple-500/20 text-purple-300 border border-purple-500/30 px-2 py-0.5 rounded-full">Gemini 3 Flash</span>
+                    </h3>
+                    <p class="text-xs text-slate-400">ثبت هوشمند مأموریت با متن/تصویر و تحلیل مالی پروژه‌ها</p>
+                </div>
+            </div>
+
+            <div id="geminiApiKeyAdminSection" class="mb-4 p-3 bg-slate-900/90 rounded-xl border border-purple-500/30 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 text-xs">
+                <div class="flex items-center gap-2 text-slate-300 font-medium shrink-0">
+                    <i class="fa-solid fa-key text-amber-400"></i>
+                    <span>کلید API مرکزی هوش مصنوعی (مدیر سیستم):</span>
+                </div>
+                <div class="flex items-center gap-2 flex-1 max-w-sm">
+                    <input type="password" id="geminiApiKeyInput" placeholder="کلید API مرکزی (AIzaSy...)" onchange="saveGeminiApiKey(this.value)" class="glass-input w-full px-3 py-1.5 rounded-lg text-xs font-mono">
+                    <button type="button" onclick="toggleApiKeyVisibility()" class="btn-touch px-2.5 py-1.5 bg-slate-800 text-slate-300 hover:text-white rounded-lg border border-slate-700 shrink-0" title="نمایش/مخفی‌سازی کلید">
+                        <i id="apiKeyVisIcon" class="fa-solid fa-eye"></i>
+                    </button>
+                    <button type="button" onclick="saveGeminiApiKey(document.getElementById('geminiApiKeyInput').value)" class="btn-touch px-3 py-1.5 bg-purple-600 hover:bg-purple-500 text-white rounded-lg font-bold text-xs shrink-0">
+                        ذخیره
+                    </button>
+                </div>
+            </div>
+
+            <div id="geminiApiKeyUserSection" class="mb-4 hidden">
+                <div id="aiKeyActiveStatusBadge" class="p-3 bg-emerald-950/40 border border-emerald-500/30 rounded-xl text-xs text-emerald-300 flex items-center justify-between gap-2">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-shield-check text-emerald-400 text-sm animate-pulse"></i>
+                        <span id="aiKeyActiveStatusText" class="font-semibold">سرویس هوش مصنوعی فعال است (تنظیم‌شده توسط مدیر سیستم)</span>
+                    </div>
+                    <span class="text-[10px] bg-emerald-500/20 px-2 py-0.5 rounded-full border border-emerald-500/30 font-mono">READY</span>
+                </div>
+            </div>
+
+            <div class="flex border-b border-slate-700 mb-4 gap-2 overflow-x-auto touch-scroll pb-1">
+                <button id="aiTabBtn1" onclick="switchAiTab('text')" class="px-3.5 py-2 text-xs font-bold text-purple-400 border-b-2 border-purple-500 transition flex items-center gap-1.5 whitespace-nowrap">
+                    <i class="fa-solid fa-comment-dots"></i>
+                    <span>ثبت هوشمند متنی</span>
+                </button>
+                <button id="aiTabBtn2" onclick="switchAiTab('ocr')" class="px-3.5 py-2 text-xs font-medium text-slate-400 border-b-2 border-transparent hover:text-slate-200 transition flex items-center gap-1.5 whitespace-nowrap">
+                    <i class="fa-solid fa-file-invoice-dollar"></i>
+                    <span>اسکن رسید / فاکتور</span>
+                </button>
+                <button id="aiTabBtn3" onclick="switchAiTab('analysis')" class="px-3.5 py-2 text-xs font-medium text-slate-400 border-b-2 border-transparent hover:text-slate-200 transition flex items-center gap-1.5 whitespace-nowrap">
+                    <i class="fa-solid fa-chart-line"></i>
+                    <span>تحلیل مالی و گوینده صوتی</span>
+                </button>
+                <button id="aiTabBtn4" onclick="switchAiTab('chat')" class="px-3.5 py-2 text-xs font-medium text-slate-400 border-b-2 border-transparent hover:text-slate-200 transition flex items-center gap-1.5 whitespace-nowrap">
+                    <i class="fa-solid fa-robot"></i>
+                    <span>پرسش و پاسخ از داده‌ها</span>
+                </button>
+                <button id="aiTabBtn5" onclick="switchAiTab('image')" class="px-3.5 py-2 text-xs font-medium text-slate-400 border-b-2 border-transparent hover:text-slate-200 transition flex items-center gap-1.5 whitespace-nowrap">
+                    <i class="fa-solid fa-image"></i>
+                    <span>پوستر و اینفوگرافیک AI</span>
+                </button>
+            </div>
+
+            <div id="aiTabContentText" class="space-y-4">
+                <div class="p-3 bg-purple-950/30 border border-purple-500/20 rounded-xl text-xs text-purple-200">
+                    <p class="font-bold mb-1"><i class="fa-solid fa-wand-magic-sparkles text-purple-400 ml-1"></i>ثبت هوشمند متنی مأموریت:</p>
+                    <p class="text-slate-300 text-[11px]">شرح مأموریت را به صورت گفتاری یا متنی بنویسید تا سیستم به طور خودکار جزییات آن را استخراج و در فرم ثبت کند.</p>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-slate-300 mb-1">شرح کامل مأموریت:</label>
+                    <textarea id="aiTextPrompt" rows="3" placeholder="مثلا: امروز رفتم بهداشت و درمان صنعت نفت با اسنپ ۶۰ هزار تومن و برگشتم با آژانس ۸۰ هزار تومن از ساعت ۰۸:۰۰ تا ۱۲:۳۰" class="glass-input w-full p-2.5 rounded-xl text-xs leading-relaxed"></textarea>
+                </div>
+
+                <div class="flex justify-end">
+                    <button onclick="handleAiTextSubmit()" class="btn-touch px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs transition flex items-center gap-2 shadow-lg shadow-purple-600/30">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i>
+                        <span>استخراج و درج در فرم</span>
+                    </button>
+                </div>
+            </div>
+
+            <div id="aiTabContentOcr" class="space-y-4 hidden">
+                <div class="p-3 bg-indigo-950/30 border border-indigo-500/20 rounded-xl text-xs text-indigo-200">
+                    <p class="font-bold mb-1"><i class="fa-solid fa-file-invoice-dollar text-indigo-400 ml-1"></i>اسکن هوشمند تصویر رسید و فاکتور:</p>
+                    <p class="text-slate-300 text-[11px]">تصویر رسید اسنپ، آژانس یا فاکتور مأموریت را بارگذاری کنید تا اطلاعات آن با هوش مصنوعی خوانده شود.</p>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-slate-300 mb-1">انتخاب تصویر رسید یا فاکتور:</label>
+                    <input type="file" id="aiReceiptFile" accept="image/*" onchange="previewAiReceiptImage(event)" class="glass-input w-full p-2 rounded-xl text-xs">
+                </div>
+
+                <div id="aiReceiptPreviewContainer" class="hidden text-center p-2 bg-slate-900 rounded-xl border border-slate-800">
+                    <img id="aiReceiptImgPreview" src="" alt="پیش‌نمایش رسید" class="max-h-40 mx-auto rounded-lg object-contain border border-slate-700">
+                </div>
+
+                <div class="flex justify-end">
+                    <button onclick="handleAiOcrSubmit()" class="btn-touch px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs transition flex items-center gap-2 shadow-lg shadow-indigo-600/30">
+                        <i class="fa-solid fa-scan"></i>
+                        <span>تحلیل تصویر و استخراج داده</span>
+                    </button>
+                </div>
+            </div>
+
+            <div id="aiTabContentAnalysis" class="space-y-4 hidden">
+                <div class="p-3 bg-emerald-950/30 border border-emerald-500/20 rounded-xl text-xs text-emerald-200 flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                        <p class="font-bold"><i class="fa-solid fa-brain text-emerald-400 ml-1"></i>تحلیل هوشمند و گزارش صوتی Gemini:</p>
+                        <p class="text-slate-300 text-[11px] mt-0.5">تولید خودکار گزارش تحلیلی مدیریتی و قرائت صوتی آن با مدل TTS.</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="handleAiFinancialAnalysis()" id="aiAnalysisBtn" class="btn-touch px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition shrink-0">
+                            <i class="fa-solid fa-play ml-1"></i>شروع تحلیل
+                        </button>
+                        <button onclick="handleAiTtsSpeaker()" id="aiTtsBtn" class="btn-touch px-3.5 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs transition shrink-0 flex items-center gap-1.5">
+                            <i class="fa-solid fa-volume-high text-amber-200 animate-pulse"></i>
+                            <span>قرائت صوتی گزارش</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="aiAudioPlayerContainer" class="hidden p-3 bg-slate-900 rounded-xl border border-amber-500/30 flex items-center justify-between gap-3">
+                    <div class="flex items-center gap-2 text-amber-400 text-xs font-bold">
+                        <i class="fa-solid fa-circle-play text-base animate-bounce"></i>
+                        <span>در حال پخش گزارش صوتی با Gemini TTS...</span>
+                    </div>
+                    <audio id="geminiAudioPlayer" controls class="h-8 max-w-[240px]"></audio>
+                </div>
+
+                <div id="aiAnalysisResult" class="p-4 bg-slate-900/80 rounded-xl border border-slate-800 text-xs text-slate-200 leading-relaxed min-h-36 max-h-80 overflow-y-auto touch-scroll">
+                    <p class="text-slate-500 text-center my-8">جهت دریافت تحلیل جامع مدیریتی، دکمه «شروع تحلیل» را بفشارید.</p>
+                </div>
+            </div>
+
+            <div id="aiTabContentChat" class="space-y-4 hidden">
+                <div class="p-3 bg-blue-950/30 border border-blue-500/20 rounded-xl text-xs text-blue-200">
+                    <p class="font-bold mb-1"><i class="fa-solid fa-comments text-sky-400 ml-1"></i>پرسش و پاسخ تحلیل‌گر از لیست مأموریت‌ها:</p>
+                    <p class="text-slate-300 text-[11px]">هر سوالی درباره هزینه‌ها، پروژه‌ها، پرترددترین مسیرها یا آمار مأموریت‌ها دارید بپرسید تا Gemini پاسخ دهد.</p>
+                </div>
+
+                <div class="flex flex-wrap gap-2 text-[11px]">
+                    <button onclick="askPresetQuestion('پرهزینه‌ترین پروژه کدام است و چقدر هزینه داشته؟')" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-sky-300 border border-slate-700 transition">
+                        💡 پرهزینه‌ترین پروژه؟
+                    </button>
+                    <button onclick="askPresetQuestion('کدام روز هفته بیشترین تعداد مأموریت را داشته است؟')" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-300 border border-slate-700 transition">
+                        📅 شلوغ‌ترین روز هفته؟
+                    </button>
+                    <button onclick="askPresetQuestion('مجموع کل هزینه‌های اسنپ و آژانس چقدر بوده است؟')" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-emerald-300 border border-slate-700 transition">
+                        🚗 مجموع کرایه اسنپ/آژانس؟
+                    </button>
+                </div>
+
+                <div class="flex gap-2">
+                    <input type="text" id="aiChatInput" placeholder="سوال خود را بپرسید... (مثلا: میانگین هزینه رفت چقدر بوده؟)" class="glass-input flex-1 px-3 py-2 rounded-xl text-xs" onkeypress="if(event.key==='Enter') handleAiDataChat()">
+                    <button onclick="handleAiDataChat()" class="btn-touch px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs transition">
+                        <i class="fa-solid fa-paper-plane"></i>
+                    </button>
+                </div>
+
+                <div id="aiChatResponseBox" class="p-3 bg-slate-900/90 rounded-xl border border-slate-800 text-xs text-slate-200 min-h-24 max-h-60 overflow-y-auto leading-relaxed">
+                    <p class="text-slate-500 text-center my-4">سوال خود را بپرسید یا از پیشنهادهای بالا استفاده کنید.</p>
+                </div>
+            </div>
+
+            <div id="aiTabContentImage" class="space-y-4 hidden">
+                <div class="p-3 bg-pink-950/30 border border-pink-500/20 rounded-xl text-xs text-pink-200">
+                    <p class="font-bold mb-1"><i class="fa-solid fa-palette text-pink-400 ml-1"></i>تولید پوستر و اینفوگرافیک هوشمند (Imagen 4):</p>
+                    <p class="text-slate-300 text-[11px]">با استفاده از مدل Imagen 4، یک بنر گرافیکی و اینفوگرافیک سه‌بعدی شیک برای گزارش هزینه‌ها خلق کنید.</p>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-slate-300 mb-1">توضیح پوستر یا اینفوگرافیک دلخواه:</label>
+                    <input type="text" id="aiImagePrompt" value="A sleek futuristic executive business report infographic banner for corporate mission expenses, 3d rendered icon graphs, dark cyan background" class="glass-input w-full p-2.5 rounded-xl text-xs">
+                </div>
+
+                <div class="flex justify-end">
+                    <button onclick="handleAiImageGenerate()" id="aiImageGenBtn" class="btn-touch px-5 py-2.5 rounded-xl bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500 text-white font-bold text-xs transition flex items-center gap-2 shadow-lg shadow-pink-600/30">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i>
+                        <span>تولید بنر و پوستر با Imagen 4</span>
+                    </button>
+                </div>
+
+                <div id="aiGeneratedImgContainer" class="hidden text-center p-3 bg-slate-900 rounded-xl border border-slate-800">
+                    <img id="aiGeneratedImg" src="" alt="تصویر تولید شده توسط Gemini" class="max-h-64 mx-auto rounded-xl shadow-lg object-contain border border-slate-700 mb-2">
+                    <a id="aiGeneratedImgDownload" href="#" download="mission-report-infographic.png" class="inline-flex items-center gap-1.5 text-xs text-emerald-400 hover:text-emerald-300 bg-emerald-500/10 px-3 py-1.5 rounded-lg border border-emerald-500/20">
+                        <i class="fa-solid fa-download"></i>دانلود تصویر
+                    </a>
+                </div>
+            </div>
+
+            <div id="aiLoadingState" class="hidden my-4 text-center py-6 bg-slate-900/90 rounded-xl border border-purple-500/30 space-y-2">
+                <div class="inline-block animate-spin w-8 h-8 border-3 border-purple-500 border-t-transparent rounded-full mb-1"></div>
+                <p class="text-xs font-bold text-purple-300">در حال پردازش هوشمند با مدل Gemini 3 Flash...</p>
+                <p class="text-[10px] text-slate-400">لطفا چند لحظه شکیبا باشید</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- CUSTOM NOTIFICATION & CONFIRMATION DIALOG MODAL -->
+    <div id="customModal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-sm z-[100] hidden flex items-center justify-center p-4">
+        <div class="glass-card w-full max-w-sm rounded-2xl p-5 sm:p-6 shadow-2xl border border-slate-700 text-center space-y-3.5 my-auto">
+            <div id="customModalIcon" class="w-12 h-12 rounded-2xl bg-amber-500/20 text-amber-400 flex items-center justify-center mx-auto text-xl">
+                <i class="fa-solid fa-bell"></i>
+            </div>
+            <h3 id="customModalTitle" class="text-base font-bold text-white">پیام سیستم</h3>
+            <p id="customModalMessage" class="text-xs text-slate-300 leading-relaxed">پیام موقت</p>
+            <div class="flex items-center justify-center gap-2.5 pt-2">
+                <button id="customModalCancelBtn" onclick="closeCustomModal()" class="btn-touch px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs transition">
+                    انصراف
+                </button>
+                <button id="customModalConfirmBtn" class="btn-touch px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-xs transition">
+                    تأیید
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Official Crystal Report Print Layout -->
+    <div id="crystalReportPrintArea" class="print-only p-2 font-sans dir-rtl">
+        <div class="crystal-report-box rounded-lg p-3 mb-3">
+            <div class="flex items-center justify-between border-b-2 border-slate-900 pb-2 mb-2">
+                <div class="text-right">
+                    <div class="flex items-center gap-2">
+                        <span class="bg-slate-900 text-white font-black text-xs px-2 py-0.5 rounded">AKASRA</span>
+                        <h1 class="text-base font-black text-slate-900">سامانه جامع گزارش‌گیری مأموریت‌های اداری</h1>
+                    </div>
+                    <p class="text-[11px] font-bold text-slate-700 mt-0.5">گزارش رسمی و ریز هزینه‌های تردد و مأموریت داخلی (کد گزارش: CRYSTAL-EXP-1405)</p>
+                </div>
+                <div class="text-center border-r border-l border-slate-300 px-4">
+                    <h2 class="text-sm font-black text-slate-900">فرم تسویه هزینه مأموریت</h2>
+                    <span class="text-[10px] text-slate-600 font-bold block">مطابق با آیین‌نامه مالی و اداری</span>
+                </div>
+                <div class="text-left text-[10px] space-y-1 font-semibold text-slate-800">
+                    <div><strong>تاریخ صدور:</strong> <span id="printReportDate">۱۴۰۵/۰۵/۰۴</span></div>
+                    <div><strong>ساعت صدور:</strong> <span id="printReportTime">۱۲:۰۰</span></div>
+                    <div><strong>شماره سند:</strong> <span id="printReportDocNo">REP-90241</span></div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-4 gap-2 text-[10px] bg-slate-100 p-2 rounded border border-slate-300 font-medium">
+                <div><strong>نام کارشناس:</strong> <span id="printExpertName">حامد خیرآبادی</span></div>
+                <div><strong>پروژه انتخابی:</strong> <span id="printFilterProject">همه پروژه‌ها</span></div>
+                <div><strong>فیلتر روز هفته:</strong> <span id="printFilterDay">همه روزها</span></div>
+                <div><strong>تعداد کل مأموریت‌ها:</strong> <span id="printRecordCount">۰ مورد</span></div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-2 mb-3 text-center text-[10px] font-bold">
+            <div class="crystal-subcard p-1.5 rounded">
+                <span class="text-slate-600 block text-[9px]">جمع کل هزینه‌ها (ریال)</span>
+                <span id="printTotalSum" class="text-xs font-black text-slate-900">0</span>
+            </div>
+            <div class="crystal-subcard p-1.5 rounded">
+                <span class="text-slate-600 block text-[9px]">معادل کل به تومان</span>
+                <span id="printTotalToman" class="text-xs font-black text-slate-900">0</span>
+            </div>
+            <div class="crystal-subcard p-1.5 rounded">
+                <span class="text-slate-600 block text-[9px]">میانگین هزینه هر مأموریت</span>
+                <span id="printAvgCost" class="text-xs font-black text-slate-900">0</span>
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <h3 class="text-[10px] font-bold text-slate-900 mb-1">الف) جدول تفکیک هزینه‌ها بر اساس پروژه:</h3>
+            <table class="print-table">
+                <thead>
+                    <tr>
+                        <th>نام پروژه</th>
+                        <th>کد پروژه</th>
+                        <th>کارفرما / سازمان</th>
+                        <th>تعداد مأموریت</th>
+                        <th>مجموع هزینه رفت (ریال)</th>
+                        <th>مجموع هزینه برگشت (ریال)</th>
+                        <th>جمع کل سهم پروژه (ریال)</th>
+                    </tr>
+                </thead>
+                <tbody id="printProjectBreakdownBody">
+                </tbody>
+            </table>
+        </div>
+
+        <div class="mb-4">
+            <h3 class="text-[10px] font-bold text-slate-900 mb-1">ب) جدول ریز مأموریت‌ها و صورت هزینه‌ها:</h3>
+            <table class="print-table">
+                <thead>
+                    <tr>
+                        <th style="width: 25px;">ردیف</th>
+                        <th style="width: 65px;">تاریخ</th>
+                        <th style="width: 50px;">روز</th>
+                        <th>پروژه</th>
+                        <th>محل مأموریت</th>
+                        <th>آدرس محل</th>
+                        <th style="width: 40px;">شروع</th>
+                        <th style="width: 40px;">خاتمه</th>
+                        <th>وسیله رفت</th>
+                        <th>مبلغ رفت</th>
+                        <th>وسیله برگشت</th>
+                        <th>مبلغ برگشت</th>
+                        <th style="width: 80px;">جمع کل (ریال)</th>
+                    </tr>
+                </thead>
+                <tbody id="printTableBody">
+                </tbody>
+                <tfoot>
+                    <tr class="font-bold bg-slate-200">
+                        <td colspan="12" style="text-align: left; font-size: 11px; padding-left: 10px;">جمع نهایی کل هزینه‌های مأموریت (ریال):</td>
+                        <td id="printTableFooterTotal" style="font-size: 11px; font-weight: 900;">۰</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <div class="mt-6 pt-2 border-t-2 border-slate-900">
+            <div class="grid grid-cols-3 gap-4 text-center text-[10px]">
+                <div class="border border-slate-300 rounded p-2 min-h-24 flex flex-col justify-between items-center">
+                    <div class="font-bold text-slate-900 w-full text-center">تنظیم و ارائه دهنده (کارشناس):</div>
+                    <div class="my-1 flex items-center justify-center h-10 w-full">
+                        <img id="printSignatureImg" src="" alt="امضای دیجیتال" class="max-h-10 max-w-[140px] object-contain hidden" />
+                        <span id="printSignaturePlaceholder" class="text-slate-400 text-[9px] hidden">فاقد امضای ثبت‌شده</span>
+                    </div>
+                    <div id="printSignatureExpert" class="font-bold text-slate-800">حامد خیرآبادی</div>
+                    <div class="text-[9px] text-slate-500">امضاء و تاریخ</div>
+                </div>
+
+                <div class="border border-slate-300 rounded p-2 min-h-24 flex flex-col justify-between">
+                    <div class="font-bold text-slate-900">تأیید کننده (مدیر پروژه / سرپرست):</div>
+                    <div class="text-slate-400 my-auto">..............................</div>
+                    <div class="text-[9px] text-slate-500">امضاء و تاریخ</div>
+                </div>
+
+                <div class="border border-slate-300 rounded p-2 min-h-24 flex flex-col justify-between">
+                    <div class="font-bold text-slate-900">تصویب نهایی (مدیریت مالی / حسابداری):</div>
+                    <div class="text-slate-400 my-auto">..............................</div>
+                    <div class="text-[9px] text-slate-500">امضاء و مهر مالی</div>
+                </div>
+            </div>
+            
+            <div class="mt-2 text-center text-[8px] text-slate-500">
+                این سند به صورت خودکار توسط سامانه مدیریت مأموریت‌های AKASRA تولید شده و فاقد خدشه یا قلم‌خوردگی می‌باشد.
+            </div>
+        </div>
+    </div>
+
+    <!-- Gemini logic & API Calls -->
+    <script>
+        window.sampleSignatureDataUrl = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNjAiIGhlaWghtD0iNTAiIHZpZXdCb3g9IjAgMCAxNjAgNTAiPjxwYXRoIGQ9Ik0gMTUgMzUgUSAzNSA1LCA2MCAzMCBUIDExMCAyMCBUMTQ1IDM4IE0gNDUgMTIgTCA3NSA0MiBMIDExNSAxNSIgc3Ryb2tlPSIjMWUyOTNiIiBzdHJva2Utd2lkdGg9IjIuNSIgZmlsbD0ibm9uZSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PC9zdmc+';
+        window.globalGeminiApiKey = localStorage.getItem('gemini_api_key') || '';
+
+        window.saveGeminiApiKey = function(val) {
+            if (val !== undefined && val !== null) {
+                const trimmed = val.trim();
+                localStorage.setItem('gemini_api_key', trimmed);
+                window.globalGeminiApiKey = trimmed;
+
+                if (window.db && window.currentUser && window.currentUser.role === 'مدیر سیستم') {
+                    const appId = typeof __app_id !== 'undefined' ? __app_id : 'akasra-expense-tracker';
+                    import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js").then(({ doc, setDoc }) => {
+                        const settingsRef = doc(window.db, 'artifacts', appId, 'public', 'data', 'settings', 'config');
+                        setDoc(settingsRef, { geminiApiKey: trimmed, updatedAt: new Date().toISOString() }, { merge: true })
+                            .then(() => showCustomAlert('کلید API هوش مصنوعی در دیتابیس مرکزی ذخیره شد و برای تمام کاربران فعال گردید.', 'ذخیره موفق'))
+                            .catch(err => console.error("Error saving API key to Firestore:", err));
+                    });
+                } else {
+                    showCustomAlert('کلید API در مرورگر محلی ذخیره شد.');
+                }
+            }
+        };
+
+        window.getGeminiApiKey = function() {
+            const input = document.getElementById('geminiApiKeyInput');
+            const val = input ? input.value.trim() : '';
+            if (val && window.currentUser && window.currentUser.role === 'مدیر سیستم') {
+                localStorage.setItem('gemini_api_key', val);
+                window.globalGeminiApiKey = val;
+                return val;
+            }
+            return window.globalGeminiApiKey || localStorage.getItem('gemini_api_key') || '';
+        };
+
+        window.toggleApiKeyVisibility = function() {
+            const input = document.getElementById('geminiApiKeyInput');
+            const icon = document.getElementById('apiKeyVisIcon');
+            if (!input || !icon) return;
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.className = 'fa-solid fa-eye-slash';
+            } else {
+                input.type = 'password';
+                icon.className = 'fa-solid fa-eye';
+            }
+        };
+
+        async function fetchGeminiWithBackoff(url, options, maxRetries = 3) {
+            let delay = 1000;
+            for (let i = 0; i < maxRetries; i++) {
+                try {
+                    const res = await fetch(url, options);
+                    if (res.ok) return await res.json();
+                    if (res.status === 401) {
+                        throw new Error("کلید API جِمینای فعال نیست یا توسط مدیر سیستم وارد نشده است (401 Unauthorized). لطفاً از مدیر سیستم بخواهید کلید API معتبر را ثبت کند.");
+                    }
+                    if (res.status === 429 || res.status >= 500) {
+                        await new Promise(r => setTimeout(r, delay));
+                        delay *= 2;
+                        continue;
+                    }
+                    const errText = await res.text();
+                    throw new Error(`خطای API جِمینای (${res.status}): ${errText}`);
+                } catch (err) {
+                    if (err.message.includes('401') || err.message.includes('Unauthorized')) throw err;
+                    if (i === maxRetries - 1) throw err;
+                    await new Promise(r => setTimeout(r, delay));
+                    delay *= 2;
+                }
+            }
+        }
+
+        async function parseMissionTextWithGemini(userPrompt) {
+            const apiKey = getGeminiApiKey();
+            if (!apiKey) throw new Error("کلید API هوش مصنوعی توسط مدیر سیستم فعال نشده است. لطفاً به مدیر سیستم اطلاع دهید.");
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+
+            const projectsSummary = (window.projectsData || []).map(p => `کد: ${p.id} - نام: ${p.title}`).join(' | ');
+
+            const systemInstruction = `تو یک دستیار استخراج هوشمند اطلاعات مأموریت‌های اداری هستی.
+متن فارسی کاربر را تحلیل کرده و اطلاعات مأموریت را به صورت ساختاریافته استخراج کن.
+پروژه‌های معتبر موجود: [${projectsSummary}]
+دستورالعمل‌ها:
+۱. اگر تاریخ در متن گفته نشده بود، تاریخ امروز را بگذار: (${getCurrentJalaliDateStr()})
+۲. روز هفته را متناظر با تاریخ شمسی به فارسی ارائه بده (شنبه، یکشنبه، دوشنبه، سه شنبه، چهارشنبه، پنجشنبه، جمعه).
+۳. تمام مبالغ را به ریال تبدیل کن (اگر کاربر گفت تومان، ضرب در ۱۰ کن).
+۴. وسیله رفت یا برگشت را از موارد (شخصی، اسنپ/تپسی، آژانس، حمل و نقل عمومی، خودرو شرکت) انتخاب کن.
+۵. شناسه پروژه (suggestedProjectId) را از لیست پروژه‌های موجود تطبیق بده.`;
+
+            const payload = {
+                contents: [{ parts: [{ text: userPrompt }] }],
+                systemInstruction: { parts: [{ text: systemInstruction }] },
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    responseSchema: {
+                        type: "OBJECT",
+                        properties: {
+                            date: { type: "STRING" },
+                            day: { type: "STRING" },
+                            location: { type: "STRING" },
+                            address: { type: "STRING" },
+                            startTime: { type: "STRING" },
+                            endTime: { type: "STRING" },
+                            outboundVehicle: { type: "STRING" },
+                            outboundCost: { type: "NUMBER" },
+                            inboundVehicle: { type: "STRING" },
+                            inboundCost: { type: "NUMBER" },
+                            suggestedProjectId: { type: "STRING" }
+                        },
+                        required: ["location", "outboundCost", "inboundCost"]
+                    }
+                }
+            };
+
+            const data = await fetchGeminiWithBackoff(apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            const rawJson = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (!rawJson) throw new Error("پاسخی از مدل دریافت نشد.");
+            return JSON.parse(rawJson);
+        }
+
+        async function scanReceiptWithGemini(base64Data, mimeType) {
+            const apiKey = getGeminiApiKey();
+            if (!apiKey) throw new Error("کلید API هوش مصنوعی توسط مدیر سیستم فعال نشده است.");
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+
+            const systemInstruction = `تصویر فاکتور، رسید اسنپ/تپسی یا قبض تاکسی را خوانده و اطلاعات آن را استخراج کن. مبالغ را به ریال تبدیل کن (اگر تومان است ضرب در ۱۰).`;
+
+            const payload = {
+                contents: [{
+                    parts: [
+                        { text: "اطلاعات این رسید را جهت ثبت در فرم مأموریت استخراج کن." },
+                        { inlineData: { mimeType: mimeType, data: base64Data } }
+                    ]
+                }],
+                systemInstruction: { parts: [{ text: systemInstruction }] },
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    responseSchema: {
+                        type: "OBJECT",
+                        properties: {
+                            date: { type: "STRING" },
+                            location: { type: "STRING" },
+                            address: { type: "STRING" },
+                            amount: { type: "NUMBER" },
+                            vehicleType: { type: "STRING" },
+                            time: { type: "STRING" }
+                        }
+                    }
+                }
+            };
+
+            const data = await fetchGeminiWithBackoff(apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            const rawJson = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (!rawJson) throw new Error("امکان خواندن تصویر رسید وجود نداشت.");
+            return JSON.parse(rawJson);
+        }
+
+        async function generateFinancialAnalysisWithGemini() {
+            const apiKey = getGeminiApiKey();
+            if (!apiKey) throw new Error("کلید API هوش مصنوعی توسط مدیر سیستم فعال نشده است.");
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+
+            const dataSummary = (window.filteredData || []).map(d => ({
+                date: d.date,
+                day: d.day,
+                project: d.projectTitle || 'عمومی',
+                location: d.location,
+                outboundCost: d.outboundCost,
+                inboundCost: d.inboundCost,
+                totalCost: d.totalCost
+            }));
+
+            const systemInstruction = `تو یک تحلیل‌گر ارشد مالی و حسابداری پروژه‌ها هستی.
+لیست هزینه‌های مأموریت اداری داده‌شده را آنالیز کرده و یک گزارش مدیریتی و تحلیلی بسیار شیک، دقیق و فارسی با فرمت HTML ارائه بده.
+گزارش باید شامل موارد زیر با طراحی جذاب خلاصه (شامل تگ‌های HTML مثل h4, p, ul, li, div با استایل‌های مناسب) باشد:
+۱. 📊 خلاصه مدیریتی هزینه‌ها و الگوهای اصلی
+۲. 🎯 پروژه‌های پرهزینه و تحلیل سهم هرکدام
+۳. ⚠️ شناسایی هزینه‌های پرت یا غیرمعمول (مثل ایاب ذهاب بالا یا تردد مکرر)
+۴. 💡 راهکارهای پیشنهادی جهت بهینه‌سازی بودجه و کاهش هزینه مأموریت‌ها`;
+
+            const payload = {
+                contents: [{ parts: [{ text: `داده‌های مأموریت جهت تحلیل:\n${JSON.stringify(dataSummary, null, 2)}` }] }],
+                systemInstruction: { parts: [{ text: systemInstruction }] }
+            };
+
+            const response = await fetchGeminiWithBackoff(apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            return response?.candidates?.[0]?.content?.parts?.[0]?.text || "خطا در تولید گزارش تحلیلی.";
+        }
+
+        window.openAiAssistantModal = function() {
+            document.getElementById('aiAssistantModal').classList.remove('hidden');
+            const savedKey = getGeminiApiKey();
+
+            const adminSection = document.getElementById('geminiApiKeyAdminSection');
+            const userSection = document.getElementById('geminiApiKeyUserSection');
+            const keyInput = document.getElementById('geminiApiKeyInput');
+
+            if (window.currentUser && window.currentUser.role === 'مدیر سیستم') {
+                if (adminSection) adminSection.classList.remove('hidden');
+                if (userSection) userSection.classList.add('hidden');
+                if (keyInput) keyInput.value = savedKey;
+            } else {
+                if (adminSection) adminSection.classList.add('hidden');
+                if (userSection) userSection.classList.remove('hidden');
+
+                const statusBadge = document.getElementById('aiKeyActiveStatusBadge');
+                const statusText = document.getElementById('aiKeyActiveStatusText');
+                if (savedKey) {
+                    if (statusBadge) statusBadge.className = "p-3 bg-emerald-950/40 border border-emerald-500/30 rounded-xl text-xs text-emerald-300 flex items-center justify-between gap-2";
+                    if (statusText) statusText.innerText = "سرویس هوش مصنوعی فعال است (تنظیم‌شده توسط مدیر سیستم)";
+                } else {
+                    if (statusBadge) statusBadge.className = "p-3 bg-amber-950/40 border border-amber-500/30 rounded-xl text-xs text-amber-300 flex items-center justify-between gap-2";
+                    if (statusText) statusText.innerText = "سرویس هوش مصنوعی هنوز توسط مدیر سیستم فعال نشده است.";
+                }
+            }
+        };
+
+        window.closeAiAssistantModal = function() {
+            document.getElementById('aiAssistantModal').classList.add('hidden');
+        };
+
+        window.switchAiTab = function(tabName) {
+            const contentText = document.getElementById('aiTabContentText');
+            const contentOcr = document.getElementById('aiTabContentOcr');
+            const contentAnalysis = document.getElementById('aiTabContentAnalysis');
+            const contentChat = document.getElementById('aiTabContentChat');
+            const contentImage = document.getElementById('aiTabContentImage');
+
+            const btn1 = document.getElementById('aiTabBtn1');
+            const btn2 = document.getElementById('aiTabBtn2');
+            const btn3 = document.getElementById('aiTabBtn3');
+            const btn4 = document.getElementById('aiTabBtn4');
+            const btn5 = document.getElementById('aiTabBtn5');
+
+            [contentText, contentOcr, contentAnalysis, contentChat, contentImage].forEach(el => el && el.classList.add('hidden'));
+            [btn1, btn2, btn3, btn4, btn5].forEach(btn => {
+                if (btn) btn.className = "px-3.5 py-2 text-xs font-medium text-slate-400 border-b-2 border-transparent hover:text-slate-200 transition flex items-center gap-1.5 whitespace-nowrap";
+            });
+
+            if (tabName === 'text') {
+                contentText?.classList.remove('hidden');
+                if (btn1) btn1.className = "px-3.5 py-2 text-xs font-bold text-purple-400 border-b-2 border-purple-500 transition flex items-center gap-1.5 whitespace-nowrap";
+            } else if (tabName === 'ocr') {
+                contentOcr?.classList.remove('hidden');
+                if (btn2) btn2.className = "px-3.5 py-2 text-xs font-bold text-indigo-400 border-b-2 border-indigo-500 transition flex items-center gap-1.5 whitespace-nowrap";
+            } else if (tabName === 'analysis') {
+                contentAnalysis?.classList.remove('hidden');
+                if (btn3) btn3.className = "px-3.5 py-2 text-xs font-bold text-emerald-400 border-b-2 border-emerald-500 transition flex items-center gap-1.5 whitespace-nowrap";
+            } else if (tabName === 'chat') {
+                contentChat?.classList.remove('hidden');
+                if (btn4) btn4.className = "px-3.5 py-2 text-xs font-bold text-sky-400 border-b-2 border-sky-500 transition flex items-center gap-1.5 whitespace-nowrap";
+            } else if (tabName === 'image') {
+                contentImage?.classList.remove('hidden');
+                if (btn5) btn5.className = "px-3.5 py-2 text-xs font-bold text-pink-400 border-b-2 border-pink-500 transition flex items-center gap-1.5 whitespace-nowrap";
+            }
+        };
+
+        function pcmToWavBlob(pcmDataInt16, sampleRate = 24000) {
+            const numChannels = 1;
+            const buffer = new ArrayBuffer(44 + pcmDataInt16.length * 2);
+            const view = new DataView(buffer);
+
+            const writeString = (v, offset, str) => {
+                for (let i = 0; i < str.length; i++) v.setUint8(offset + i, str.charCodeAt(i));
+            };
+
+            writeString(view, 0, 'RIFF');
+            view.setUint32(4, 36 + pcmDataInt16.length * 2, true);
+            writeString(view, 8, 'WAVE');
+            writeString(view, 12, 'fmt ');
+            view.setUint32(16, 16, true);
+            view.setUint16(20, 1, true);
+            view.setUint16(22, numChannels, true);
+            view.setUint32(24, sampleRate, true);
+            view.setUint32(28, sampleRate * numChannels * 2, true);
+            view.setUint16(32, numChannels * 2, true);
+            view.setUint16(34, 16, true);
+            writeString(view, 36, 'data');
+            view.setUint32(40, pcmDataInt16.length * 2, true);
+
+            let offset = 44;
+            for (let i = 0; i < pcmDataInt16.length; i++, offset += 2) {
+                view.setInt16(offset, pcmDataInt16[i], true);
+            }
+
+            return new Blob([view], { type: 'audio/wav' });
+        }
+
+        window.handleAiTtsSpeaker = async function() {
+            const apiKey = getGeminiApiKey();
+            if (!apiKey) {
+                showCustomAlert('کلید API هوش مصنوعی توسط مدیر سیستم فعال نشده است.');
+                return;
+            }
+
+            const loader = document.getElementById('aiLoadingState');
+            loader.classList.remove('hidden');
+
+            try {
+                const dataSummaryText = (window.filteredData || []).slice(0, 10).map(d => 
+                    `مأموریت ${d.location} در تاریخ ${d.date} با هزینه کل ${d.totalCost} ریال.`
+                ).join(' ');
+
+                const speechPrompt = `Say cheerfully in clear fluent Persian: خلاصه گزارش مأموریت‌های اداری ثبت شده: مجموع ${window.filteredData?.length || 0} مأموریت ثبت شده است. ${dataSummaryText}`;
+
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`;
+
+                const payload = {
+                    contents: [{ parts: [{ text: speechPrompt }] }],
+                    generationConfig: {
+                        responseModalities: ["AUDIO"],
+                        speechConfig: {
+                            voiceConfig: { prebuiltVoiceConfig: { voiceName: "Kore" } }
+                        }
+                    }
+                };
+
+                const resData = await fetchGeminiWithBackoff(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                loader.classList.add('hidden');
+
+                const candidatePart = resData?.candidates?.[0]?.content?.parts?.[0];
+                const base64Audio = candidatePart?.inlineData?.data;
+                const mimeType = candidatePart?.inlineData?.mimeType || '';
+
+                if (base64Audio) {
+                    const sampleRateMatch = mimeType.match(/rate=(\d+)/);
+                    const sampleRate = sampleRateMatch ? parseInt(sampleRateMatch[1], 10) : 24000;
+
+                    const binaryString = window.atob(base64Audio);
+                    const bytes = new Uint8Array(binaryString.length);
+                    for (let i = 0; i < binaryString.length; i++) {
+                        bytes[i] = binaryString.charCodeAt(i);
+                    }
+                    const pcm16 = new Int16Array(bytes.buffer);
+                    const wavBlob = pcmToWavBlob(pcm16, sampleRate);
+                    const audioUrl = URL.createObjectURL(wavBlob);
+
+                    const playerContainer = document.getElementById('aiAudioPlayerContainer');
+                    const audioPlayer = document.getElementById('geminiAudioPlayer');
+                    audioPlayer.src = audioUrl;
+                    playerContainer.classList.remove('hidden');
+                    audioPlayer.play();
+                } else {
+                    showCustomAlert('امکان تولید فایل صوتی وجود نداشت.');
+                }
+            } catch (err) {
+                loader.classList.add('hidden');
+                console.error("Gemini TTS Error:", err);
+                showCustomAlert('خطا در تولید گزارش صوتی: ' + err.message);
+            }
+        };
+
+        window.askPresetQuestion = function(q) {
+            document.getElementById('aiChatInput').value = q;
+            handleAiDataChat();
+        };
+
+        window.handleAiDataChat = async function() {
+            const apiKey = getGeminiApiKey();
+            if (!apiKey) {
+                showCustomAlert('کلید API هوش مصنوعی توسط مدیر سیستم فعال نشده است.');
+                return;
+            }
+
+            const inputEl = document.getElementById('aiChatInput');
+            const query = inputEl.value.trim();
+            if (!query) return;
+
+            const resBox = document.getElementById('aiChatResponseBox');
+            resBox.innerHTML = '<p class="text-sky-400 font-bold animate-pulse text-center">Gemini در حال تحلیل داده‌ها و پاسخگویی...</p>';
+
+            try {
+                const dataContext = JSON.stringify((window.filteredData || []).map(d => ({
+                    date: d.date,
+                    day: d.day,
+                    location: d.location,
+                    outboundVehicle: d.outboundVehicle,
+                    outboundCost: d.outboundCost,
+                    inboundVehicle: d.inboundVehicle,
+                    inboundCost: d.inboundCost,
+                    totalCost: d.totalCost,
+                    project: d.projectTitle
+                })), null, 2);
+
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+
+                const systemInstruction = `تو تحلیل‌گر مالی و پاسخگوی هوشمند سامانه مأموریت‌ها هستی. بر اساس داده‌های JSON ارائه‌شده مأموریت‌ها، به سوال کاربر دقیق، خلاصه و محترمانه به فارسی پاسخ بده.`;
+
+                const payload = {
+                    contents: [{ parts: [{ text: `داده‌ها:\n${dataContext}\n\nسوال کاربر: ${query}` }] }],
+                    systemInstruction: { parts: [{ text: systemInstruction }] }
+                };
+
+                const responseData = await fetchGeminiWithBackoff(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const ansText = responseData?.candidates?.[0]?.content?.parts?.[0]?.text || "پاسخی دریافت نشد.";
+                resBox.innerHTML = `<div class="text-slate-100 font-medium leading-relaxed">${ansText.replace(/\n/g, '<br>')}</div>`;
+            } catch (err) {
+                console.error("Gemini Q&A Error:", err);
+                resBox.innerHTML = `<p class="text-red-400">خطا در دریافت پاسخ: ${err.message}</p>`;
+            }
+        };
+
+        window.handleAiImageGenerate = async function() {
+            const apiKey = getGeminiApiKey();
+            if (!apiKey) {
+                showCustomAlert('کلید API هوش مصنوعی توسط مدیر سیستم فعال نشده است.');
+                return;
+            }
+
+            const prompt = document.getElementById('aiImagePrompt').value.trim();
+            if (!prompt) return;
+
+            const loader = document.getElementById('aiLoadingState');
+            loader.classList.remove('hidden');
+
+            try {
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=${apiKey}`;
+
+                const payload = {
+                    instances: [{ prompt: prompt }],
+                    parameters: { sampleCount: 1 }
+                };
+
+                const resData = await fetchGeminiWithBackoff(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                loader.classList.add('hidden');
+
+                const base64Img = resData?.predictions?.[0]?.bytesBase64Encoded;
+                if (base64Img) {
+                    const imgUrl = `data:image/png;base64,${base64Img}`;
+                    const imgEl = document.getElementById('aiGeneratedImg');
+                    const downloadEl = document.getElementById('aiGeneratedImgDownload');
+                    const container = document.getElementById('aiGeneratedImgContainer');
+
+                    imgEl.src = imgUrl;
+                    downloadEl.href = imgUrl;
+                    container.classList.remove('hidden');
+                } else {
+                    showCustomAlert('تصویر تولید نشد.');
+                }
+            } catch (err) {
+                loader.classList.add('hidden');
+                console.error("Imagen Error:", err);
+                showCustomAlert('خطا در تولید تصویر: ' + err.message);
+            }
+        };
+
+        window.handleAiTextSubmit = async function() {
+            const prompt = document.getElementById('aiTextPrompt').value.trim();
+            if (!prompt) {
+                showCustomAlert('لطفاً شرح مأموریت را وارد کنید.');
+                return;
+            }
+
+            const loader = document.getElementById('aiLoadingState');
+            loader.classList.remove('hidden');
+
+            try {
+                const parsed = await parseMissionTextWithGemini(prompt);
+                loader.classList.add('hidden');
+                closeAiAssistantModal();
+
+                openExpenseModal();
+                if (parsed.date) {
+                    document.getElementById('formDate').value = parsed.date;
+                    handleDateInput(parsed.date);
+                }
+                if (parsed.day) document.getElementById('formDay').value = parsed.day;
+                if (parsed.location) document.getElementById('formLocation').value = parsed.location;
+                if (parsed.address) document.getElementById('formAddress').value = parsed.address;
+                if (parsed.startTime) document.getElementById('formStartTime').value = parsed.startTime;
+                if (parsed.endTime) document.getElementById('formEndTime').value = parsed.endTime;
+                if (parsed.outboundVehicle) document.getElementById('formOutboundVehicle').value = parsed.outboundVehicle;
+                if (parsed.outboundCost) document.getElementById('formOutboundCost').value = parsed.outboundCost;
+                if (parsed.inboundVehicle) document.getElementById('formInboundVehicle').value = parsed.inboundVehicle;
+                if (parsed.inboundCost) document.getElementById('formInboundCost').value = parsed.inboundCost;
+                if (parsed.suggestedProjectId && (window.projectsData || []).some(p => p.id === parsed.suggestedProjectId)) {
+                    document.getElementById('formProject').value = parsed.suggestedProjectId;
+                }
+
+                calculateTotalFormSum();
+                showCustomAlert('اطلاعات مأموریت توسط Gemini با موفقیت استخراج و در فرم درج شد.', 'هوش مصنوعی Gemini');
+            } catch (err) {
+                loader.classList.add('hidden');
+                console.error("Gemini AI Text Parse Error:", err);
+                showCustomAlert('خطا در پردازش هوشمند متن مأموریت: ' + err.message);
+            }
+        };
+
+        window.previewAiReceiptImage = function(event) {
+            const file = event.target.files[0];
+            const container = document.getElementById('aiReceiptPreviewContainer');
+            const previewImg = document.getElementById('aiReceiptImgPreview');
+
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    previewImg.src = e.target.result;
+                    container.classList.remove('hidden');
+                };
+                reader.readAsDataURL(file);
+            } else {
+                container.classList.add('hidden');
+            }
+        };
+
+        window.handleAiOcrSubmit = async function() {
+            const fileInput = document.getElementById('aiReceiptFile');
+            const file = fileInput.files[0];
+            if (!file) {
+                showCustomAlert('لطفاً ابتدا تصویر رسید را انتخاب کنید.');
+                return;
+            }
+
+            const loader = document.getElementById('aiLoadingState');
+            loader.classList.remove('hidden');
+
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                try {
+                    const base64Data = e.target.result.split(',')[1];
+                    const mimeType = file.type || 'image/jpeg';
+                    const ocrResult = await scanReceiptWithGemini(base64Data, mimeType);
+
+                    loader.classList.add('hidden');
+                    closeAiAssistantModal();
+
+                    openExpenseModal();
+                    if (ocrResult.date) {
+                        document.getElementById('formDate').value = ocrResult.date;
+                        handleDateInput(ocrResult.date);
+                    }
+                    if (ocrResult.location) document.getElementById('formLocation').value = ocrResult.location;
+                    if (ocrResult.address) document.getElementById('formAddress').value = ocrResult.address;
+                    if (ocrResult.time) document.getElementById('formStartTime').value = ocrResult.time;
+                    if (ocrResult.vehicleType) document.getElementById('formOutboundVehicle').value = ocrResult.vehicleType;
+                    if (ocrResult.amount) document.getElementById('formOutboundCost').value = ocrResult.amount;
+
+                    calculateTotalFormSum();
+                    showCustomAlert('اطلاعات رسید تصویر توسط Gemini OCR استخراج و در فرم درج گردید.', 'هوش مصنوعی Gemini');
+                } catch (err) {
+                    loader.classList.add('hidden');
+                    console.error("Gemini OCR Error:", err);
+                    showCustomAlert('خطا در تحلیل تصویر رسید: ' + err.message);
+                }
+            };
+            reader.readAsDataURL(file);
+        };
+
+        window.handleAiFinancialAnalysis = async function() {
+            const resultBox = document.getElementById('aiAnalysisResult');
+            const loader = document.getElementById('aiLoadingState');
+            loader.classList.remove('hidden');
+
+            try {
+                const analysisHtml = await generateFinancialAnalysisWithGemini();
+                loader.classList.add('hidden');
+                resultBox.innerHTML = analysisHtml;
+            } catch (err) {
+                loader.classList.add('hidden');
+                console.error("Gemini Analysis Error:", err);
+                resultBox.innerHTML = `<div class="text-red-400 p-2">خطا در دریافت تحلیل هوشمند: ${err.message}</div>`;
+            }
+        };
+    </script>
+
+    <!-- Main Logic and Firebase Integration -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // =========================================================================
+        // 🔒 FIREBASE CONFIGURATION SECTION (کلیدهای اختصاصی دیتابیس ابری شما)
+        // جهت متصل ماندن دائمی روی تمامی هاست‌ها (کلادفلر، سی‌پنل و ...)، 
+        // کلیدهای پروژه Firebase خود را در صورت تمایل در ابجکت زیر قرار دهید.
+        // =========================================================================
+        const CUSTOM_FIREBASE_CONFIG = null; 
+
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'akasra-expense-tracker';
+        let firebaseConfig = CUSTOM_FIREBASE_CONFIG;
+
+        if (!firebaseConfig && typeof __firebase_config !== 'undefined' && __firebase_config) {
+            try {
+                firebaseConfig = JSON.parse(__firebase_config);
+            } catch (e) {
+                console.warn("Firebase config parse error:", e);
+            }
+        }
+
+        window.expensesData = [];
+        window.filteredData = [];
+        window.usersData = [];
+        window.projectsData = [];
+        window.currentUser = null;
+        window.db = null;
+        window.auth = null;
+        window.chartInstance = null;
+
+        const initialSeedUsers = [
+            { id: "u1", username: "admin", password: "123456", fullName: "مدیر سیستم", role: "مدیر سیستم", signature: window.sampleSignatureDataUrl },
+            { id: "u2", username: "hamed", password: "123456", fullName: "حامد خیرآبادی", role: "کارشناس", signature: window.sampleSignatureDataUrl }
+        ];
+
+        function sanitizeUsersList(list) {
+            if (!Array.isArray(list)) return [];
+            return list.map(u => {
+                if (!u.signature || u.signature.includes('data:image/svg+xml;utf8,')) {
+                    u.signature = window.sampleSignatureDataUrl;
+                }
+                return u;
+            });
+        }
+
+        const initialSeedProjects = [
+            { id: "p1", title: "پروژه نوسازی مدارس", code: "PRJ-MED", client: "اداره کل نوسازی تهران" },
+            { id: "p2", title: "پروژه صنعت نفت", code: "PRJ-OIL", client: "بهداشت و درمان نفت" },
+            { id: "p3", title: "پروژه عمومی و اداری", code: "PRJ-GEN", client: "داخلی شرکت" }
+        ];
+
+        const initialSeedMissions = [
+            { id: "1", userId: "u2", username: "hamed", rowNo: 1, date: "1405/03/03", day: "یکشنبه", projectId: "p2", projectTitle: "پروژه صنعت نفت", location: "بهداشت و درمان صنعت نفت", address: "خیابان به آفرین", startTime: "07:58", endTime: "10:10", outboundVehicle: "شخصی", outboundCost: 900000, inboundVehicle: "شخصی", inboundCost: 0, totalCost: 900000 },
+            { id: "2", userId: "u2", username: "hamed", rowNo: 2, date: "1405/03/03", day: "یکشنبه", projectId: "p1", projectTitle: "پروژه نوسازی مدارس", location: "اداره کل نوسازی مدارس تهران", address: "جردن", startTime: "10:30", endTime: "10:50", outboundVehicle: "شخصی", outboundCost: 950000, inboundVehicle: "شخصی", inboundCost: 0, totalCost: 950000 },
+            { id: "3", userId: "u2", username: "hamed", rowNo: 3, date: "1405/03/03", day: "یکشنبه", projectId: "p2", projectTitle: "پروژه صنعت نفت", location: "نفت فلات قاره", address: "پارک وی", startTime: "11:08", endTime: "12:15", outboundVehicle: "شخصی", outboundCost: 0, inboundVehicle: "شخصی", inboundCost: 700000, totalCost: 700000 }
+        ];
+
+        async function initApp() {
+            loadLocalUsers();
+            loadLocalProjects();
+            loadLocalMissions();
+
+            const savedUser = sessionStorage.getItem('akasra_logged_user');
+            if (savedUser) {
+                try {
+                    window.currentUser = JSON.parse(savedUser);
+                    document.getElementById('loginModal').classList.add('hidden');
+                    updateUserUI();
+                    applyFilters();
+                } catch (e) {
+                    showLoginModal();
+                }
+            } else {
+                showLoginModal();
+            }
+
+            if (firebaseConfig) {
+                try {
+                    const app = initializeApp(firebaseConfig);
+                    window.db = getFirestore(app);
+                    window.auth = getAuth(app);
+
+                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                        await signInWithCustomToken(window.auth, __initial_auth_token);
+                    } else {
+                        await signInAnonymously(window.auth);
+                    }
+
+                    setupFirestoreListeners();
+                    updateSyncBadge(true, "دیتابیس ابری زنده فعال است");
+                    return;
+                } catch (err) {
+                    console.warn("Firebase init failed, switching to local store:", err);
+                }
+            }
+
+            updateSyncBadge(false, "ذخیره محلی (برخط/آفلاین)");
+        }
+
+        function setupFirestoreListeners() {
+            if (!window.db) return;
+
+            const expensesCol = collection(window.db, 'artifacts', appId, 'public', 'data', 'expenses');
+            onSnapshot(expensesCol, (snapshot) => {
+                const firestoreItems = [];
+                if (!snapshot.empty) {
+                    snapshot.forEach((doc) => {
+                        firestoreItems.push({ ...doc.data(), id: doc.id });
+                    });
+                }
+
+                const localMissions = JSON.parse(localStorage.getItem('akasra_expenses') || '[]');
+                const mergedMap = new Map();
+
+                localMissions.forEach(m => mergedMap.set(m.id, m));
+                firestoreItems.forEach(m => mergedMap.set(m.id, m));
+
+                const mergedList = Array.from(mergedMap.values());
+
+                mergedList.forEach(m => {
+                    if (!firestoreItems.some(fm => fm.id === m.id)) {
+                        setDoc(doc(expensesCol, m.id), m).catch(err => console.error("Firestore auto-upload expense error:", err));
+                    }
+                });
+
+                window.expensesData = mergedList;
+                localStorage.setItem('akasra_expenses', JSON.stringify(window.expensesData));
+                applyFilters();
+            }, (err) => {
+                console.error("Expenses snapshot error:", err);
+                loadLocalMissions();
+            });
+
+            const usersCol = collection(window.db, 'artifacts', appId, 'public', 'data', 'users');
+            onSnapshot(usersCol, (snapshot) => {
+                const firestoreUsers = [];
+                if (!snapshot.empty) {
+                    snapshot.forEach((doc) => {
+                        firestoreUsers.push({ ...doc.data(), id: doc.id });
+                    });
+                }
+
+                const localUsers = JSON.parse(localStorage.getItem('akasra_users') || '[]');
+                const mergedMap = new Map();
+
+                initialSeedUsers.forEach(u => mergedMap.set(u.id, u));
+                localUsers.forEach(u => mergedMap.set(u.id, u));
+                firestoreUsers.forEach(u => mergedMap.set(u.id, u));
+
+                const mergedList = Array.from(mergedMap.values());
+
+                mergedList.forEach(u => {
+                    if (!firestoreUsers.some(fu => fu.id === u.id)) {
+                        setDoc(doc(usersCol, u.id), u).catch(err => console.error("Firestore auto-upload user error:", err));
+                    }
+                });
+
+                window.usersData = sanitizeUsersList(mergedList);
+                localStorage.setItem('akasra_users', JSON.stringify(window.usersData));
+                renderUsersTable();
+                populateUserDropdownFilter();
+            }, (err) => {
+                console.error("Users snapshot error:", err);
+                loadLocalUsers();
+            });
+
+            const projectsCol = collection(window.db, 'artifacts', appId, 'public', 'data', 'projects');
+            onSnapshot(projectsCol, (snapshot) => {
+                if (snapshot.empty) {
+                    const localProjects = JSON.parse(localStorage.getItem('akasra_projects') || '[]');
+                    const combined = [...initialSeedProjects];
+                    localProjects.forEach(lp => {
+                        if (!combined.some(p => p.id === lp.id)) combined.push(lp);
+                    });
+                    combined.forEach(async (p) => {
+                        await setDoc(doc(projectsCol, p.id), p);
+                    });
+                } else {
+                    const firestoreProjects = [];
+                    snapshot.forEach((doc) => {
+                        firestoreProjects.push({ ...doc.data(), id: doc.id });
+                    });
+
+                    const localProjects = JSON.parse(localStorage.getItem('akasra_projects') || '[]');
+                    const merged = [...firestoreProjects];
+                    localProjects.forEach(lp => {
+                        if (!merged.some(p => p.id === lp.id)) {
+                            merged.push(lp);
+                            setDoc(doc(projectsCol, lp.id), lp).catch(err => console.error(err));
+                        }
+                    });
+
+                    window.projectsData = merged;
+                    localStorage.setItem('akasra_projects', JSON.stringify(window.projectsData));
+                    populateProjectDropdowns();
+                    renderProjectsTable();
+                    applyFilters();
+                }
+            }, (err) => {
+                console.error("Projects snapshot error:", err);
+                loadLocalProjects();
+            });
+
+            const settingsDocRef = doc(window.db, 'artifacts', appId, 'public', 'data', 'settings', 'config');
+            onSnapshot(settingsDocRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    if (data && data.geminiApiKey) {
+                        window.globalGeminiApiKey = data.geminiApiKey;
+                        localStorage.setItem('gemini_api_key', data.geminiApiKey);
+                        const apiKeyInput = document.getElementById('geminiApiKeyInput');
+                        if (apiKeyInput && window.currentUser && window.currentUser.role === 'مدیر سیستم') {
+                            apiKeyInput.value = data.geminiApiKey;
+                        }
+                    }
+                }
+            }, (err) => {
+                console.warn("Settings snapshot listener error:", err);
+            });
+        }
+
+        function loadLocalMissions() {
+            const saved = localStorage.getItem('akasra_expenses');
+            if (saved) {
+                try { window.expensesData = JSON.parse(saved); } catch (e) { window.expensesData = [...initialSeedMissions]; }
+            } else {
+                window.expensesData = [...initialSeedMissions];
+                localStorage.setItem('akasra_expenses', JSON.stringify(initialSeedMissions));
+            }
+            applyFilters();
+        }
+
+        function loadLocalUsers() {
+            const saved = localStorage.getItem('akasra_users');
+            if (saved) {
+                try { 
+                    window.usersData = sanitizeUsersList(JSON.parse(saved)); 
+                } catch (e) { 
+                    window.usersData = [...initialSeedUsers]; 
+                }
+            } else {
+                window.usersData = [...initialSeedUsers];
+                localStorage.setItem('akasra_users', JSON.stringify(initialSeedUsers));
+            }
+        }
+
+        function loadLocalProjects() {
+            const saved = localStorage.getItem('akasra_projects');
+            if (saved) {
+                try { window.projectsData = JSON.parse(saved); } catch (e) { window.projectsData = [...initialSeedProjects]; }
+            } else {
+                window.projectsData = [...initialSeedProjects];
+                localStorage.setItem('akasra_projects', JSON.stringify(initialSeedProjects));
+            }
+            if (typeof window.populateProjectDropdowns === 'function') {
+                window.populateProjectDropdowns();
+            }
+        }
+
+        window.saveExpenseData = async function(item) {
+            if (!window.expensesData) window.expensesData = [];
+            const idx = window.expensesData.findIndex(x => x.id === item.id);
+            if (idx >= 0) window.expensesData[idx] = item;
+            else window.expensesData.push(item);
+
+            try {
+                localStorage.setItem('akasra_expenses', JSON.stringify(window.expensesData));
+            } catch (e) {
+                console.warn("LocalStorage expense save error:", e);
+            }
+
+            applyFilters();
+
+            if (window.db) {
+                try {
+                    if (!window.auth?.currentUser) {
+                        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                            await signInWithCustomToken(window.auth, __initial_auth_token);
+                        } else {
+                            await signInAnonymously(window.auth);
+                        }
+                    }
+                    if (window.auth?.currentUser) {
+                        const docRef = doc(window.db, 'artifacts', appId, 'public', 'data', 'expenses', item.id);
+                        await setDoc(docRef, item);
+                    }
+                } catch (e) {
+                    console.error("Firestore expense save error:", e);
+                }
+            }
+        };
+
+        window.deleteExpenseData = async function(id) {
+            window.expensesData = (window.expensesData || []).filter(x => x.id !== id);
+            try {
+                localStorage.setItem('akasra_expenses', JSON.stringify(window.expensesData));
+            } catch (e) {
+                console.warn("LocalStorage expense delete error:", e);
+            }
+
+            applyFilters();
+
+            if (window.db) {
+                try {
+                    if (!window.auth?.currentUser) {
+                        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                            await signInWithCustomToken(window.auth, __initial_auth_token);
+                        } else {
+                            await signInAnonymously(window.auth);
+                        }
+                    }
+                    if (window.auth?.currentUser) {
+                        const docRef = doc(window.db, 'artifacts', appId, 'public', 'data', 'expenses', id);
+                        await deleteDoc(docRef);
+                    }
+                } catch (e) { console.error("Firestore expense delete error:", e); }
+            }
+        };
+
+        window.saveUserData = async function(userItem) {
+            if (!window.usersData) window.usersData = [];
+            const idx = window.usersData.findIndex(x => x.id === userItem.id);
+            if (idx >= 0) {
+                window.usersData[idx] = userItem;
+            } else {
+                window.usersData.push(userItem);
+            }
+
+            try {
+                localStorage.setItem('akasra_users', JSON.stringify(window.usersData));
+            } catch (e) {
+                console.warn("LocalStorage user save error:", e);
+            }
+
+            renderUsersTable();
+            populateUserDropdownFilter();
+
+            if (window.db) {
+                try {
+                    if (!window.auth?.currentUser) {
+                        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                            await signInWithCustomToken(window.auth, __initial_auth_token);
+                        } else {
+                            await signInAnonymously(window.auth);
+                        }
+                    }
+                    if (window.auth?.currentUser) {
+                        const docRef = doc(window.db, 'artifacts', appId, 'public', 'data', 'users', userItem.id);
+                        await setDoc(docRef, userItem);
+                    }
+                } catch (e) {
+                    console.error("Firestore user save error:", e);
+                }
+            }
+        };
+
+        window.deleteUserData = async function(userId) {
+            window.usersData = (window.usersData || []).filter(x => x.id !== userId);
+            try {
+                localStorage.setItem('akasra_users', JSON.stringify(window.usersData));
+            } catch (e) {
+                console.warn("LocalStorage user delete error:", e);
+            }
+
+            renderUsersTable();
+            populateUserDropdownFilter();
+
+            if (window.db && window.auth?.currentUser) {
+                try {
+                    const docRef = doc(window.db, 'artifacts', appId, 'public', 'data', 'users', userId);
+                    await deleteDoc(docRef);
+                } catch (e) { console.error("Firestore user delete error:", e); }
+            }
+        };
+
+        window.saveProjectData = async function(projectItem) {
+            if (!window.projectsData) window.projectsData = [];
+            const idx = window.projectsData.findIndex(x => x.id === projectItem.id);
+            if (idx >= 0) window.projectsData[idx] = projectItem;
+            else window.projectsData.push(projectItem);
+
+            try {
+                localStorage.setItem('akasra_projects', JSON.stringify(window.projectsData));
+            } catch (e) {
+                console.warn("LocalStorage project save error:", e);
+            }
+
+            populateProjectDropdowns();
+            renderProjectsTable();
+
+            if (window.db && window.auth?.currentUser) {
+                try {
+                    const docRef = doc(window.db, 'artifacts', appId, 'public', 'data', 'projects', projectItem.id);
+                    await setDoc(docRef, projectItem);
+                } catch (e) {
+                    console.error("Firestore project save error:", e);
+                }
+            }
+        };
+
+        window.deleteProjectData = async function(projectId) {
+            window.projectsData = (window.projectsData || []).filter(x => x.id !== projectId);
+            try {
+                localStorage.setItem('akasra_projects', JSON.stringify(window.projectsData));
+            } catch (e) {
+                console.warn("LocalStorage project delete error:", e);
+            }
+
+            populateProjectDropdowns();
+            renderProjectsTable();
+
+            if (window.db && window.auth?.currentUser) {
+                try {
+                    const docRef = doc(window.db, 'artifacts', appId, 'public', 'data', 'projects', projectId);
+                    await deleteDoc(docRef);
+                } catch (e) { console.error("Firestore project delete error:", e); }
+            }
+        };
+
+        window.exportSystemBackup = function() {
+            const backupData = {
+                users: window.usersData || [],
+                projects: window.projectsData || [],
+                expenses: window.expensesData || [],
+                exportedAt: new Date().toISOString()
+            };
+            const jsonStr = JSON.stringify(backupData, null, 2);
+            const blob = new Blob([jsonStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `akasra_backup_${getCurrentJalaliDateStr().replace(/\//g, '-')}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            showCustomAlert('پشتیبان‌گیری از تمام داده‌ها و کاربران با موفقیت دانلود شد.', 'پشتیبان‌گیری موفق');
+        };
+
+        window.importSystemBackup = function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    if (imported.users && Array.isArray(imported.users)) {
+                        for (const u of imported.users) {
+                            await saveUserData(u);
+                        }
+                    }
+                    if (imported.projects && Array.isArray(imported.projects)) {
+                        for (const p of imported.projects) {
+                            await saveProjectData(p);
+                        }
+                    }
+                    if (imported.expenses && Array.isArray(imported.expenses)) {
+                        for (const ex of imported.expenses) {
+                            await saveExpenseData(ex);
+                        }
+                    }
+                    showCustomAlert('اطلاعات فایل پشتیبان با موفقیت بازیابی و با دیتابیس همگام‌سازی شد.', 'بازیابی موفق');
+                } catch (err) {
+                    showCustomAlert('فایل پشتیبان معتبر نیست: ' + err.message);
+                }
+            };
+            reader.readAsText(file);
+        };
+
+        function updateSyncBadge(isCloud, text) {
+            const badge = document.getElementById('syncStatusBadge');
+            const statusText = document.getElementById('syncStatusText');
+            const badgeM = document.getElementById('syncStatusBadgeMobile');
+            const statusTextM = document.getElementById('syncStatusTextMobile');
+
+            if (badge && statusText) {
+                badge.className = `w-2.5 h-2.5 rounded-full ${isCloud ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`;
+                statusText.innerText = text;
+            }
+            if (badgeM && statusTextM) {
+                badgeM.className = `w-2 h-2 rounded-full ${isCloud ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`;
+                statusTextM.innerText = isCloud ? "ابری" : "محلی";
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', initApp);
+    </script>
+
+    <script>
+        function gregorianToJalali(gy, gm, gd) {
+            var g_d_m = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334];
+            var jy = (gy <= 1600) ? 0 : 979;
+            gy -= (gy <= 1600) ? 621 : 1600;
+            var gy2 = (gm > 2) ? (gy + 1) : gy;
+            var days = (365 * gy) + (Math.floor((gy2 + 3) / 4)) - (Math.floor((gy2 + 99) / 100)) + (Math.floor((gy2 + 399) / 400)) - 80 + gd + g_d_m[gm - 1];
+            jy += 33 * (Math.floor(days / 12053));
+            days %= 12053;
+            jy += 4 * (Math.floor(days / 1461));
+            days %= 1461;
+            if (days > 365) {
+                jy += Math.floor((days - 1) / 365);
+                days = (days - 1) % 365;
+            }
+            var jm = (days < 186) ? 1 + Math.floor(days / 31) : 7 + Math.floor((days - 186) / 30);
+            var jd = 1 + ((days < 186) ? (days % 31) : ((days - 186) % 30));
+            return [jy, jm, jd];
+        }
+
+        function jalaliToGregorian(jy, jm, jd) {
+            var gy = (jy <= 979) ? 621 : 1600;
+            jy -= (jy <= 979) ? 0 : 979;
+            var days = (365 * jy) + (Math.floor(jy / 33) * 8) + Math.floor(((jy % 33) + 3) / 4) + 78 + jd + ((jm < 7) ? (jm - 1) * 31 : ((jm - 7) * 30) + 186);
+            gy += 400 * Math.floor(days / 146097);
+            days %= 146097;
+            if (days > 36524) {
+                gy += 100 * Math.floor(--days / 36524);
+                days %= 36524;
+                if (days >= 365) days++;
+            }
+            gy += 4 * Math.floor(days / 1461);
+            days %= 1461;
+            if (days > 365) {
+                gy += Math.floor((days - 1) / 365);
+                days = (days - 1) % 365;
+            }
+            var gd = days + 1;
+            var gm = 0;
+            for (var i = 0; i < 12; i++) {
+                var dim = (i === 1 && ((gy % 4 === 0 && gy % 100 !== 0) || gy % 400 === 0)) ? 29 : [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][i];
+                if (gd <= dim) {
+                    gm = i + 1;
+                    break;
+                }
+                gd -= dim;
+            }
+            return new Date(gy, gm - 1, gd);
+        }
+
+        function getCurrentJalaliDateStr() {
+            const d = new Date();
+            try {
+                const formatter = new Intl.DateTimeFormat('fa-IR-u-ca-persian', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit'
+                });
+                return formatter.format(d);
+            } catch(e) {
+                const [jy, jm, jd] = gregorianToJalali(d.getFullYear(), d.getMonth() + 1, d.getDate());
+                const pad = (n) => String(n).padStart(2, '0');
+                return `${jy}/${pad(jm)}/${pad(jd)}`;
+            }
+        }
+
+        function getCurrentTimeStr() {
+            const d = new Date();
+            const pad = (n) => String(n).padStart(2, '0');
+            return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+        }
+
+        function updateLoginLiveDateTime() {
+            const clockEl = document.getElementById('loginLiveClock');
+            const dateEl = document.getElementById('loginLiveDate');
+            if (!clockEl || !dateEl) return;
+
+            const now = new Date();
+            const pad = (n) => String(n).padStart(2, '0');
+            const timeStr = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+            clockEl.innerText = toPersianDigits(timeStr);
+
+            try {
+                const formatter = new Intl.DateTimeFormat('fa-IR-u-ca-persian', {
+                    weekday: 'long',
+                    day: 'numeric',
+                    month: 'long',
+                    year: 'numeric'
+                });
+                dateEl.innerText = formatter.format(now);
+            } catch (e) {
+                dateEl.innerText = getCurrentJalaliDateStr();
+            }
+        }
+
+        setInterval(updateLoginLiveDateTime, 1000);
+        updateLoginLiveDateTime();
+
+        function detectPersianDayOfWeek(dateStr) {
+            if (!dateStr) return '';
+            const normalized = dateStr.replace(/-/g, '/').replace(/[۰-۹]/g, d => '0123456789'['۰۱۲۳۴۵۶۷۸۹'.indexOf(d)]);
+            const parts = normalized.split('/').map(Number);
+            if (parts.length !== 3 || isNaN(parts[0]) || isNaN(parts[1]) || isNaN(parts[2])) return '';
+
+            try {
+                const gDate = jalaliToGregorian(parts[0], parts[1], parts[2]);
+                const dayIdx = gDate.getDay();
+                const daysMap = { 6: 'شنبه', 0: 'یکشنبه', 1: 'دوشنبه', 2: 'سه شنبه', 3: 'چهارشنبه', 4: 'پنجشنبه', 5: 'جمعه' };
+                return daysMap[dayIdx] || '';
+            } catch (e) {
+                return '';
+            }
+        }
+
+        function handleDateInput(val) {
+            const detectedDay = detectPersianDayOfWeek(val);
+            const badge = document.getElementById('autoDayBadge');
+            const daySelect = document.getElementById('formDay');
+
+            if (detectedDay) {
+                daySelect.value = detectedDay;
+                badge.innerText = `(روز: ${detectedDay})`;
+            } else {
+                badge.innerText = '';
+            }
+        }
+
+        function formatNum(val) {
+            if (val === null || val === undefined || isNaN(val)) return '۰';
+            return Number(val).toLocaleString('fa-IR');
+        }
+
+        function toPersianDigits(str) {
+            return String(str).replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
+        }
+
+        function showLoginModal() {
+            document.getElementById('loginModal').classList.remove('hidden');
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const usernameInput = document.getElementById('loginUsername').value.trim().toLowerCase();
+            const passwordInput = document.getElementById('loginPassword').value.trim();
+            const errorBox = document.getElementById('loginError');
+
+            if (!window.usersData || window.usersData.length === 0) {
+                const saved = localStorage.getItem('akasra_users');
+                if (saved) {
+                    try { window.usersData = JSON.parse(saved); } catch (e) {}
+                }
+            }
+
+            const user = (window.usersData || []).find(u => 
+                u.username.trim().toLowerCase() === usernameInput && u.password.trim() === passwordInput
+            );
+
+            if (user) {
+                window.currentUser = user;
+                sessionStorage.setItem('akasra_logged_user', JSON.stringify(user));
+                document.getElementById('loginModal').classList.add('hidden');
+                errorBox.classList.add('hidden');
+                updateUserUI();
+                applyFilters();
+            } else {
+                errorBox.classList.remove('hidden');
+            }
+        }
+
+        function handleLogout() {
+            sessionStorage.removeItem('akasra_logged_user');
+            window.currentUser = null;
+            showLoginModal();
+        }
+
+        function updateUserUI() {
+            if (!window.currentUser) return;
+            document.getElementById('currentUserDisplay').innerText = window.currentUser.fullName;
+            document.getElementById('currentUserRole').innerText = window.currentUser.role;
+            document.getElementById('statExpertName').innerText = window.currentUser.fullName;
+            document.getElementById('statUserRoleText').innerText = `نقش: ${window.currentUser.role}`;
+            document.getElementById('printExpertName').innerText = window.currentUser.fullName;
+
+            populateUserDropdownFilter();
+        }
+
+        function populateUserDropdownFilter() {
+            const userSelect = document.getElementById('userFilter');
+            if (!userSelect) return;
+
+            userSelect.innerHTML = '';
+            if (window.currentUser && window.currentUser.role === 'مدیر سیستم') {
+                userSelect.disabled = false;
+                const allOpt = document.createElement('option');
+                allOpt.value = '';
+                allOpt.textContent = 'همه کاربران';
+                userSelect.appendChild(allOpt);
+
+                (window.usersData || []).forEach(u => {
+                    const opt = document.createElement('option');
+                    opt.value = u.id;
+                    opt.textContent = `${u.fullName} (${u.username})`;
+                    userSelect.appendChild(opt);
+                });
+            } else {
+                userSelect.disabled = true;
+                const opt = document.createElement('option');
+                opt.value = window.currentUser ? window.currentUser.id : '';
+                opt.textContent = window.currentUser ? window.currentUser.fullName : 'کاربر جاری';
+                userSelect.appendChild(opt);
+            }
+        }
+
+        window.showCustomAlert = function(message, title = 'پیام سیستم') {
+            const modal = document.getElementById('customModal');
+            if (!modal) return;
+            document.getElementById('customModalTitle').innerText = title;
+            document.getElementById('customModalMessage').innerText = message;
+            document.getElementById('customModalCancelBtn').classList.add('hidden');
+            const confirmBtn = document.getElementById('customModalConfirmBtn');
+            confirmBtn.innerText = 'متوجه شدم';
+            confirmBtn.onclick = function() { closeCustomModal(); };
+            modal.classList.remove('hidden');
+        };
+
+        window.showCustomConfirm = function(message, onConfirm, title = 'تأیید عملیات') {
+            const modal = document.getElementById('customModal');
+            if (!modal) return;
+            document.getElementById('customModalTitle').innerText = title;
+            document.getElementById('customModalMessage').innerText = message;
+            document.getElementById('customModalCancelBtn').classList.remove('hidden');
+            const confirmBtn = document.getElementById('customModalConfirmBtn');
+            confirmBtn.innerText = 'تأیید';
+            confirmBtn.onclick = function() {
+                closeCustomModal();
+                if (onConfirm) onConfirm();
+            };
+            modal.classList.remove('hidden');
+        };
+
+        window.closeCustomModal = function() {
+            const modal = document.getElementById('customModal');
+            if (modal) modal.classList.add('hidden');
+        };
+
+        window.openUsersModal = function() {
+            if (!window.currentUser) {
+                showLoginModal();
+                return;
+            }
+            document.getElementById('usersModal').classList.remove('hidden');
+            
+            const addForm = document.getElementById('addUserForm');
+            if (window.currentUser.role !== 'مدیر سیستم') {
+                if (addForm) addForm.classList.add('hidden');
+            } else {
+                if (addForm) addForm.classList.remove('hidden');
+            }
+            renderUsersTable();
+        };
+
+        window.closeUsersModal = function() {
+            document.getElementById('usersModal').classList.add('hidden');
+        };
+
+        function compressImageFile(file, callback) {
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const maxW = 300;
+                    const maxH = 120;
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > maxW || height > maxH) {
+                        const ratio = Math.min(maxW / width, maxH / height);
+                        width = Math.round(width * ratio);
+                        height = Math.round(height * ratio);
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    callback(canvas.toDataURL('image/png', 0.8));
+                };
+                img.onerror = function() {
+                    callback(window.sampleSignatureDataUrl);
+                };
+                img.src = evt.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        async function saveAndFinishNewUser(newUser, e) {
+            try {
+                await window.saveUserData(newUser);
+                if (e && e.target) e.target.reset();
+                showCustomAlert(`کاربر جدید «${newUser.fullName}» با موفقیت تعریف گردید و در دیتابیس به همراه حافظه محلی ذخیره شد.`, 'موفقیت');
+            } catch (err) {
+                console.error("Save User Error:", err);
+                showCustomAlert('خطا در ذخیره‌سازی کاربر: ' + err.message);
+            }
+        }
+
+        window.handleCreateUser = function(e) {
+            e.preventDefault();
+            if (!window.currentUser || window.currentUser.role !== 'مدیر سیستم') {
+                showCustomAlert('تنها مدیر سیستم امکان ایجاد کاربر جدید دارد.');
+                return;
+            }
+
+            const fullName = document.getElementById('newFullName').value.trim();
+            const username = document.getElementById('newUsername').value.trim().toLowerCase();
+            const password = document.getElementById('newPassword').value.trim();
+            const role = document.getElementById('newRole').value;
+            const sigFileInput = document.getElementById('newSignatureFile');
+
+            if (!fullName || !username || !password) {
+                showCustomAlert('لطفاً تمامی فیلدهای الزامی (نام، نام کاربری و کلمه عبور) را تکمیل کنید.');
+                return;
+            }
+
+            const currentUsersList = window.usersData || JSON.parse(localStorage.getItem('akasra_users') || '[]');
+            if (currentUsersList.some(u => u.username.trim().toLowerCase() === username)) {
+                showCustomAlert('این نام کاربری قبلاً در سیستم ثبت شده است.');
+                return;
+            }
+
+            const defaultSig = window.sampleSignatureDataUrl;
+
+            const newUser = {
+                id: 'u_' + Date.now(),
+                fullName,
+                username,
+                password,
+                role,
+                signature: defaultSig
+            };
+
+            const file = sigFileInput ? sigFileInput.files[0] : null;
+            if (file) {
+                compressImageFile(file, function(compressedDataUrl) {
+                    newUser.signature = compressedDataUrl;
+                    saveAndFinishNewUser(newUser, e);
+                });
+            } else {
+                saveAndFinishNewUser(newUser, e);
+            }
+        };
+
+        window.updateUserSignature = function(userId, event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            compressImageFile(file, async function(compressedDataUrl) {
+                const user = (window.usersData || []).find(u => u.id === userId);
+                if (user) {
+                    user.signature = compressedDataUrl;
+                    await window.saveUserData(user);
+                    renderUsersTable();
+                    if (window.currentUser && window.currentUser.id === userId) {
+                        window.currentUser.signature = user.signature;
+                        sessionStorage.setItem('akasra_logged_user', JSON.stringify(window.currentUser));
+                    }
+                    showCustomAlert('امضای دیجیتال کاربر بروزرسانی شد.');
+                }
+            });
+        };
+
+        window.deleteUser = function(id) {
+            if (!window.currentUser || window.currentUser.role !== 'مدیر سیستم') {
+                showCustomAlert('تنها مدیر سیستم دسترسی به حذف کاربران دارد.');
+                return;
+            }
+            if ((window.usersData || []).length <= 1) {
+                showCustomAlert('حداقل یک کاربر باید در سیستم باقی بماند.');
+                return;
+            }
+            showCustomConfirm('آیا از حذف این کاربر اطمینان دارید؟', async () => {
+                await window.deleteUserData(id);
+            });
+        };
+
+        function renderUsersTable() {
+            const tbody = document.getElementById('usersTableBody');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            const isAdmin = window.currentUser && window.currentUser.role === 'مدیر سیستم';
+            const displayList = isAdmin 
+                ? (window.usersData || [])
+                : (window.usersData || []).filter(u => u.id === window.currentUser?.id);
+
+            displayList.forEach(u => {
+                const tr = document.createElement('tr');
+                const isSigValid = u.signature && !u.signature.includes('data:image/svg+xml;utf8,');
+                const sigPreview = isSigValid 
+                    ? `<img src="${u.signature}" class="h-8 max-w-[100px] object-contain mx-auto bg-slate-900/90 rounded p-1 border border-slate-700" alt="امضا"/>` 
+                    : `<span class="text-slate-500 text-[10px]">بدون امضا</span>`;
+
+                const canDelete = isAdmin && u.id !== window.currentUser?.id;
+
+                tr.innerHTML = `
+                    <td class="p-2.5 font-bold text-white">${u.fullName}</td>
+                    <td class="p-2.5 font-mono text-emerald-400">${u.username}</td>
+                    <td class="p-2.5 text-slate-300"><span class="px-2 py-0.5 bg-slate-800 rounded border border-slate-700">${u.role}</span></td>
+                    <td class="p-2.5 text-center">${sigPreview}</td>
+                    <td class="p-2.5 text-center">
+                        <div class="flex items-center justify-center gap-1.5">
+                            <label class="cursor-pointer text-amber-400 hover:text-amber-300 text-xs flex items-center gap-1 bg-amber-500/10 hover:bg-amber-500/20 px-2 py-1 rounded-lg border border-amber-500/20 transition btn-touch" title="تغییر/بارگذاری امضا">
+                                <i class="fa-solid fa-file-signature"></i>
+                                <span class="text-[10px]">امضا</span>
+                                <input type="file" accept="image/*" class="hidden" onchange="updateUserSignature('${u.id}', event)">
+                            </label>
+                            <button onclick="openResetPasswordModal('${u.id}')" class="btn-touch text-sky-400 hover:text-sky-300 text-xs flex items-center gap-1 bg-sky-500/10 hover:bg-sky-500/20 px-2 py-1 rounded-lg border border-sky-500/20 transition" title="ریست رمز عبور">
+                                <i class="fa-solid fa-key"></i>
+                                <span class="text-[10px]">رمز</span>
+                            </button>
+                            ${canDelete ? `
+                            <button onclick="deleteUser('${u.id}')" class="btn-touch text-red-400 hover:text-red-300 text-xs flex items-center gap-1 bg-red-500/10 hover:bg-red-500/20 px-2 py-1 rounded-lg border border-red-500/20 transition" title="حذف کاربر">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>` : ''}
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        window.openResetPasswordModal = function(userId) {
+            const user = (window.usersData || []).find(u => u.id === userId);
+            if (!user) return;
+            document.getElementById('resetPassUserId').value = user.id;
+            document.getElementById('resetPassTargetUser').innerText = `کاربر: ${user.fullName} (${user.username})`;
+            document.getElementById('newResetPassword').value = '';
+            document.getElementById('resetPasswordModal').classList.remove('hidden');
+        };
+
+        window.closeResetPasswordModal = function() {
+            document.getElementById('resetPasswordModal').classList.add('hidden');
+        };
+
+        window.handleResetPasswordSubmit = async function(e) {
+            e.preventDefault();
+            const userId = document.getElementById('resetPassUserId').value;
+            const newPassword = document.getElementById('newResetPassword').value.trim();
+
+            if (!newPassword || newPassword.length < 4) {
+                showCustomAlert('کلمه عبور جدید باید حداقل ۴ کاراکتر باشد.');
+                return;
+            }
+
+            const user = (window.usersData || []).find(u => u.id === userId);
+            if (user) {
+                user.password = newPassword;
+                await window.saveUserData(user);
+                closeResetPasswordModal();
+                showCustomAlert(`کلمه عبور کاربر «${user.fullName}» با موفقیت تغییر یافت.`, 'تغییر رمز عبور');
+            }
+        };
+
+        window.populateProjectDropdowns = function() {
+            const filterSelect = document.getElementById('projectFilter');
+            const formSelect = document.getElementById('formProject');
+            
+            if (filterSelect) {
+                const currentVal = filterSelect.value;
+                filterSelect.innerHTML = '<option value="">همه پروژه‌ها</option>';
+                (window.projectsData || []).forEach(p => {
+                    const opt = document.createElement('option');
+                    opt.value = p.id;
+                    opt.textContent = `${p.title} (${p.code})`;
+                    filterSelect.appendChild(opt);
+                });
+                filterSelect.value = currentVal;
+            }
+
+            if (formSelect) {
+                const currentFormVal = formSelect.value;
+                formSelect.innerHTML = '';
+                (window.projectsData || []).forEach(p => {
+                    const opt = document.createElement('option');
+                    opt.value = p.id;
+                    opt.textContent = `${p.title} (${p.code})`;
+                    formSelect.appendChild(opt);
+                });
+                if (currentFormVal && (window.projectsData || []).some(p => p.id === currentFormVal)) {
+                    formSelect.value = currentFormVal;
+                }
+            }
+        };
+
+        function openProjectsModal() {
+            document.getElementById('projectsModal').classList.remove('hidden');
+            renderProjectsTable();
+        }
+
+        function closeProjectsModal() {
+            document.getElementById('projectsModal').classList.add('hidden');
+        }
+
+        async function handleCreateProject(e) {
+            e.preventDefault();
+            const newPrj = {
+                id: 'p_' + Date.now(),
+                title: document.getElementById('newProjectTitle').value.trim(),
+                code: document.getElementById('newProjectCode').value.trim(),
+                client: document.getElementById('newProjectClient').value.trim()
+            };
+
+            await window.saveProjectData(newPrj);
+            applyFilters();
+            e.target.reset();
+            showCustomAlert('پروژه جدید با موفقیت ثبت شد.');
+        }
+
+        function deleteProject(id) {
+            if (window.projectsData.length <= 1) {
+                showCustomAlert('حداقل یک پروژه باید در سیستم باقی بماند.');
+                return;
+            }
+            showCustomConfirm('آیا از حذف این پروژه اطمینان دارید؟', async () => {
+                await window.deleteProjectData(id);
+                applyFilters();
+            });
+        }
+
+        function renderProjectsTable() {
+            const tbody = document.getElementById('projectsTableBody');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+            (window.projectsData || []).forEach(p => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="p-2.5 font-bold text-white">${p.title}</td>
+                    <td class="p-2.5 font-mono text-sky-400">${p.code}</td>
+                    <td class="p-2.5 text-slate-300">${p.client}</td>
+                    <td class="p-2.5 text-center">
+                        <button onclick="deleteProject('${p.id}')" class="btn-touch text-red-400 hover:text-red-300 transition" title="حذف پروژه">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function applyFilters() {
+            const search = document.getElementById('searchInput')?.value?.trim().toLowerCase() || '';
+            const project = document.getElementById('projectFilter')?.value || '';
+            const userFilterVal = document.getElementById('userFilter')?.value || '';
+            const day = document.getElementById('dayFilter')?.value || '';
+            const sort = document.getElementById('sortOrder')?.value || 'row_asc';
+
+            let result = [...(window.expensesData || [])];
+
+            if (window.currentUser) {
+                if (window.currentUser.role !== 'مدیر سیستم') {
+                    result = result.filter(item => 
+                        (item.userId && String(item.userId) === String(window.currentUser.id)) || 
+                        (item.username && String(item.username).trim().toLowerCase() === String(window.currentUser.username).trim().toLowerCase())
+                    );
+                } else if (userFilterVal) {
+                    result = result.filter(item => 
+                        String(item.userId) === String(userFilterVal) || 
+                        (item.username && String(item.username).trim().toLowerCase() === String(userFilterVal).trim().toLowerCase())
+                    );
+                }
+            }
+
+            if (search) {
+                result = result.filter(item => 
+                    (item.location && item.location.toLowerCase().includes(search)) ||
+                    (item.address && item.address.toLowerCase().includes(search)) ||
+                    (item.date && item.date.includes(search))
+                );
+            }
+
+            if (project) {
+                result = result.filter(item => item.projectId === project);
+            }
+
+            if (day) {
+                result = result.filter(item => item.day === day);
+            }
+
+            result.sort((a, b) => {
+                if (sort === 'row_asc') return Number(a.rowNo || 0) - Number(b.rowNo || 0);
+                if (sort === 'date_asc') return (a.date || '').localeCompare(b.date || '');
+                if (sort === 'date_desc') return (b.date || '').localeCompare(a.date || '');
+                if (sort === 'cost_desc') return Number(b.totalCost || 0) - Number(a.totalCost || 0);
+                return 0;
+            });
+
+            window.filteredData = result;
+            renderTable();
+            renderStats();
+            renderChart();
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('expenseTableBody');
+            const printTbody = document.getElementById('printTableBody');
+            const resultsCount = document.getElementById('filteredResultsCount');
+
+            if (!tbody || !printTbody) return;
+            tbody.innerHTML = '';
+            printTbody.innerHTML = '';
+
+            if (resultsCount) {
+                resultsCount.innerText = `نمایش ${toPersianDigits(window.filteredData.length)} از ${toPersianDigits(window.expensesData.length)} رکورد`;
+            }
+
+            if (window.filteredData.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="14" class="p-8 text-center text-slate-400">
+                            <i class="fa-solid fa-folder-open text-3xl mb-2 block text-slate-600"></i>
+                            هیچ مأموریتی مطابق با جستجوی شما یافت نشد
+                        </td>
+                    </tr>
+                `;
+                document.getElementById('tableTotalSum').innerText = '۰';
+                document.getElementById('printTotalSum').innerText = '۰ ریال';
+                return;
+            }
+
+            let totalSum = 0;
+
+            window.filteredData.forEach((item) => {
+                const rowTotal = (Number(item.outboundCost) || 0) + (Number(item.inboundCost) || 0);
+                totalSum += rowTotal;
+
+                const projectObj = (window.projectsData || []).find(p => p.id === item.projectId);
+                const projectTitle = projectObj ? projectObj.title : (item.projectTitle || 'پروژه عمومی');
+
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-800/40 transition-colors duration-150';
+                tr.innerHTML = `
+                    <td class="p-3 text-center font-bold text-slate-400">${toPersianDigits(item.rowNo || '-')}</td>
+                    <td class="p-3 font-medium text-slate-200">${toPersianDigits(item.date || '')}</td>
+                    <td class="p-3 text-slate-300"><span class="px-2 py-0.5 rounded-md bg-slate-800 text-slate-300 border border-slate-700">${item.day || ''}</span></td>
+                    <td class="p-3 text-sky-400 font-semibold">${projectTitle}</td>
+                    <td class="p-3 font-semibold text-white">${item.location || '-'}</td>
+                    <td class="p-3 text-slate-400">${item.address || '-'}</td>
+                    <td class="p-3 text-center text-slate-300 font-mono">${toPersianDigits(item.startTime || '-')}</td>
+                    <td class="p-3 text-center text-slate-300 font-mono">${toPersianDigits(item.endTime || '-')}</td>
+                    <td class="p-3 text-slate-300">${item.outboundVehicle || '-'}</td>
+                    <td class="p-3 text-slate-300 font-semibold">${formatNum(item.outboundCost)}</td>
+                    <td class="p-3 text-slate-300">${item.inboundVehicle || '-'}</td>
+                    <td class="p-3 text-slate-300 font-semibold">${formatNum(item.inboundCost)}</td>
+                    <td class="p-3 font-extrabold text-emerald-400 bg-emerald-950/20">${formatNum(rowTotal)}</td>
+                    <td class="p-3 text-center no-print">
+                        <div class="flex items-center justify-center gap-1.5">
+                            <button onclick="editExpense('${item.id}')" title="ویرایش" class="btn-touch w-7 h-7 rounded-lg bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 flex items-center justify-center transition">
+                                <i class="fa-solid fa-pen text-xs"></i>
+                            </button>
+                            <button onclick="confirmDelete('${item.id}')" title="حذف" class="btn-touch w-7 h-7 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 flex items-center justify-center transition">
+                                <i class="fa-solid fa-trash text-xs"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+
+                const printTr = document.createElement('tr');
+                printTr.innerHTML = `
+                    <td>${toPersianDigits(item.rowNo || '-')}</td>
+                    <td>${toPersianDigits(item.date || '')}</td>
+                    <td>${item.day || ''}</td>
+                    <td>${projectTitle}</td>
+                    <td>${item.location || '-'}</td>
+                    <td>${item.address || '-'}</td>
+                    <td>${toPersianDigits(item.startTime || '-')}</td>
+                    <td>${toPersianDigits(item.endTime || '-')}</td>
+                    <td>${item.outboundVehicle || '-'}</td>
+                    <td>${formatNum(item.outboundCost)}</td>
+                    <td>${item.inboundVehicle || '-'}</td>
+                    <td>${formatNum(item.inboundCost)}</td>
+                    <td>${formatNum(rowTotal)}</td>
+                `;
+                printTbody.appendChild(printTr);
+            });
+
+            document.getElementById('tableTotalSum').innerText = formatNum(totalSum);
+            renderCrystalReportBreakdown(totalSum);
+        }
+
+        function renderCrystalReportBreakdown(grandTotal) {
+            const breakdownTbody = document.getElementById('printProjectBreakdownBody');
+            if (!breakdownTbody) return;
+            breakdownTbody.innerHTML = '';
+
+            const projectStats = {};
+            (window.filteredData || []).forEach(item => {
+                const prjId = item.projectId || 'other';
+                if (!projectStats[prjId]) {
+                    const prjObj = (window.projectsData || []).find(p => p.id === prjId);
+                    projectStats[prjId] = {
+                        title: prjObj ? prjObj.title : (item.projectTitle || 'پروژه عمومی'),
+                        code: prjObj ? prjObj.code : 'PRJ-GEN',
+                        client: prjObj ? prjObj.client : 'عمومی',
+                        count: 0,
+                        outboundSum: 0,
+                        inboundSum: 0,
+                        totalSum: 0
+                    };
+                }
+                const outCost = Number(item.outboundCost) || 0;
+                const inCost = Number(item.inboundCost) || 0;
+                projectStats[prjId].count += 1;
+                projectStats[prjId].outboundSum += outCost;
+                projectStats[prjId].inboundSum += inCost;
+                projectStats[prjId].totalSum += (outCost + inCost);
+            });
+
+            Object.values(projectStats).forEach(stat => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="font-weight: bold;">${stat.title}</td>
+                    <td>${stat.code}</td>
+                    <td>${stat.client}</td>
+                    <td>${toPersianDigits(stat.count)} مورد</td>
+                    <td>${formatNum(stat.outboundSum)}</td>
+                    <td>${formatNum(stat.inboundSum)}</td>
+                    <td style="font-weight: bold;">${formatNum(stat.totalSum)}</td>
+                `;
+                breakdownTbody.appendChild(tr);
+            });
+
+            const totalMissions = (window.filteredData || []).length;
+            const avgCost = totalMissions > 0 ? Math.round(grandTotal / totalMissions) : 0;
+            const tomanVal = Math.round(grandTotal / 10);
+
+            document.getElementById('printTotalSum').innerText = formatNum(grandTotal) + ' ریال';
+            document.getElementById('printTableFooterTotal').innerText = formatNum(grandTotal) + ' ریال';
+            document.getElementById('printTotalToman').innerText = formatNum(tomanVal) + ' تومان';
+            document.getElementById('printAvgCost').innerText = formatNum(avgCost) + ' ریال';
+            document.getElementById('printRecordCount').innerText = `${toPersianDigits(totalMissions)} مأموریت`;
+
+            const selectedPrjVal = document.getElementById('projectFilter')?.value;
+            const selectedPrjObj = (window.projectsData || []).find(p => p.id === selectedPrjVal);
+            document.getElementById('printFilterProject').innerText = selectedPrjObj ? selectedPrjObj.title : 'همه پروژه‌ها';
+
+            const selectedDay = document.getElementById('dayFilter')?.value;
+            document.getElementById('printFilterDay').innerText = selectedDay ? selectedDay : 'همه روزها';
+
+            const sigImg = document.getElementById('printSignatureImg');
+            const sigPlaceholder = document.getElementById('printSignaturePlaceholder');
+
+            if (window.currentUser && window.currentUser.signature) {
+                sigImg.src = window.currentUser.signature;
+                sigImg.classList.remove('hidden');
+                if (sigPlaceholder) sigPlaceholder.classList.add('hidden');
+            } else {
+                sigImg.classList.add('hidden');
+                if (sigPlaceholder) sigPlaceholder.classList.remove('hidden');
+            }
+
+            document.getElementById('printReportDate').innerText = getCurrentJalaliDateStr();
+            document.getElementById('printReportTime').innerText = getCurrentTimeStr();
+            document.getElementById('printReportDocNo').innerText = `CR-${Math.floor(100000 + Math.random() * 900000)}`;
+
+            if (window.currentUser) {
+                document.getElementById('printSignatureExpert').innerText = window.currentUser.fullName;
+                document.getElementById('printExpertName').innerText = window.currentUser.fullName;
+            }
+        }
+
+        window.triggerCrystalReportPrint = function() {
+            try {
+                applyFilters();
+                setTimeout(() => {
+                    window.print();
+                }, 150);
+            } catch (err) {
+                console.error("Print trigger error:", err);
+                window.print();
+            }
+        };
+
+        function renderStats() {
+            const totalSum = (window.filteredData || []).reduce((acc, item) => acc + ((Number(item.outboundCost) || 0) + (Number(item.inboundCost) || 0)), 0);
+            const totalMissions = (window.filteredData || []).length;
+            const avgCost = totalMissions > 0 ? Math.round(totalSum / totalMissions) : 0;
+            const tomanVal = Math.round(totalSum / 10);
+
+            document.getElementById('statTotalAmount').innerText = formatNum(totalSum);
+            document.getElementById('statTomanText').innerText = formatNum(tomanVal) + ' تومان';
+            document.getElementById('statTotalCount').innerText = toPersianDigits(totalMissions);
+            document.getElementById('statAvgAmount').innerText = formatNum(avgCost);
+        }
+
+        function renderChart() {
+            const ctxEl = document.getElementById('expensesChart');
+            if (!ctxEl) return;
+            const ctx = ctxEl.getContext('2d');
+            
+            const prjMap = {};
+            (window.filteredData || []).forEach(item => {
+                const projectObj = (window.projectsData || []).find(p => p.id === item.projectId);
+                const title = projectObj ? projectObj.title : 'سایر پروژه‌ها';
+                const cost = (Number(item.outboundCost) || 0) + (Number(item.inboundCost) || 0);
+                prjMap[title] = (prjMap[title] || 0) + cost;
+            });
+
+            const labels = Object.keys(prjMap);
+            const data = Object.values(prjMap);
+
+            if (window.chartInstance) {
+                window.chartInstance.destroy();
+            }
+
+            window.chartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: ['#22c55e', '#0ea5e9', '#a855f7', '#f59e0b', '#ec4899', '#6366f1'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { color: '#94a3b8', font: { family: 'Vazirmatn', size: 10 } }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return ` ${context.label}: ${formatNum(context.raw)} ریال`;
+                                }
+                            }
+                        }
+                    },
+                    cutout: '65%'
+                }
+            });
+        }
+
+        function openExpenseModal(editId = null) {
+            populateProjectDropdowns();
+            const modal = document.getElementById('expenseModal');
+            const form = document.getElementById('expenseForm');
+            modal.classList.remove('hidden');
+
+            if (editId) {
+                const item = (window.expensesData || []).find(x => x.id === editId);
+                if (item) {
+                    document.getElementById('modalTitle').innerText = 'ویرایش هزینه مأموریت';
+                    document.getElementById('editId').value = item.id;
+                    document.getElementById('formRowNo').value = item.rowNo || '';
+                    document.getElementById('formDate').value = item.date || '';
+                    document.getElementById('formProject').value = item.projectId || (window.projectsData[0]?.id || '');
+                    document.getElementById('formDay').value = item.day || 'شنبه';
+                    document.getElementById('formLocation').value = item.location || '';
+                    document.getElementById('formAddress').value = item.address || '';
+                    document.getElementById('formStartTime').value = item.startTime || '';
+                    document.getElementById('formEndTime').value = item.endTime || '';
+                    document.getElementById('formOutboundVehicle').value = item.outboundVehicle || 'شخصی';
+                    document.getElementById('formOutboundCost').value = item.outboundCost || 0;
+                    document.getElementById('formInboundVehicle').value = item.inboundVehicle || 'شخصی';
+                    document.getElementById('formInboundCost').value = item.inboundCost || 0;
+                    calculateTotalFormSum();
+                    handleDateInput(item.date || '');
+                }
+            } else {
+                document.getElementById('modalTitle').innerText = 'ثبت هزینه مأموریت جدید';
+                form.reset();
+                document.getElementById('editId').value = '';
+                document.getElementById('formRowNo').value = (window.expensesData || []).length + 1;
+                
+                const currentShamsiDate = getCurrentJalaliDateStr();
+                const currentTime = getCurrentTimeStr();
+
+                document.getElementById('formDate').value = currentShamsiDate;
+                document.getElementById('formStartTime').value = currentTime;
+                document.getElementById('formEndTime').value = '';
+                
+                calculateTotalFormSum();
+                handleDateInput(currentShamsiDate);
+            }
+        }
+
+        function closeExpenseModal() {
+            document.getElementById('expenseModal').classList.add('hidden');
+        }
+
+        function editExpense(id) {
+            openExpenseModal(id);
+        }
+
+        function confirmDelete(id) {
+            showCustomConfirm("آیا از حذف این رکورد مأموریت اطمینان دارید؟", () => {
+                if (window.deleteExpenseData) window.deleteExpenseData(id);
+            });
+        }
+
+        function calculateTotalFormSum() {
+            const outbound = Number(document.getElementById('formOutboundCost').value) || 0;
+            const inbound = Number(document.getElementById('formInboundCost').value) || 0;
+            const sum = outbound + inbound;
+            document.getElementById('formCalculatedTotal').innerText = formatNum(sum) + ' ریال';
+        }
+
+        async function handleFormSubmit(event) {
+            event.preventDefault();
+
+            if (!window.currentUser) {
+                showCustomAlert('لطفاً ابتدا وارد حساب کاربری خود شوید.');
+                showLoginModal();
+                return;
+            }
+
+            const editId = document.getElementById('editId').value;
+            const id = editId ? editId : Date.now().toString();
+
+            const outboundCost = Number(document.getElementById('formOutboundCost').value) || 0;
+            const inboundCost = Number(document.getElementById('formInboundCost').value) || 0;
+            const selectedPrjId = document.getElementById('formProject').value;
+            const prjObj = (window.projectsData || []).find(p => p.id === selectedPrjId);
+
+            const existingItem = editId ? (window.expensesData || []).find(x => x.id === editId) : null;
+
+            const newEntry = {
+                id: id,
+                userId: existingItem?.userId || window.currentUser.id,
+                username: existingItem?.username || window.currentUser.username,
+                rowNo: Number(document.getElementById('formRowNo').value) || ((window.expensesData || []).length + 1),
+                date: document.getElementById('formDate').value.trim(),
+                day: document.getElementById('formDay').value,
+                projectId: selectedPrjId,
+                projectTitle: prjObj ? prjObj.title : '',
+                location: document.getElementById('formLocation').value.trim(),
+                address: document.getElementById('formAddress').value.trim(),
+                startTime: document.getElementById('formStartTime').value.trim(),
+                endTime: document.getElementById('formEndTime').value.trim(),
+                outboundVehicle: document.getElementById('formOutboundVehicle').value,
+                outboundCost: outboundCost,
+                inboundVehicle: document.getElementById('formInboundVehicle').value,
+                inboundCost: inboundCost,
+                totalCost: outboundCost + inboundCost
+            };
+
+            await window.saveExpenseData(newEntry);
+            closeExpenseModal();
+            showCustomAlert('اطلاعات مأموریت با موفقیت ذخیره شد.');
+        }
+
+        function resetFilters() {
+            if (document.getElementById('searchInput')) document.getElementById('searchInput').value = '';
+            if (document.getElementById('projectFilter')) document.getElementById('projectFilter').value = '';
+            if (document.getElementById('userFilter')) document.getElementById('userFilter').value = '';
+            if (document.getElementById('dayFilter')) document.getElementById('dayFilter').value = '';
+            if (document.getElementById('sortOrder')) document.getElementById('sortOrder').value = 'row_asc';
+            applyFilters();
+        }
+
+        function exportToCSV() {
+            let csvContent = "\uFEFF";
+            csvContent += "ردیف,تاریخ,روز هفته,پروژه,محل ماموریت,آدرس,ساعت شروع,ساعت خاتمه,وسیله رفت,مبلغ رفت,وسیله برگشت,مبلغ برگشت,جمع کل\n";
+
+            (window.filteredData || []).forEach(row => {
+                const total = (Number(row.outboundCost) || 0) + (Number(row.inboundCost) || 0);
+                const prjObj = (window.projectsData || []).find(p => p.id === row.projectId);
+                const prjTitle = prjObj ? prjObj.title : '';
+                csvContent += `"${row.rowNo}","${row.date}","${row.day}","${prjTitle}","${row.location}","${row.address}","${row.startTime}","${row.endTime}","${row.outboundVehicle}","${row.outboundCost}","${row.inboundVehicle}","${row.inboundCost}","${total}"\n`;
+            });
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", `گزارش_مأموریت_پروژه‌ها.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
+</body>
+</html>
+```eof
+
+### 🎯 گام بعدی:
+وقتی کد بالا را در پروژه کپی کردید، کافیست متغیر `CUSTOM_FIREBASE_CONFIG` در سطر ۶۳۷ را با تنظیماتی که از کنسول Firebase می‌گیرید، جایگزین کنید (کافیست `null` را پاک کنید و کدی که گوگل به شما داده قرار دهید):
+
+```javascript
+const CUSTOM_FIREBASE_CONFIG = {
+  apiKey: "AIzaSy...",
+  authDomain: "akasra-app.firebaseapp.com",
+  projectId: "akasra-app",
+  storageBucket: "akasra-app.firebasestorage.app",
+  messagingSenderId: "123456789",
+  appId: "1:123456789:web:abcdef..."
+};
