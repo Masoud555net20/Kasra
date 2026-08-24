@@ -21,12 +21,12 @@ export async function onRequest(context) {
       const body = await parseJsonBody(request);
       const item = body.mission || body;
       const id = String(item.id || crypto.randomUUID());
-      const userId = String(item.userId || item.user_id || '');
-      const username = String(item.username || '').trim();
+      let userId = String(item.userId || item.user_id || '').trim();
+      let username = String(item.username || '').trim();
       const rowNo = Number(item.rowNo ?? item.row_no ?? 0);
       const missionDate = String(item.date || item.mission_date || '').trim();
       const dayName = String(item.day || '').trim();
-      const projectId = String(item.projectId || item.project_id || '');
+      let projectId = String(item.projectId || item.project_id || '').trim();
       const projectTitle = String(item.projectTitle || item.project_title || '').trim();
       const location = String(item.location || '').trim();
       const address = String(item.address || '').trim();
@@ -41,8 +41,42 @@ export async function onRequest(context) {
       const status = String(item.status || 'ثبت شده').trim();
       const now = new Date().toISOString();
 
-      if (!missionDate || !userId) {
-        return json({ ok: false, message: 'تاریخ و کاربر ثبت مأموریت الزامی هستند.' }, 400);
+      if (!missionDate) {
+        return json({ ok: false, message: 'تاریخ مأموریت الزامی است.' }, 400);
+      }
+
+      const existingUser = userId ? await db.prepare('SELECT * FROM users WHERE id = ?').bind(userId).first() : null;
+      if (!existingUser && username) {
+        const fullName = String(item.fullName || item.full_name || username).trim() || username;
+        const safeUserId = userId || crypto.randomUUID();
+        userId = safeUserId;
+        await db.prepare(`
+          INSERT OR IGNORE INTO users (id, username, password, full_name, role, signature, is_active, created_at, updated_at)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `).bind(safeUserId, username, String(item.password || '123456'), fullName, String(item.role || 'کارشناس'), item.signature || null, 1, now, now).run();
+      } else if (!existingUser && !username && userId) {
+        return json({ ok: false, message: 'برای ثبت مأموریت، نام کاربر باید وجود داشته باشد.' }, 400);
+      }
+
+      const existingProject = projectId ? await db.prepare('SELECT * FROM projects WHERE id = ?').bind(projectId).first() : null;
+      if (!existingProject) {
+        const projectCode = String(item.code || item.projectCode || `PRJ-${Date.now()}`).trim();
+        const projectName = projectTitle || String(item.title || 'پروژه ناشناس').trim();
+        const projectClient = String(item.client || item.projectClient || '').trim();
+        const safeProjectId = projectId || crypto.randomUUID();
+        projectId = safeProjectId;
+        await db.prepare(`
+          INSERT OR IGNORE INTO projects (id, title, code, client, status, description, created_by, created_at, updated_at)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `).bind(safeProjectId, projectName, projectCode, projectClient, String(item.projectStatus || 'فعال'), String(item.description || '').trim(), userId || null, now, now).run();
+      }
+
+      if (!userId) {
+        return json({ ok: false, message: 'کاربر ثبت مأموریت الزامی است.' }, 400);
+      }
+
+      if (!projectId) {
+        return json({ ok: false, message: 'پروژه ثبت مأموریت الزامی است.' }, 400);
       }
 
       await db.prepare(`
@@ -72,7 +106,7 @@ export async function onRequest(context) {
           status = excluded.status,
           updated_at = excluded.updated_at
       `).bind(
-        id, userId, username, rowNo, missionDate, dayName, projectId, projectTitle,
+        id, userId, username || 'unknown-user', rowNo, missionDate, dayName, projectId, projectTitle,
         location, address, startTime, endTime, outboundVehicle, outboundCost,
         inboundVehicle, inboundCost, totalCost, notes, status, now, now
       ).run();

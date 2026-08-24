@@ -21,13 +21,50 @@ export async function onRequest(context) {
 
   try {
     const db = ensureDb(env);
-    const row = await db.prepare(`
+    let row = await db.prepare(`
       SELECT *
       FROM users
       WHERE lower(username) = lower(?)
         AND password = ?
       LIMIT 1
     `).bind(username, password).first();
+
+    if (!row) {
+      const defaultUsers = [
+        { username: 'admin', password: '123456', fullName: 'مدیر سیستم', role: 'مدیر سیستم' },
+        { username: 'hamed', password: '123456', fullName: 'حامد خیرآبادی', role: 'کارشناس' }
+      ];
+
+      const fallbackUser = defaultUsers.find(user =>
+        user.username.toLowerCase() === username.toLowerCase() && user.password === password
+      );
+
+      if (fallbackUser) {
+        const userId = `u_${Date.now()}`;
+        await db.prepare(`
+          INSERT OR IGNORE INTO users (id, username, password, full_name, role, signature, is_active, created_at, updated_at)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `).bind(
+          userId,
+          fallbackUser.username,
+          fallbackUser.password,
+          fallbackUser.fullName,
+          fallbackUser.role,
+          null,
+          1,
+          new Date().toISOString(),
+          new Date().toISOString()
+        ).run();
+
+        row = await db.prepare(`
+          SELECT *
+          FROM users
+          WHERE lower(username) = lower(?)
+            AND password = ?
+          LIMIT 1
+        `).bind(username, password).first();
+      }
+    }
 
     if (!row) {
       await db.prepare(`

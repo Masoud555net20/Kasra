@@ -1786,7 +1786,7 @@
         window.chartInstance = null;
         window.API_BASE = '/api';
 
-        async function apiRequest(path, options = {}) {
+        window.apiRequest = async function(path, options = {}) {
             const method = (options.method || 'GET').toUpperCase();
             const headers = new Headers(options.headers || {});
             const body = options.body;
@@ -1814,7 +1814,9 @@
             }
 
             return payload;
-        }
+        };
+
+        const apiRequest = window.apiRequest;
 
         const initialSeedUsers = [
             { id: "u1", username: "admin", password: "123456", fullName: "مدیر سیستم", role: "مدیر سیستم", signature: window.sampleSignatureDataUrl },
@@ -1843,10 +1845,50 @@
             { id: "3", userId: "u2", username: "hamed", rowNo: 3, date: "1405/03/03", day: "یکشنبه", projectId: "p2", projectTitle: "پروژه صنعت نفت", location: "نفت فلات قاره", address: "پارک وی", startTime: "11:08", endTime: "12:15", outboundVehicle: "شخصی", outboundCost: 0, inboundVehicle: "شخصی", inboundCost: 700000, totalCost: 700000 }
         ];
 
+        async function syncCloudData() {
+            try {
+                const [usersRes, projectsRes, missionsRes] = await Promise.all([
+                    apiRequest('/users'),
+                    apiRequest('/projects'),
+                    apiRequest('/missions')
+                ]);
+
+                if (Array.isArray(usersRes?.items)) {
+                    window.usersData = sanitizeUsersList(usersRes.items);
+                    localStorage.setItem('akasra_users', JSON.stringify(window.usersData));
+                }
+
+                if (Array.isArray(projectsRes?.items)) {
+                    window.projectsData = projectsRes.items;
+                    localStorage.setItem('akasra_projects', JSON.stringify(window.projectsData));
+                }
+
+                if (Array.isArray(missionsRes?.items)) {
+                    window.expensesData = missionsRes.items;
+                    localStorage.setItem('akasra_expenses', JSON.stringify(window.expensesData));
+                }
+
+                if (typeof renderUsersTable === 'function') renderUsersTable();
+                if (typeof populateUserDropdownFilter === 'function') populateUserDropdownFilter();
+                if (typeof populateProjectDropdowns === 'function') populateProjectDropdowns();
+                if (typeof renderProjectsTable === 'function') renderProjectsTable();
+                if (typeof applyFilters === 'function') applyFilters();
+
+                updateSyncBadge(true, 'دیتابیس کلادفلر همگام‌سازی شد');
+                return true;
+            } catch (error) {
+                console.warn('Cloudflare sync failed, keeping local data:', error);
+                updateSyncBadge(false, 'ذخیره محلی (برخط/آفلاین)');
+                return false;
+            }
+        }
+
         async function initApp() {
             loadLocalUsers();
             loadLocalProjects();
             loadLocalMissions();
+
+            const cloudSynced = await syncCloudData();
 
             const savedUser = sessionStorage.getItem('akasra_logged_user');
             if (savedUser) {
@@ -1862,7 +1904,7 @@
                 showLoginModal();
             }
 
-            if (firebaseConfig) {
+            if (firebaseConfig && !cloudSynced) {
                 try {
                     const app = initializeApp(firebaseConfig);
                     window.db = getFirestore(app);
@@ -1882,7 +1924,9 @@
                 }
             }
 
-            updateSyncBadge(false, "ذخیره محلی (برخط/آفلاین)");
+            if (!cloudSynced) {
+                updateSyncBadge(false, "ذخیره محلی (برخط/آفلاین)");
+            }
         }
 
         function setupFirestoreListeners() {
@@ -2474,11 +2518,11 @@
             return String(str).replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
         }
 
-        function showLoginModal() {
+        window.showLoginModal = function() {
             document.getElementById('loginModal').classList.remove('hidden');
-        }
+        };
 
-        async function handleLogin(e) {
+        window.handleLogin = async function(e) {
             e.preventDefault();
             const usernameInput = document.getElementById('loginUsername').value.trim().toLowerCase();
             const passwordInput = document.getElementById('loginPassword').value.trim();
@@ -2526,13 +2570,13 @@
             } else {
                 errorBox.classList.remove('hidden');
             }
-        }
+        };
 
-        function handleLogout() {
+        window.handleLogout = function() {
             sessionStorage.removeItem('akasra_logged_user');
             window.currentUser = null;
-            showLoginModal();
-        }
+            window.showLoginModal();
+        };
 
         function updateUserUI() {
             if (!window.currentUser) return;
