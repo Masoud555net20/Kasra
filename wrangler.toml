@@ -1,0 +1,8 @@
+name = "kasra"
+compatibility_date = "2026-08-23"
+pages_build_output_dir = "."
+
+[[d1_databases]]
+binding = "DB"
+database_name = "kasra-db"
+database_id = "fd7046a7-374f-4e2b-a99e-925c17d4baa4"
