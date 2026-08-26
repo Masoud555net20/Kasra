@@ -156,66 +156,134 @@
         .print-only {
             display: none;
         }
+
+        /* ===== LIGHT THEME (DAY MODE) ===== */
+        body.light-theme {
+            background: linear-gradient(135deg, #eef2f7 0%, #dde5ef 100%);
+            color: #0f172a;
+        }
+        body.light-theme .glass-card {
+            background: rgba(255, 255, 255, 0.88);
+            border-color: rgba(15, 23, 42, 0.10);
+            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+        }
+        body.light-theme .glass-input {
+            background: #ffffff;
+            border-color: #cbd5e1;
+            color: #0f172a;
+        }
+        body.light-theme .glass-input:focus {
+            background: #ffffff;
+            border-color: #16a34a;
+            box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.18);
+        }
+        body.light-theme ::-webkit-scrollbar-track { background: rgba(148, 163, 184, 0.25); }
+        body.light-theme ::-webkit-scrollbar-thumb { background: rgba(100, 116, 139, 0.55); }
+        body.light-theme .text-white { color: #0f172a !important; }
+        body.light-theme .text-slate-200 { color: #334155 !important; }
+        body.light-theme .text-slate-300 { color: #475569 !important; }
+        body.light-theme .text-slate-400 { color: #5b6b7f !important; }
+        body.light-theme .text-slate-500 { color: #64748b !important; }
+        body.light-theme .bg-slate-900,
+        body.light-theme .bg-slate-900\/60,
+        body.light-theme .bg-slate-900\/70,
+        body.light-theme .bg-slate-900\/80,
+        body.light-theme .bg-slate-900\/90 { background-color: #f1f5f9 !important; }
+        body.light-theme .bg-slate-800,
+        body.light-theme .bg-slate-800\/40,
+        body.light-theme .bg-slate-800\/80,
+        body.light-theme .bg-slate-800\/90 { background-color: #e2e8f0 !important; }
+        body.light-theme .border-slate-700,
+        body.light-theme .border-slate-700\/50,
+        body.light-theme .border-slate-700\/60,
+        body.light-theme .border-slate-700\/70,
+        body.light-theme .border-slate-700\/80,
+        body.light-theme .border-slate-800 { border-color: #cbd5e1 !important; }
+        body.light-theme .hover\:bg-slate-700:hover { background-color: #cbd5e1 !important; }
+        body.light-theme .hover\:bg-slate-800:hover { background-color: #d3dce6 !important; }
+        body.light-theme .hover\:bg-slate-800\/40:hover { background-color: rgba(148, 163, 184, 0.25) !important; }
+        body.light-theme thead.bg-slate-800\/90 { background-color: #e2e8f0 !important; }
+        body.light-theme tfoot.bg-slate-900\/90 { background-color: #f8fafc !important; }
+        body.light-theme #loginModal { background: rgba(226, 232, 240, 0.92); }
+        body.light-theme #expenseModal,
+        body.light-theme #usersModal,
+        body.light-theme #projectsModal,
+        body.light-theme #resetPasswordModal,
+        body.light-theme #aiAssistantModal,
+        body.light-theme #customModal,
+        body.light-theme #receiptViewerModal { background: rgba(15, 23, 42, 0.45); }
     </style>
 </head>
 <body class="p-2 sm:p-4 md:p-6 pb-12 select-none sm:select-auto">
+    <script>
+        (function () {
+            try {
+                if (localStorage.getItem('akasra_theme') === 'light') document.body.classList.add('light-theme');
+            } catch (e) {}
+        })();
+    </script>
 
     <!-- LOGIN MODAL SCREEN -->
     <div id="loginModal" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4">
-        <div class="glass-card w-full max-w-md rounded-2xl p-5 sm:p-8 shadow-2xl border border-emerald-500/30 max-h-[92vh] overflow-y-auto touch-scroll">
-            
-            <div class="mb-5 p-3.5 rounded-2xl bg-slate-900/80 border border-emerald-500/30 backdrop-blur-md text-center shadow-inner relative overflow-hidden group">
-                <div class="absolute -top-10 -right-10 w-24 h-24 bg-emerald-500/10 rounded-full blur-xl group-hover:bg-emerald-500/20 transition-all"></div>
-                <div class="flex items-center justify-center gap-2 text-emerald-400 text-xs font-bold mb-1">
-                    <i class="fa-solid fa-clock text-amber-400 animate-pulse text-sm"></i>
-                    <span id="loginLiveClock" class="font-mono text-base tracking-wider text-white drop-shadow">۰۰:۰۰:۰۰</span>
+        <div class="glass-card w-full max-w-sm rounded-3xl p-6 sm:p-8 shadow-2xl border border-emerald-500/30 relative overflow-hidden">
+            <div class="absolute -top-16 -right-16 w-48 h-48 bg-emerald-500/15 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="absolute -bottom-16 -left-16 w-48 h-48 bg-sky-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+            <div class="relative">
+                <div class="text-center">
+                    <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-brand-600 to-emerald-400 flex items-center justify-center text-white shadow-lg shadow-emerald-500/30 mx-auto mb-4 relative">
+                        <i class="fa-solid fa-lock text-2xl"></i>
+                        <span class="absolute -bottom-1.5 -left-1.5 w-6 h-6 rounded-full bg-slate-900 border border-emerald-500/40 flex items-center justify-center shadow">
+                            <i class="fa-solid fa-shield-halved text-emerald-400 text-[10px]"></i>
+                        </span>
+                    </div>
+                    <h2 class="text-xl font-black text-white">ورود به سامانه مأموریت‌ها</h2>
+                    <p class="text-[11px] text-slate-400 mt-1">جهت دسترسی به اطلاعات لطفاً وارد شوید</p>
                 </div>
-                <div class="flex items-center justify-center gap-1.5 text-[11px] text-slate-300 font-medium">
-                    <i class="fa-solid fa-calendar-days text-emerald-400 text-[10px]"></i>
-                    <span id="loginLiveDate">در حال دریافت تاریخ سیستم...</span>
+
+                <div class="mt-4 mb-5 flex items-center justify-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-900/70 border border-slate-700/70 w-max max-w-full mx-auto">
+                    <i class="fa-solid fa-clock text-amber-400 text-[10px] animate-pulse shrink-0"></i>
+                    <span id="loginLiveClock" class="font-mono text-xs tracking-wider text-white shrink-0">۰۰:۰۰:۰۰</span>
+                    <span class="w-px h-3.5 bg-slate-700 shrink-0"></span>
+                    <i class="fa-solid fa-calendar-days text-emerald-400 text-[10px] shrink-0"></i>
+                    <span id="loginLiveDate" class="text-[10px] text-slate-300 font-medium whitespace-nowrap truncate">در حال دریافت تاریخ...</span>
+                </div>
+
+                <form onsubmit="handleLogin(event)" class="space-y-3.5">
+                    <div>
+                        <label class="block text-xs text-slate-300 mb-1.5 font-medium">نام کاربری</label>
+                        <div class="relative">
+                            <i class="fa-solid fa-user absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
+                            <input type="text" id="loginUsername" required autocomplete="username" placeholder="نام کاربری خود را وارد کنید" class="glass-input w-full pr-9 pl-3 py-3 rounded-xl">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs text-slate-300 mb-1.5 font-medium">کلمه عبور</label>
+                        <div class="relative">
+                            <i class="fa-solid fa-key absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
+                            <input type="password" id="loginPassword" required autocomplete="current-password" placeholder="••••••••" class="glass-input w-full pr-9 pl-10 py-3 rounded-xl">
+                            <button type="button" onclick="toggleLoginPassword()" class="absolute left-2.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-lg text-slate-500 hover:text-emerald-400 flex items-center justify-center transition" title="نمایش / مخفی‌سازی رمز">
+                                <i id="loginPassVisIcon" class="fa-solid fa-eye text-xs"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="loginError" class="text-red-400 text-xs text-center hidden bg-red-500/10 py-2 rounded-lg border border-red-500/20">
+                        <i class="fa-solid fa-circle-exclamation ml-1"></i>نام کاربری یا کلمه عبور اشتباه است
+                    </div>
+
+                    <button type="submit" class="btn-touch w-full py-3 rounded-xl bg-gradient-to-l from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white font-bold text-sm transition-all shadow-lg shadow-emerald-600/40 flex items-center justify-center gap-2 min-h-[46px]">
+                        <i class="fa-solid fa-right-to-bracket"></i>
+                        <span>ورود به سیستم</span>
+                    </button>
+                </form>
+
+                <div class="mt-5 pt-4 border-t border-slate-700/50 flex items-center justify-center gap-2 text-[10px] text-slate-500">
+                    <span class="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 font-black tracking-wide">AKASRA</span>
+                    <span>سامانه مدیریت هزینه مأموریت</span>
                 </div>
             </div>
-
-            <div class="text-center mb-6">
-                <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-tr from-brand-600 to-emerald-400 flex items-center justify-center text-white shadow-lg shadow-emerald-500/30 mx-auto mb-3">
-                    <i class="fa-solid fa-lock text-2xl sm:text-3xl"></i>
-                </div>
-                <h2 class="text-xl sm:text-2xl font-black text-white">ورود به سامانه مأموریت‌ها</h2>
-                <p class="text-xs text-slate-400 mt-1">جهت دسترسی به اطلاعات لطفا وارد شوید</p>
-            </div>
-
-            <form onsubmit="handleLogin(event)" class="space-y-4">
-                <div>
-                    <label class="block text-xs text-slate-300 mb-1">نام کاربری</label>
-                    <div class="relative">
-                        <i class="fa-solid fa-user absolute right-3 top-3.5 text-slate-500 text-xs"></i>
-                        <input type="text" id="loginUsername" required placeholder="مثال: admin یا hamed" class="glass-input w-full pr-8 pl-3 py-2.5 rounded-xl">
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block text-xs text-slate-300 mb-1">کلمه عبور</label>
-                    <div class="relative">
-                        <i class="fa-solid fa-key absolute right-3 top-3.5 text-slate-500 text-xs"></i>
-                        <input type="password" id="loginPassword" required placeholder="••••••••" class="glass-input w-full pr-8 pl-3 py-2.5 rounded-xl">
-                    </div>
-                </div>
-
-                <div id="loginError" class="text-red-400 text-xs text-center hidden bg-red-500/10 py-2 rounded-lg border border-red-500/20">
-                    نام کاربری یا کلمه عبور اشتباه است
-                </div>
-
-                <button type="submit" class="btn-touch w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm transition-all shadow-lg shadow-emerald-600/30 flex items-center justify-center gap-2 min-h-[44px]">
-                    <i class="fa-solid fa-right-to-bracket"></i>
-                    <span>ورود به سیستم</span>
-                </button>
-
-                <div class="mt-4 p-3 bg-slate-900/60 rounded-xl text-xs text-slate-400 text-center border border-slate-800">
-                    <p class="font-bold text-slate-300 mb-1">حساب‌های پیش‌فرض جهت تست:</p>
-                    <p>مدیر: <span class="text-emerald-400 font-mono">admin</span> / رمز: <span class="text-emerald-400 font-mono">123456</span></p>
-                    <p>کارشناس: <span class="text-emerald-400 font-mono">hamed</span> / رمز: <span class="text-emerald-400 font-mono">123456</span></p>
-                </div>
-            </form>
         </div>
     </div>
 
@@ -283,6 +351,10 @@
                         <span id="currentUserDisplay" class="block text-xs font-bold text-white">کاربر</span>
                         <span id="currentUserRole" class="block text-[10px] text-emerald-400">مدیر سیستم</span>
                     </div>
+                    <button onclick="toggleTheme()" class="btn-touch px-3 py-1.5 sm:p-0 sm:w-8 sm:h-8 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 flex items-center justify-center transition border border-amber-500/20 sm:border-none" title="تغییر قالب شب / روز">
+                        <i id="themeToggleIcon" class="fa-solid fa-moon text-xs ml-1 sm:ml-0"></i>
+                        <span id="themeToggleText" class="text-xs sm:hidden">قالب</span>
+                    </button>
                     <button onclick="handleLogout()" class="btn-touch px-3 py-1.5 sm:p-0 sm:w-8 sm:h-8 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 flex items-center justify-center transition border border-red-500/20 sm:border-none" title="خروج از حساب">
                         <i class="fa-solid fa-right-from-bracket text-xs ml-1 sm:ml-0"></i>
                         <span class="text-xs sm:hidden">خروج</span>
@@ -466,7 +538,6 @@
                             <th class="p-3">تاریخ</th>
                             <th class="p-3">روز هفته</th>
                             <th class="p-3">پروژه</th>
-                            <th class="p-3">محل مأموریت</th>
                             <th class="p-3">آدرس</th>
                             <th class="p-3 text-center">شروع</th>
                             <th class="p-3 text-center">خاتمه</th>
@@ -475,6 +546,7 @@
                             <th class="p-3">وسیله برگشت</th>
                             <th class="p-3">مبلغ برگشت</th>
                             <th class="p-3 text-emerald-400 font-bold">جمع کل</th>
+                            <th class="p-3 text-center no-print">رسید</th>
                             <th class="p-3 text-center no-print">عملیات</th>
                         </tr>
                     </thead>
@@ -482,8 +554,9 @@
                     </tbody>
                     <tfoot class="bg-slate-900/90 font-bold text-slate-200 border-t-2 border-slate-700">
                         <tr>
-                            <td colspan="12" class="p-3.5 text-left font-extrabold text-xs sm:text-sm pl-6">جمع کل هزینه‌ها:</td>
+                            <td colspan="11" class="p-3.5 text-left font-extrabold text-xs sm:text-sm pl-6">جمع کل هزینه‌ها:</td>
                             <td id="tableTotalSum" class="p-3.5 text-emerald-400 text-xs sm:text-sm font-black text-right">0</td>
+                            <td class="no-print"></td>
                             <td class="no-print"></td>
                         </tr>
                     </tfoot>
@@ -512,13 +585,8 @@
             <form id="expenseForm" onsubmit="handleFormSubmit(event)" class="space-y-3.5">
                 <input type="hidden" id="editId">
 
-                <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
-                    <div>
-                        <label class="block text-xs font-medium text-slate-300 mb-1">ردیف <span class="text-emerald-400">*</span></label>
-                        <input type="number" id="formRowNo" required min="1" class="glass-input w-full px-3 py-2 rounded-xl">
-                    </div>
-                    
-                    <div class="sm:col-span-2">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                     <div class="sm:col-span-2">
                         <label class="block text-xs font-medium text-slate-300 mb-1">
                             تاریخ شمسی <span class="text-emerald-400">*</span>
                             <span class="text-[10px] text-emerald-400 mr-2" id="autoDayBadge"></span>
@@ -542,30 +610,26 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                         <label class="block text-xs font-medium text-slate-300 mb-1">پروژه مربوطه <span class="text-emerald-400">*</span></label>
-                        <select id="formProject" required class="glass-input w-full px-3 py-2 rounded-xl">
+                        <select id="formProject" required class="glass-input w-full px-3 py-2 rounded-xl" onchange="handleFormProjectChange()">
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-slate-300 mb-1">محل مأموریت <span class="text-emerald-400">*</span></label>
-                        <input type="text" id="formLocation" required placeholder="مثال: بهداشت و درمان صنعت نفت" class="glass-input w-full px-3 py-2 rounded-xl">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-medium text-slate-300 mb-1">آدرس محل مأموریت</label>
-                        <input type="text" id="formAddress" placeholder="مثال: خیابان به آفرین" class="glass-input w-full px-3 py-2 rounded-xl">
+                        <label class="block text-xs font-medium text-slate-300 mb-1">آدرس محل مأموریت <span class="text-[10px] text-emerald-400">(خودکار از پروژه)</span></label>
+                        <input type="text" id="formAddress" placeholder="با انتخاب پروژه تکمیل می‌شود" class="glass-input w-full px-3 py-2 rounded-xl">
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                         <label class="block text-xs font-medium text-slate-300 mb-1">ساعت شروع</label>
-                        <input type="text" id="formStartTime" placeholder="۰۷:۵۸" class="glass-input w-full px-3 py-2 rounded-xl">
+                        <input type="time" id="formStartTime" class="glass-input w-full px-3 py-2 rounded-xl">
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-slate-300 mb-1">ساعت خاتمه</label>
-                        <input type="text" id="formEndTime" placeholder="۱۰:۱۰" class="glass-input w-full px-3 py-2 rounded-xl">
+                        <input type="time" id="formEndTime" class="glass-input w-full px-3 py-2 rounded-xl">
                     </div>
                 </div>
 
@@ -576,7 +640,7 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
                             <label class="block text-xs text-slate-400 mb-1">وسیله رفت</label>
-                            <select id="formOutboundVehicle" class="glass-input w-full px-3 py-2 rounded-xl">
+                            <select id="formOutboundVehicle" onchange="updateReceiptHints()" class="glass-input w-full px-3 py-2 rounded-xl">
                                 <option value="شخصی">شخصی</option>
                                 <option value="اسنپ/تپسی">اسنپ / تپسی</option>
                                 <option value="آژانس">آژانس</option>
@@ -586,7 +650,22 @@
                         </div>
                         <div>
                             <label class="block text-xs text-slate-400 mb-1">مبلغ رفت (ریال)</label>
-                            <input type="number" id="formOutboundCost" placeholder="۹۰۰۰۰۰" oninput="calculateTotalFormSum()" class="glass-input w-full px-3 py-2 rounded-xl">
+                            <input type="text" inputmode="numeric" id="formOutboundCost" placeholder="0" oninput="handleRialInput(this)" class="glass-input w-full px-3 py-2 rounded-xl font-mono">
+                        </div>
+                    </div>
+                    <div>
+                        <label id="formOutboundReceiptLabel" class="block text-xs text-slate-400 mb-1">
+                            تصویر رسید رفت <span id="formOutboundReceiptStar" class="hidden text-red-400 font-bold">*</span>
+                            <span class="text-[10px] text-slate-500">(برای اسنپ/تپسی و آژانس اجباری)</span>
+                        </label>
+                        <div class="flex items-center gap-2">
+                            <input type="file" id="formOutboundReceiptFile" accept="image/*" capture="environment" onchange="previewMissionReceipt(event,'Outbound')" class="glass-input w-full px-2 py-1.5 rounded-lg text-[10px] text-slate-300">
+                            <button type="button" onclick="clearMissionReceipt('Outbound')" id="formOutboundReceiptClear" class="btn-touch hidden shrink-0 w-8 h-8 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 flex items-center justify-center border border-red-500/20" title="حذف تصویر رسید">
+                                <i class="fa-solid fa-trash text-xs"></i>
+                            </button>
+                        </div>
+                        <div id="formOutboundReceiptPreviewContainer" class="hidden mt-2 text-center p-2 bg-slate-950/60 rounded-xl border border-slate-800">
+                            <img id="formOutboundReceiptPreview" src="" alt="رسید رفت" class="max-h-32 mx-auto rounded-lg object-contain border border-slate-700 cursor-pointer" onclick="openReceiptViewer(this.src,'رسید رفت')">
                         </div>
                     </div>
                 </div>
@@ -598,7 +677,7 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
                             <label class="block text-xs text-slate-400 mb-1">وسیله برگشت</label>
-                            <select id="formInboundVehicle" class="glass-input w-full px-3 py-2 rounded-xl">
+                            <select id="formInboundVehicle" onchange="updateReceiptHints()" class="glass-input w-full px-3 py-2 rounded-xl">
                                 <option value="شخصی">شخصی</option>
                                 <option value="اسنپ/تپسی">اسنپ / تپسی</option>
                                 <option value="آژانس">آژانس</option>
@@ -608,7 +687,22 @@
                         </div>
                         <div>
                             <label class="block text-xs text-slate-400 mb-1">مبلغ برگشت (ریال)</label>
-                            <input type="number" id="formInboundCost" placeholder="۹۰۰۰۰۰" oninput="calculateTotalFormSum()" class="glass-input w-full px-3 py-2 rounded-xl">
+                            <input type="text" inputmode="numeric" id="formInboundCost" placeholder="0" oninput="handleRialInput(this)" class="glass-input w-full px-3 py-2 rounded-xl font-mono">
+                        </div>
+                    </div>
+                    <div>
+                        <label id="formInboundReceiptLabel" class="block text-xs text-slate-400 mb-1">
+                            تصویر رسید برگشت <span id="formInboundReceiptStar" class="hidden text-red-400 font-bold">*</span>
+                            <span class="text-[10px] text-slate-500">(برای اسنپ/تپسی و آژانس اجباری)</span>
+                        </label>
+                        <div class="flex items-center gap-2">
+                            <input type="file" id="formInboundReceiptFile" accept="image/*" capture="environment" onchange="previewMissionReceipt(event,'Inbound')" class="glass-input w-full px-2 py-1.5 rounded-lg text-[10px] text-slate-300">
+                            <button type="button" onclick="clearMissionReceipt('Inbound')" id="formInboundReceiptClear" class="btn-touch hidden shrink-0 w-8 h-8 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 flex items-center justify-center border border-red-500/20" title="حذف تصویر رسید">
+                                <i class="fa-solid fa-trash text-xs"></i>
+                            </button>
+                        </div>
+                        <div id="formInboundReceiptPreviewContainer" class="hidden mt-2 text-center p-2 bg-slate-950/60 rounded-xl border border-slate-800">
+                            <img id="formInboundReceiptPreview" src="" alt="رسید برگشت" class="max-h-32 mx-auto rounded-lg object-contain border border-slate-700 cursor-pointer" onclick="openReceiptViewer(this.src,'رسید برگشت')">
                         </div>
                     </div>
                 </div>
@@ -767,18 +861,14 @@
 
             <form onsubmit="handleCreateProject(event)" class="bg-slate-900/60 p-3.5 rounded-xl border border-slate-800 mb-5 space-y-3">
                 <h4 class="text-xs font-bold text-sky-400">تعریف پروژه جدید</h4>
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                     <div>
                         <label class="block text-[11px] text-slate-400 mb-1">عنوان پروژه</label>
                         <input type="text" id="newProjectTitle" required placeholder="مثال: پروژه نوسازی" class="glass-input w-full px-2.5 py-1.5 rounded-lg">
                     </div>
                     <div>
-                        <label class="block text-[11px] text-slate-400 mb-1">کد پروژه</label>
-                        <input type="text" id="newProjectCode" required placeholder="PRJ-101" class="glass-input w-full px-2.5 py-1.5 rounded-lg">
-                    </div>
-                    <div>
-                        <label class="block text-[11px] text-slate-400 mb-1">کارفرما / سازمان</label>
-                        <input type="text" id="newProjectClient" required placeholder="اداره کل نوسازی" class="glass-input w-full px-2.5 py-1.5 rounded-lg">
+                        <label class="block text-[11px] text-slate-400 mb-1">آدرس پیش‌فرض پروژه <span class="text-[10px] text-emerald-400">(در ثبت مأموریت به‌صورت خودکار درج می‌شود)</span></label>
+                        <input type="text" id="newProjectAddress" placeholder="مثال: تهران، خیابان به آفرین، پلاک ۱۲" class="glass-input w-full px-2.5 py-1.5 rounded-lg">
                     </div>
                 </div>
                 <div class="text-left pt-1">
@@ -789,12 +879,11 @@
             </form>
 
             <div class="overflow-x-auto max-h-52 rounded-xl border border-slate-800 touch-scroll">
-                <table class="w-full text-right text-xs whitespace-nowrap min-w-[450px]">
+                <table class="w-full text-right text-xs whitespace-nowrap min-w-[420px]">
                     <thead class="bg-slate-900 text-slate-400">
                         <tr>
                             <th class="p-2.5">نام پروژه</th>
-                            <th class="p-2.5">کد پروژه</th>
-                            <th class="p-2.5">کارفرما</th>
+                            <th class="p-2.5">آدرس پیش‌فرض</th>
                             <th class="p-2.5 text-center">عملیات</th>
                         </tr>
                     </thead>
@@ -831,7 +920,7 @@
                     <span>کلید API مرکزی هوش مصنوعی (مدیر سیستم):</span>
                 </div>
                 <div class="flex items-center gap-2 flex-1 max-w-sm">
-                    <input type="password" id="geminiApiKeyInput" placeholder="کلید API مرکزی (AIzaSy...)" onchange="saveGeminiApiKey(this.value)" class="glass-input w-full px-3 py-1.5 rounded-lg text-xs font-mono">
+                    <input type="password" id="geminiApiKeyInput" placeholder="کلید API مرکزی Gemini" onchange="saveGeminiApiKey(this.value)" class="glass-input w-full px-3 py-1.5 rounded-lg text-xs font-mono">
                     <button type="button" onclick="toggleApiKeyVisibility()" class="btn-touch px-2.5 py-1.5 bg-slate-800 text-slate-300 hover:text-white rounded-lg border border-slate-700 shrink-0" title="نمایش/مخفی‌سازی کلید">
                         <i id="apiKeyVisIcon" class="fa-solid fa-eye"></i>
                     </button>
@@ -871,6 +960,10 @@
                 <button id="aiTabBtn5" onclick="switchAiTab('image')" class="px-3.5 py-2 text-xs font-medium text-slate-400 border-b-2 border-transparent hover:text-slate-200 transition flex items-center gap-1.5 whitespace-nowrap">
                     <i class="fa-solid fa-image"></i>
                     <span>پوستر و اینفوگرافیک AI</span>
+                </button>
+                <button id="aiTabBtn6" onclick="switchAiTab('voice')" class="px-3.5 py-2 text-xs font-medium text-slate-400 border-b-2 border-transparent hover:text-slate-200 transition flex items-center gap-1.5 whitespace-nowrap">
+                    <i class="fa-solid fa-microphone-lines"></i>
+                    <span>ثبت صوتی مأموریت</span>
                 </button>
             </div>
 
@@ -1002,11 +1095,61 @@
                 </div>
             </div>
 
+            <div id="aiTabContentVoice" class="space-y-4 hidden">
+                <div class="p-3 bg-teal-950/30 border border-teal-500/20 rounded-xl text-xs text-teal-200">
+                    <p class="font-bold mb-1"><i class="fa-solid fa-microphone-lines text-teal-400 ml-1"></i>ثبت صوتی هوشمند مأموریت:</p>
+                    <p class="text-slate-300 text-[11px]">دکمه میکروفن را بزنید و شرح مأموریت را به فارسی بگویید (مثلا: امروز رفتم بهداشت درمان نفت با اسنپ ۶۰ هزار تومن، برگشتم شخصی، از ۸ تا ۱۲). سپس دکمه استخراج را بزنید تا اطلاعات توسط Gemini خوانده و در فرم ثبت مأموریت درج شود.</p>
+                </div>
+
+                <div class="flex flex-col items-center justify-center gap-2 py-3 rounded-2xl bg-slate-900/60 border border-teal-500/20">
+                    <button id="voiceRecordBtn" onclick="toggleVoiceRecording()" class="btn-touch relative w-16 h-16 rounded-full bg-teal-600 hover:bg-teal-500 text-white text-xl flex items-center justify-center shadow-lg shadow-teal-600/40 transition-all">
+                        <i id="voiceMicIcon" class="fa-solid fa-microphone"></i>
+                        <span id="voiceRecordRing" class="absolute inset-0 rounded-full border-2 border-teal-400 hidden animate-ping opacity-60"></span>
+                    </button>
+                    <span id="voiceStatusText" class="text-[11px] text-slate-400 font-medium">برای شروع ضبط، دکمه را بزنید</span>
+                    <div id="voiceWaveBox" class="hidden items-end justify-center gap-1 h-5">
+                        <span class="w-1.5 h-3 rounded-full bg-teal-400 animate-bounce" style="animation-delay:0ms"></span>
+                        <span class="w-1.5 h-5 rounded-full bg-teal-400 animate-bounce" style="animation-delay:120ms"></span>
+                        <span class="w-1.5 h-4 rounded-full bg-teal-400 animate-bounce" style="animation-delay:240ms"></span>
+                        <span class="w-1.5 h-5 rounded-full bg-teal-400 animate-bounce" style="animation-delay:360ms"></span>
+                        <span class="w-1.5 h-3 rounded-full bg-teal-400 animate-bounce" style="animation-delay:480ms"></span>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-slate-300 mb-1">متن تشخیص داده‌شده (قابل ویرایش):</label>
+                    <textarea id="voiceTranscript" rows="3" class="glass-input w-full p-2.5 rounded-xl text-xs leading-relaxed" placeholder="متن گفتار شما پس از ضبط اینجا نمایش داده می‌شود..."></textarea>
+                </div>
+
+                <div class="flex items-center justify-between gap-2">
+                    <button onclick="clearVoiceTranscript()" class="btn-touch px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs transition border border-slate-700">
+                        <i class="fa-solid fa-eraser ml-1"></i>پاک کردن
+                    </button>
+                    <button onclick="handleVoiceMissionSubmit()" class="btn-touch px-5 py-2.5 rounded-xl bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-500 hover:to-emerald-500 text-white font-bold text-xs transition flex items-center gap-2 shadow-lg shadow-teal-600/30">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i>
+                        <span>استخراج و درج در فرم ثبت</span>
+                    </button>
+                </div>
+            </div>
+
             <div id="aiLoadingState" class="hidden my-4 text-center py-6 bg-slate-900/90 rounded-xl border border-purple-500/30 space-y-2">
                 <div class="inline-block animate-spin w-8 h-8 border-3 border-purple-500 border-t-transparent rounded-full mb-1"></div>
                 <p class="text-xs font-bold text-purple-300">در حال پردازش هوشمند با مدل Gemini 3 Flash...</p>
                 <p class="text-[10px] text-slate-400">لطفا چند لحظه شکیبا باشید</p>
             </div>
+        </div>
+    </div>
+
+    <!-- RECEIPT IMAGE VIEWER -->
+    <div id="receiptViewerModal" class="fixed inset-0 bg-slate-950/90 backdrop-blur-sm z-[105] hidden flex items-center justify-center p-4">
+        <div class="max-w-2xl w-full text-center space-y-3">
+            <div class="flex items-center justify-between">
+                <h3 id="receiptViewerTitle" class="text-sm font-bold text-white">مشاهده رسید</h3>
+                <button onclick="closeReceiptViewer()" class="btn-touch w-9 h-9 rounded-full bg-slate-800 hover:bg-slate-700 text-white flex items-center justify-center transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <img id="receiptViewerImg" src="" alt="تصویر رسید" class="w-full max-h-[75vh] object-contain rounded-xl border border-slate-700 shadow-2xl">
         </div>
     </div>
 
@@ -1080,8 +1223,6 @@
                 <thead>
                     <tr>
                         <th>نام پروژه</th>
-                        <th>کد پروژه</th>
-                        <th>کارفرما / سازمان</th>
                         <th>تعداد مأموریت</th>
                         <th>مجموع هزینه رفت (ریال)</th>
                         <th>مجموع هزینه برگشت (ریال)</th>
@@ -1102,7 +1243,6 @@
                         <th style="width: 65px;">تاریخ</th>
                         <th style="width: 50px;">روز</th>
                         <th>پروژه</th>
-                        <th>محل مأموریت</th>
                         <th>آدرس محل</th>
                         <th style="width: 40px;">شروع</th>
                         <th style="width: 40px;">خاتمه</th>
@@ -1117,7 +1257,7 @@
                 </tbody>
                 <tfoot>
                     <tr class="font-bold bg-slate-200">
-                        <td colspan="12" style="text-align: left; font-size: 11px; padding-left: 10px;">جمع نهایی کل هزینه‌های مأموریت (ریال):</td>
+                        <td colspan="11" style="text-align: left; font-size: 11px; padding-left: 10px;">جمع نهایی کل هزینه‌های مأموریت (ریال):</td>
                         <td id="printTableFooterTotal" style="font-size: 11px; font-weight: 900;">۰</td>
                     </tr>
                 </tfoot>
@@ -1166,14 +1306,16 @@
                 localStorage.setItem('gemini_api_key', trimmed);
                 window.globalGeminiApiKey = trimmed;
 
-                if (window.db && window.currentUser && window.currentUser.role === 'مدیر سیستم') {
-                    const appId = typeof __app_id !== 'undefined' ? __app_id : 'akasra-expense-tracker';
-                    import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js").then(({ doc, setDoc }) => {
-                        const settingsRef = doc(window.db, 'artifacts', appId, 'public', 'data', 'settings', 'config');
-                        setDoc(settingsRef, { geminiApiKey: trimmed, updatedAt: new Date().toISOString() }, { merge: true })
-                            .then(() => showCustomAlert('کلید API هوش مصنوعی در دیتابیس مرکزی ذخیره شد و برای تمام کاربران فعال گردید.', 'ذخیره موفق'))
-                            .catch(err => console.error("Error saving API key to Firestore:", err));
-                    });
+                if (window.apiRequest) {
+                    window.apiRequest('/settings', {
+                        method: 'POST',
+                        body: JSON.stringify({ geminiApiKey: trimmed })
+                    })
+                        .then(() => showCustomAlert('کلید API هوش مصنوعی در دیتابیس بک‌اند (Cloudflare) ذخیره شد و برای تمام کاربران فعال گردید.', 'ذخیره موفق'))
+                        .catch(err => {
+                            console.error("Error saving API key to backend:", err);
+                            showCustomAlert('کلید در مرورگر ذخیره شد، اما ذخیره در بک‌اند ناموفق بود: ' + err.message);
+                        });
                 } else {
                     showCustomAlert('کلید API در مرورگر محلی ذخیره شد.');
                 }
@@ -1266,7 +1408,7 @@
                             inboundCost: { type: "NUMBER" },
                             suggestedProjectId: { type: "STRING" }
                         },
-                        required: ["location", "outboundCost", "inboundCost"]
+                        required: ["outboundCost", "inboundCost"]
                     }
                 }
             };
@@ -1390,6 +1532,7 @@
         };
 
         window.closeAiAssistantModal = function() {
+            stopVoiceRecordingSilently();
             document.getElementById('aiAssistantModal').classList.add('hidden');
         };
 
@@ -1399,17 +1542,21 @@
             const contentAnalysis = document.getElementById('aiTabContentAnalysis');
             const contentChat = document.getElementById('aiTabContentChat');
             const contentImage = document.getElementById('aiTabContentImage');
+            const contentVoice = document.getElementById('aiTabContentVoice');
 
             const btn1 = document.getElementById('aiTabBtn1');
             const btn2 = document.getElementById('aiTabBtn2');
             const btn3 = document.getElementById('aiTabBtn3');
             const btn4 = document.getElementById('aiTabBtn4');
             const btn5 = document.getElementById('aiTabBtn5');
+            const btn6 = document.getElementById('aiTabBtn6');
 
-            [contentText, contentOcr, contentAnalysis, contentChat, contentImage].forEach(el => el && el.classList.add('hidden'));
-            [btn1, btn2, btn3, btn4, btn5].forEach(btn => {
+            [contentText, contentOcr, contentAnalysis, contentChat, contentImage, contentVoice].forEach(el => el && el.classList.add('hidden'));
+            [btn1, btn2, btn3, btn4, btn5, btn6].forEach(btn => {
                 if (btn) btn.className = "px-3.5 py-2 text-xs font-medium text-slate-400 border-b-2 border-transparent hover:text-slate-200 transition flex items-center gap-1.5 whitespace-nowrap";
             });
+
+            if (tabName !== 'voice') stopVoiceRecordingSilently();
 
             if (tabName === 'text') {
                 contentText?.classList.remove('hidden');
@@ -1426,6 +1573,9 @@
             } else if (tabName === 'image') {
                 contentImage?.classList.remove('hidden');
                 if (btn5) btn5.className = "px-3.5 py-2 text-xs font-bold text-pink-400 border-b-2 border-pink-500 transition flex items-center gap-1.5 whitespace-nowrap";
+            } else if (tabName === 'voice') {
+                contentVoice?.classList.remove('hidden');
+                if (btn6) btn6.className = "px-3.5 py-2 text-xs font-bold text-teal-400 border-b-2 border-teal-500 transition flex items-center gap-1.5 whitespace-nowrap";
             }
         };
 
@@ -1633,6 +1783,33 @@
             }
         };
 
+        window.applyParsedMissionToForm = function(parsed) {
+            openExpenseModal();
+            if (parsed.date) {
+                document.getElementById('formDate').value = parsed.date;
+                handleDateInput(parsed.date);
+            }
+            if (parsed.day) document.getElementById('formDay').value = parsed.day;
+            if (parsed.address) {
+                document.getElementById('formAddress').value = parsed.address;
+            } else {
+                handleFormProjectChange();
+            }
+            if (parsed.startTime) document.getElementById('formStartTime').value = normalizeTimeValue(parsed.startTime);
+            if (parsed.endTime) document.getElementById('formEndTime').value = normalizeTimeValue(parsed.endTime);
+            if (parsed.outboundVehicle) document.getElementById('formOutboundVehicle').value = parsed.outboundVehicle;
+            setRialValue(document.getElementById('formOutboundCost'), parsed.outboundCost);
+            if (parsed.inboundVehicle) document.getElementById('formInboundVehicle').value = parsed.inboundVehicle;
+            setRialValue(document.getElementById('formInboundCost'), parsed.inboundCost);
+            if (parsed.suggestedProjectId && (window.projectsData || []).some(p => p.id === parsed.suggestedProjectId)) {
+                document.getElementById('formProject').value = parsed.suggestedProjectId;
+                handleFormProjectChange();
+            }
+
+            calculateTotalFormSum();
+            updateReceiptHints();
+        };
+
         window.handleAiTextSubmit = async function() {
             const prompt = document.getElementById('aiTextPrompt').value.trim();
             if (!prompt) {
@@ -1648,25 +1825,7 @@
                 loader.classList.add('hidden');
                 closeAiAssistantModal();
 
-                openExpenseModal();
-                if (parsed.date) {
-                    document.getElementById('formDate').value = parsed.date;
-                    handleDateInput(parsed.date);
-                }
-                if (parsed.day) document.getElementById('formDay').value = parsed.day;
-                if (parsed.location) document.getElementById('formLocation').value = parsed.location;
-                if (parsed.address) document.getElementById('formAddress').value = parsed.address;
-                if (parsed.startTime) document.getElementById('formStartTime').value = parsed.startTime;
-                if (parsed.endTime) document.getElementById('formEndTime').value = parsed.endTime;
-                if (parsed.outboundVehicle) document.getElementById('formOutboundVehicle').value = parsed.outboundVehicle;
-                if (parsed.outboundCost) document.getElementById('formOutboundCost').value = parsed.outboundCost;
-                if (parsed.inboundVehicle) document.getElementById('formInboundVehicle').value = parsed.inboundVehicle;
-                if (parsed.inboundCost) document.getElementById('formInboundCost').value = parsed.inboundCost;
-                if (parsed.suggestedProjectId && (window.projectsData || []).some(p => p.id === parsed.suggestedProjectId)) {
-                    document.getElementById('formProject').value = parsed.suggestedProjectId;
-                }
-
-                calculateTotalFormSum();
+                applyParsedMissionToForm(parsed);
                 showCustomAlert('اطلاعات مأموریت توسط Gemini با موفقیت استخراج و در فرم درج شد.', 'هوش مصنوعی Gemini');
             } catch (err) {
                 loader.classList.add('hidden');
@@ -1718,13 +1877,15 @@
                         document.getElementById('formDate').value = ocrResult.date;
                         handleDateInput(ocrResult.date);
                     }
-                    if (ocrResult.location) document.getElementById('formLocation').value = ocrResult.location;
-                    if (ocrResult.address) document.getElementById('formAddress').value = ocrResult.address;
-                    if (ocrResult.time) document.getElementById('formStartTime').value = ocrResult.time;
+                    if (ocrResult.address) {
+                        document.getElementById('formAddress').value = ocrResult.address;
+                    }
+                    if (ocrResult.time) document.getElementById('formStartTime').value = normalizeTimeValue(ocrResult.time);
                     if (ocrResult.vehicleType) document.getElementById('formOutboundVehicle').value = ocrResult.vehicleType;
-                    if (ocrResult.amount) document.getElementById('formOutboundCost').value = ocrResult.amount;
+                    setRialValue(document.getElementById('formOutboundCost'), ocrResult.amount);
 
                     calculateTotalFormSum();
+                    updateReceiptHints();
                     showCustomAlert('اطلاعات رسید تصویر توسط Gemini OCR استخراج و در فرم درج گردید.', 'هوش مصنوعی Gemini');
                 } catch (err) {
                     loader.classList.add('hidden');
@@ -1748,6 +1909,131 @@
                 loader.classList.add('hidden');
                 console.error("Gemini Analysis Error:", err);
                 resultBox.innerHTML = `<div class="text-red-400 p-2">خطا در دریافت تحلیل هوشمند: ${err.message}</div>`;
+            }
+        };
+
+        /* ===== VOICE MISSION ENTRY (ثبت صوتی مأموریت) ===== */
+        window.voiceRecognition = null;
+        window.voiceIsRecording = false;
+
+        function updateVoiceUI(recording) {
+            const btn = document.getElementById('voiceRecordBtn');
+            const icon = document.getElementById('voiceMicIcon');
+            const status = document.getElementById('voiceStatusText');
+            const ring = document.getElementById('voiceRecordRing');
+            const wave = document.getElementById('voiceWaveBox');
+            if (!btn || !icon || !status) return;
+
+            if (recording) {
+                btn.className = 'btn-touch relative w-16 h-16 rounded-full bg-red-600 hover:bg-red-500 text-white text-xl flex items-center justify-center shadow-lg shadow-red-600/40 transition-all';
+                icon.className = 'fa-solid fa-stop';
+                status.innerText = 'در حال شنیدن... شرح مأموریت را بگویید';
+                status.className = 'text-[11px] text-red-300 font-bold animate-pulse';
+                if (ring) ring.classList.remove('hidden');
+                if (wave) { wave.classList.remove('hidden'); wave.classList.add('flex'); }
+            } else {
+                btn.className = 'btn-touch relative w-16 h-16 rounded-full bg-teal-600 hover:bg-teal-500 text-white text-xl flex items-center justify-center shadow-lg shadow-teal-600/40 transition-all';
+                icon.className = 'fa-solid fa-microphone';
+                status.innerText = 'برای شروع ضبط، دکمه را بزنید';
+                status.className = 'text-[11px] text-slate-400 font-medium';
+                if (ring) ring.classList.add('hidden');
+                if (wave) { wave.classList.add('hidden'); wave.classList.remove('flex'); }
+            }
+        }
+
+        window.toggleVoiceRecording = function() {
+            if (window.voiceIsRecording) {
+                stopVoiceRecordingSilently();
+                return;
+            }
+
+            const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SR) {
+                showCustomAlert('مرورگر شما از تشخیص گفتار پشتیبانی نمی‌کند. لطفاً از Google Chrome استفاده کنید.', 'عدم پشتیبانی');
+                return;
+            }
+
+            const rec = new SR();
+            rec.lang = 'fa-IR';
+            rec.continuous = true;
+            rec.interimResults = true;
+
+            let finalText = (document.getElementById('voiceTranscript')?.value || '').trim();
+
+            rec.onresult = function(e) {
+                let interim = '';
+                for (let i = e.resultIndex; i < e.results.length; i++) {
+                    const t = e.results[i][0].transcript;
+                    if (e.results[i].isFinal) finalText += ' ' + t;
+                    else interim += t;
+                }
+                const ta = document.getElementById('voiceTranscript');
+                if (ta) ta.value = (finalText + ' ' + interim).trim();
+            };
+
+            rec.onerror = function(e) {
+                if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
+                    showCustomAlert('دسترسی به میکروفن داده نشد. لطفاً از تنظیمات مرورگر اجازه دسترسی بدهید.', 'خطای میکروفن');
+                    stopVoiceRecordingSilently();
+                }
+            };
+
+            rec.onend = function() {
+                if (window.voiceIsRecording) {
+                    try { rec.start(); } catch (e) { stopVoiceRecordingSilently(); }
+                }
+            };
+
+            window.voiceRecognition = rec;
+            try {
+                rec.start();
+                window.voiceIsRecording = true;
+                updateVoiceUI(true);
+            } catch (e) {
+                showCustomAlert('شروع ضبط صدا ممکن نشد: ' + e.message);
+            }
+        };
+
+        window.stopVoiceRecordingSilently = function() {
+            window.voiceIsRecording = false;
+            if (window.voiceRecognition) {
+                try { window.voiceRecognition.stop(); } catch (e) {}
+                window.voiceRecognition = null;
+            }
+            updateVoiceUI(false);
+        };
+
+        window.clearVoiceTranscript = function() {
+            stopVoiceRecordingSilently();
+            const ta = document.getElementById('voiceTranscript');
+            if (ta) ta.value = '';
+        };
+
+        window.handleVoiceMissionSubmit = async function() {
+            stopVoiceRecordingSilently();
+
+            const text = (document.getElementById('voiceTranscript')?.value || '').trim();
+            if (!text) {
+                showCustomAlert('ابتدا دکمه میکروفن را بزنید و شرح مأموریت را بگویید.', 'متن صوتی خالی است');
+                return;
+            }
+
+            const loader = document.getElementById('aiLoadingState');
+            loader.classList.remove('hidden');
+
+            try {
+                const parsed = await parseMissionTextWithGemini(text);
+                loader.classList.add('hidden');
+                closeAiAssistantModal();
+
+                applyParsedMissionToForm(parsed);
+                const ta = document.getElementById('voiceTranscript');
+                if (ta) ta.value = '';
+                showCustomAlert('شرح صوتی مأموریت توسط Gemini استخراج و در فرم ثبت مأموریت درج شد. پس از بازبینی، دکمه «ذخیره مأموریت» را بزنید.', 'ثبت صوتی موفق');
+            } catch (err) {
+                loader.classList.add('hidden');
+                console.error("Gemini Voice Parse Error:", err);
+                showCustomAlert('خطا در پردازش صوتی مأموریت: ' + err.message);
             }
         };
     </script>
@@ -1798,7 +2084,8 @@
             const response = await fetch(`${window.API_BASE}${path}`, {
                 ...options,
                 method,
-                headers
+                headers,
+                body: body !== undefined ? body : undefined
             });
 
             const text = await response.text();
@@ -1826,17 +2113,59 @@
         function sanitizeUsersList(list) {
             if (!Array.isArray(list)) return [];
             return list.map(u => {
-                if (!u.signature || u.signature.includes('data:image/svg+xml;utf8,')) {
-                    u.signature = window.sampleSignatureDataUrl;
+                const normalized = normalizeUserRecord(u);
+                if (!normalized.signature || normalized.signature.includes('data:image/svg+xml;utf8,')) {
+                    normalized.signature = window.sampleSignatureDataUrl;
                 }
-                return u;
+                return normalized;
             });
         }
 
+        function normalizeMissionRecord(item) {
+            if (!item || typeof item !== 'object') return item;
+            const normalized = { ...item };
+
+            normalized.id = normalized.id ?? item.id ?? '';
+            normalized.userId = normalized.userId ?? normalized.user_id ?? '';
+            normalized.username = normalized.username ?? '';
+            normalized.rowNo = normalized.rowNo ?? normalized.row_no ?? 0;
+            normalized.date = normalized.date ?? normalized.missionDate ?? normalized.mission_date ?? '';
+            normalized.day = normalized.day ?? normalized.dayName ?? normalized.day_name ?? '';
+            normalized.projectId = normalized.projectId ?? normalized.project_id ?? '';
+            normalized.projectTitle = normalized.projectTitle ?? normalized.project_title ?? normalized.title ?? '';
+            normalized.location = normalized.location ?? '';
+            normalized.address = normalized.address ?? '';
+            normalized.startTime = normalized.startTime ?? normalized.start_time ?? '';
+            normalized.endTime = normalized.endTime ?? normalized.end_time ?? '';
+            normalized.outboundVehicle = normalized.outboundVehicle ?? normalized.outbound_vehicle ?? '';
+            normalized.outboundCost = Number(normalized.outboundCost ?? normalized.outbound_cost ?? 0);
+            normalized.inboundVehicle = normalized.inboundVehicle ?? normalized.inbound_vehicle ?? '';
+            normalized.inboundCost = Number(normalized.inboundCost ?? normalized.inbound_cost ?? 0);
+            normalized.outboundReceipt = normalized.outboundReceipt ?? normalized.outbound_receipt ?? '';
+            normalized.inboundReceipt = normalized.inboundReceipt ?? normalized.inbound_receipt ?? '';
+            normalized.totalCost = Number(normalized.totalCost ?? normalized.total_cost ?? (Number(normalized.outboundCost || 0) + Number(normalized.inboundCost || 0)));
+            normalized.notes = normalized.notes ?? '';
+            normalized.status = normalized.status ?? 'ثبت شده';
+            return normalized;
+        }
+
+        window.normalizeMissionRecord = function(item) {
+            return normalizeMissionRecord(item);
+        };
+
+        function sanitizeMissionList(list) {
+            if (!Array.isArray(list)) return [];
+            return list.map(item => normalizeMissionRecord(item));
+        }
+
+        window.sanitizeMissionList = function(list) {
+            return sanitizeMissionList(list);
+        };
+
         const initialSeedProjects = [
-            { id: "p1", title: "پروژه نوسازی مدارس", code: "PRJ-MED", client: "اداره کل نوسازی تهران" },
-            { id: "p2", title: "پروژه صنعت نفت", code: "PRJ-OIL", client: "بهداشت و درمان نفت" },
-            { id: "p3", title: "پروژه عمومی و اداری", code: "PRJ-GEN", client: "داخلی شرکت" }
+            { id: "p1", title: "پروژه نوسازی مدارس", address: "تهران، جردن، اداره کل نوسازی مدارس" },
+            { id: "p2", title: "پروژه صنعت نفت", address: "خیابان به آفرین، بهداشت و درمان صنعت نفت" },
+            { id: "p3", title: "پروژه عمومی و اداری", address: "دفتر مرکزی شرکت" }
         ];
 
         const initialSeedMissions = [
@@ -1847,10 +2176,11 @@
 
         async function syncCloudData() {
             try {
-                const [usersRes, projectsRes, missionsRes] = await Promise.all([
+                const [usersRes, projectsRes, missionsRes, settingsRes] = await Promise.all([
                     apiRequest('/users'),
                     apiRequest('/projects'),
-                    apiRequest('/missions')
+                    apiRequest('/missions'),
+                    apiRequest('/settings')
                 ]);
 
                 if (Array.isArray(usersRes?.items)) {
@@ -1864,8 +2194,13 @@
                 }
 
                 if (Array.isArray(missionsRes?.items)) {
-                    window.expensesData = missionsRes.items;
+                    window.expensesData = sanitizeMissionList(missionsRes.items);
                     localStorage.setItem('akasra_expenses', JSON.stringify(window.expensesData));
+                }
+
+                if (settingsRes?.settings?.geminiApiKey) {
+                    window.globalGeminiApiKey = settingsRes.settings.geminiApiKey;
+                    localStorage.setItem('gemini_api_key', window.globalGeminiApiKey);
                 }
 
                 if (typeof renderUsersTable === 'function') renderUsersTable();
@@ -1884,6 +2219,7 @@
         }
 
         async function initApp() {
+            syncThemeIcon();
             loadLocalUsers();
             loadLocalProjects();
             loadLocalMissions();
@@ -1893,11 +2229,25 @@
             const savedUser = sessionStorage.getItem('akasra_logged_user');
             if (savedUser) {
                 try {
-                    window.currentUser = JSON.parse(savedUser);
-                    document.getElementById('loginModal').classList.add('hidden');
-                    updateUserUI();
-                    applyFilters();
+                    const parsedUser = normalizeUserRecord(JSON.parse(savedUser));
+                    const isValidUser = (window.usersData || []).some(u => {
+                        const user = normalizeUserRecord(u);
+                        return String(user.id || '') === String(parsedUser.id || '') &&
+                               String(user.username || '').toLowerCase() === String(parsedUser.username || '').toLowerCase();
+                    });
+
+                    if (!isValidUser) {
+                        sessionStorage.removeItem('akasra_logged_user');
+                        showLoginModal();
+                    } else {
+                        window.currentUser = parsedUser;
+                        sessionStorage.setItem('akasra_logged_user', JSON.stringify(window.currentUser));
+                        document.getElementById('loginModal').classList.add('hidden');
+                        updateUserUI();
+                        applyFilters();
+                    }
                 } catch (e) {
+                    sessionStorage.removeItem('akasra_logged_user');
                     showLoginModal();
                 }
             } else {
@@ -2514,12 +2864,226 @@
             return Number(val).toLocaleString('fa-IR');
         }
 
+        function toEnDigits(str) {
+            return String(str ?? '').replace(/[۰-۹]/g, d => '0123456789'['۰۱۲۳۴۵۶۷۸۹'.indexOf(d)]);
+        }
+
+        function parseRial(val) {
+            const digits = toEnDigits(val).replace(/[^\d]/g, '');
+            return digits ? Number(digits) : 0;
+        }
+
+        function formatRialGrouped(digitsStr) {
+            const clean = String(digitsStr || '').replace(/[^\d]/g, '');
+            return clean.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        }
+
+        function handleRialInput(el) {
+            el.value = formatRialGrouped(el.value);
+            calculateTotalFormSum();
+        }
+
+        function setRialValue(el, val) {
+            el.value = val ? formatRialGrouped(String(Number(val))) : '';
+        }
+
+        function normalizeTimeValue(v) {
+            if (!v) return '';
+            let s = toEnDigits(String(v)).trim().replace(/\s/g, '').replace(/[.٫،]/g, ':');
+            let m = s.match(/^(\d{1,2}):(\d{1,2})/);
+            if (m) {
+                const hh = Math.min(23, parseInt(m[1], 10) || 0);
+                const mm = Math.min(59, parseInt(m[2], 10) || 0);
+                return `${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}`;
+            }
+            m = s.match(/^(\d{2})(\d{2})$/);
+            if (m) {
+                const hh = Math.min(23, parseInt(m[1], 10) || 0);
+                const mm = Math.min(59, parseInt(m[2], 10) || 0);
+                return `${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}`;
+            }
+            return s;
+        }
+
+        function needsReceiptVehicle(v) {
+            const val = String(v || '');
+            return val.indexOf('اسنپ') > -1 || val.indexOf('آژانس') > -1;
+        }
+
+        window.updateReceiptHints = function() {
+            ['Outbound', 'Inbound'].forEach(dir => {
+                const sel = document.getElementById(dir === 'Outbound' ? 'formOutboundVehicle' : 'formInboundVehicle');
+                const fileInput = document.getElementById('form' + dir + 'ReceiptFile');
+                const star = document.getElementById('form' + dir + 'ReceiptStar');
+                const need = needsReceiptVehicle(sel ? sel.value : '');
+                if (fileInput) fileInput.required = need;
+                if (star) star.classList.toggle('hidden', !need);
+            });
+        };
+
+        function compressReceiptImage(file, callback) {
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const maxDim = 720;
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > maxDim || height > maxDim) {
+                        const ratio = Math.min(maxDim / width, maxDim / height);
+                        width = Math.round(width * ratio);
+                        height = Math.round(height * ratio);
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    callback(canvas.toDataURL('image/jpeg', 0.68));
+                };
+                img.onerror = function() { callback(null); };
+                img.src = evt.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        window.previewMissionReceipt = function(event, dir) {
+            const input = event.target;
+            const prevContainer = document.getElementById('form' + dir + 'ReceiptPreviewContainer');
+            const prevImg = document.getElementById('form' + dir + 'ReceiptPreview');
+            const clearBtn = document.getElementById('form' + dir + 'ReceiptClear');
+            const file = input.files[0];
+
+            if (!file) return;
+
+            compressReceiptImage(file, function(dataUrl) {
+                if (!dataUrl) {
+                    showCustomAlert('فایل انتخاب‌شده تصویر معتبری نیست.');
+                    clearMissionReceipt(dir);
+                    return;
+                }
+                window['form' + dir + 'ReceiptData'] = dataUrl;
+                prevImg.src = dataUrl;
+                prevContainer.classList.remove('hidden');
+                clearBtn.classList.remove('hidden');
+            });
+        };
+
+        window.clearMissionReceipt = function(dir) {
+            window['form' + dir + 'ReceiptData'] = null;
+            const fileInput = document.getElementById('form' + dir + 'ReceiptFile');
+            const prevContainer = document.getElementById('form' + dir + 'ReceiptPreviewContainer');
+            const clearBtn = document.getElementById('form' + dir + 'ReceiptClear');
+            if (fileInput) fileInput.value = '';
+            if (prevContainer) prevContainer.classList.add('hidden');
+            if (clearBtn) clearBtn.classList.add('hidden');
+            const prevImg = document.getElementById('form' + dir + 'ReceiptPreview');
+            if (prevImg) prevImg.src = '';
+        };
+
+        function setMissionReceipt(dir, dataUrl) {
+            const prevContainer = document.getElementById('form' + dir + 'ReceiptPreviewContainer');
+            const prevImg = document.getElementById('form' + dir + 'ReceiptPreview');
+            const clearBtn = document.getElementById('form' + dir + 'ReceiptClear');
+            window['form' + dir + 'ReceiptData'] = dataUrl || null;
+            if (dataUrl) {
+                prevImg.src = dataUrl;
+                prevContainer.classList.remove('hidden');
+                clearBtn.classList.remove('hidden');
+            } else {
+                const fileInput = document.getElementById('form' + dir + 'ReceiptFile');
+                if (fileInput) fileInput.value = '';
+                prevContainer.classList.add('hidden');
+                clearBtn.classList.add('hidden');
+                prevImg.src = '';
+            }
+        }
+
+        window.openReceiptViewer = function(src, title) {
+            if (!src) return;
+            document.getElementById('receiptViewerTitle').innerText = title || 'مشاهده رسید';
+            document.getElementById('receiptViewerImg').src = src;
+            document.getElementById('receiptViewerModal').classList.remove('hidden');
+        };
+
+        window.closeReceiptViewer = function() {
+            document.getElementById('receiptViewerModal').classList.add('hidden');
+        };
+
+        window.openMissionReceipt = function(id, dir) {
+            const r = (window.__receipts || {})[id];
+            if (r && r[dir]) {
+                openReceiptViewer(r[dir], dir === 'outbound' ? 'رسید رفت' : 'رسید برگشت');
+            }
+        };
+
+        window.handleFormProjectChange = function() {
+            const pid = document.getElementById('formProject') ? document.getElementById('formProject').value : '';
+            const prj = (window.projectsData || []).find(p => String(p.id) === String(pid));
+            const addrEl = document.getElementById('formAddress');
+            if (prj && addrEl && prj.address) {
+                addrEl.value = prj.address;
+            }
+        };
+
+        window.toggleTheme = function() {
+            const isLight = document.body.classList.toggle('light-theme');
+            try { localStorage.setItem('akasra_theme', isLight ? 'light' : 'dark'); } catch (e) {}
+            syncThemeIcon();
+        };
+
+        function syncThemeIcon() {
+            const icon = document.getElementById('themeToggleIcon');
+            if (!icon) return;
+            icon.className = document.body.classList.contains('light-theme')
+                ? 'fa-solid fa-moon text-xs ml-1 sm:ml-0'
+                : 'fa-solid fa-sun text-xs ml-1 sm:ml-0';
+        }
+
+        function normalizeUserRecord(user) {
+            if (!user || typeof user !== 'object') return user;
+            const normalized = { ...user };
+            if (!normalized.fullName && normalized.full_name) {
+                normalized.fullName = normalized.full_name;
+            }
+            if (!normalized.full_name && normalized.fullName) {
+                normalized.full_name = normalized.fullName;
+            }
+            if (normalized.isActive === undefined && normalized.is_active !== undefined) {
+                normalized.isActive = normalized.is_active;
+            }
+            if (normalized.is_active === undefined && normalized.isActive !== undefined) {
+                normalized.is_active = normalized.isActive;
+            }
+            return normalized;
+        }
+
+        function getUserDisplayName(user) {
+            const normalized = normalizeUserRecord(user || {});
+            return normalized.fullName || normalized.full_name || normalized.username || 'نامشخص';
+        }
+
         function toPersianDigits(str) {
             return String(str).replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
         }
 
         window.showLoginModal = function() {
             document.getElementById('loginModal').classList.remove('hidden');
+        };
+
+        window.toggleLoginPassword = function() {
+            const input = document.getElementById('loginPassword');
+            const icon = document.getElementById('loginPassVisIcon');
+            if (!input || !icon) return;
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.className = 'fa-solid fa-eye-slash';
+            } else {
+                input.type = 'password';
+                icon.className = 'fa-solid fa-eye';
+            }
         };
 
         window.handleLogin = async function(e) {
@@ -2535,7 +3099,8 @@
                 });
 
                 if (result && result.ok && result.user) {
-                    const user = { ...result.user, password: passwordInput };
+                    const normalizedUser = normalizeUserRecord({ ...result.user, password: passwordInput });
+                    const user = { ...normalizedUser, password: passwordInput };
                     window.currentUser = user;
                     window.usersData = [user, ...(window.usersData || []).filter(u => u.id !== user.id)];
                     sessionStorage.setItem('akasra_logged_user', JSON.stringify(user));
@@ -2580,11 +3145,12 @@
 
         function updateUserUI() {
             if (!window.currentUser) return;
-            document.getElementById('currentUserDisplay').innerText = window.currentUser.fullName;
-            document.getElementById('currentUserRole').innerText = window.currentUser.role;
-            document.getElementById('statExpertName').innerText = window.currentUser.fullName;
-            document.getElementById('statUserRoleText').innerText = `نقش: ${window.currentUser.role}`;
-            document.getElementById('printExpertName').innerText = window.currentUser.fullName;
+            const currentUser = normalizeUserRecord(window.currentUser);
+            document.getElementById('currentUserDisplay').innerText = getUserDisplayName(currentUser);
+            document.getElementById('currentUserRole').innerText = currentUser.role || 'کارشناس';
+            document.getElementById('statExpertName').innerText = getUserDisplayName(currentUser);
+            document.getElementById('statUserRoleText').innerText = `نقش: ${currentUser.role || 'کارشناس'}`;
+            document.getElementById('printExpertName').innerText = getUserDisplayName(currentUser);
 
             populateUserDropdownFilter();
         }
@@ -2602,16 +3168,17 @@
                 userSelect.appendChild(allOpt);
 
                 (window.usersData || []).forEach(u => {
+                    const user = normalizeUserRecord(u);
                     const opt = document.createElement('option');
-                    opt.value = u.id;
-                    opt.textContent = `${u.fullName} (${u.username})`;
+                    opt.value = user.id;
+                    opt.textContent = `${getUserDisplayName(user)} (${user.username || ''})`;
                     userSelect.appendChild(opt);
                 });
             } else {
                 userSelect.disabled = true;
                 const opt = document.createElement('option');
-                opt.value = window.currentUser ? window.currentUser.id : '';
-                opt.textContent = window.currentUser ? window.currentUser.fullName : 'کاربر جاری';
+                opt.value = window.currentUser ? normalizeUserRecord(window.currentUser).id : '';
+                opt.textContent = window.currentUser ? getUserDisplayName(window.currentUser) : 'کاربر جاری';
                 userSelect.appendChild(opt);
             }
         }
@@ -2800,32 +3367,36 @@
                 : (window.usersData || []).filter(u => u.id === window.currentUser?.id);
 
             displayList.forEach(u => {
+                const user = normalizeUserRecord(u);
                 const tr = document.createElement('tr');
-                const isSigValid = u.signature && !u.signature.includes('data:image/svg+xml;utf8,');
+                const isSigValid = user.signature && !user.signature.includes('data:image/svg+xml;utf8,');
                 const sigPreview = isSigValid 
-                    ? `<img src="${u.signature}" class="h-8 max-w-[100px] object-contain mx-auto bg-slate-900/90 rounded p-1 border border-slate-700" alt="امضا"/>` 
+                    ? `<img src="${user.signature}" class="h-8 max-w-[100px] object-contain mx-auto bg-slate-900/90 rounded p-1 border border-slate-700" alt="امضا"/>` 
                     : `<span class="text-slate-500 text-[10px]">بدون امضا</span>`;
 
-                const canDelete = isAdmin && u.id !== window.currentUser?.id;
+                const canDelete = isAdmin && user.id !== window.currentUser?.id;
+                const fullName = getUserDisplayName(user);
+                const userRole = user.role || 'کارشناس';
+                const username = user.username || 'unknown';
 
                 tr.innerHTML = `
-                    <td class="p-2.5 font-bold text-white">${u.fullName}</td>
-                    <td class="p-2.5 font-mono text-emerald-400">${u.username}</td>
-                    <td class="p-2.5 text-slate-300"><span class="px-2 py-0.5 bg-slate-800 rounded border border-slate-700">${u.role}</span></td>
+                    <td class="p-2.5 font-bold text-white">${fullName}</td>
+                    <td class="p-2.5 font-mono text-emerald-400">${username}</td>
+                    <td class="p-2.5 text-slate-300"><span class="px-2 py-0.5 bg-slate-800 rounded border border-slate-700">${userRole}</span></td>
                     <td class="p-2.5 text-center">${sigPreview}</td>
                     <td class="p-2.5 text-center">
                         <div class="flex items-center justify-center gap-1.5">
                             <label class="cursor-pointer text-amber-400 hover:text-amber-300 text-xs flex items-center gap-1 bg-amber-500/10 hover:bg-amber-500/20 px-2 py-1 rounded-lg border border-amber-500/20 transition btn-touch" title="تغییر/بارگذاری امضا">
                                 <i class="fa-solid fa-file-signature"></i>
                                 <span class="text-[10px]">امضا</span>
-                                <input type="file" accept="image/*" class="hidden" onchange="updateUserSignature('${u.id}', event)">
+                                <input type="file" accept="image/*" class="hidden" onchange="updateUserSignature('${user.id}', event)">
                             </label>
-                            <button onclick="openResetPasswordModal('${u.id}')" class="btn-touch text-sky-400 hover:text-sky-300 text-xs flex items-center gap-1 bg-sky-500/10 hover:bg-sky-500/20 px-2 py-1 rounded-lg border border-sky-500/20 transition" title="ریست رمز عبور">
+                            <button onclick="openResetPasswordModal('${user.id}')" class="btn-touch text-sky-400 hover:text-sky-300 text-xs flex items-center gap-1 bg-sky-500/10 hover:bg-sky-500/20 px-2 py-1 rounded-lg border border-sky-500/20 transition" title="ریست رمز عبور">
                                 <i class="fa-solid fa-key"></i>
                                 <span class="text-[10px]">رمز</span>
                             </button>
                             ${canDelete ? `
-                            <button onclick="deleteUser('${u.id}')" class="btn-touch text-red-400 hover:text-red-300 text-xs flex items-center gap-1 bg-red-500/10 hover:bg-red-500/20 px-2 py-1 rounded-lg border border-red-500/20 transition" title="حذف کاربر">
+                            <button onclick="deleteUser('${user.id}')" class="btn-touch text-red-400 hover:text-red-300 text-xs flex items-center gap-1 bg-red-500/10 hover:bg-red-500/20 px-2 py-1 rounded-lg border border-red-500/20 transition" title="حذف کاربر">
                                 <i class="fa-solid fa-trash"></i>
                             </button>` : ''}
                         </div>
@@ -2836,10 +3407,10 @@
         }
 
         window.openResetPasswordModal = function(userId) {
-            const user = (window.usersData || []).find(u => u.id === userId);
+            const user = normalizeUserRecord((window.usersData || []).find(u => u.id === userId));
             if (!user) return;
             document.getElementById('resetPassUserId').value = user.id;
-            document.getElementById('resetPassTargetUser').innerText = `کاربر: ${user.fullName} (${user.username})`;
+            document.getElementById('resetPassTargetUser').innerText = `کاربر: ${getUserDisplayName(user)} (${user.username || ''})`;
             document.getElementById('newResetPassword').value = '';
             document.getElementById('resetPasswordModal').classList.remove('hidden');
         };
@@ -2877,7 +3448,7 @@
                 (window.projectsData || []).forEach(p => {
                     const opt = document.createElement('option');
                     opt.value = p.id;
-                    opt.textContent = `${p.title} (${p.code})`;
+                    opt.textContent = p.title;
                     filterSelect.appendChild(opt);
                 });
                 filterSelect.value = currentVal;
@@ -2889,7 +3460,7 @@
                 (window.projectsData || []).forEach(p => {
                     const opt = document.createElement('option');
                     opt.value = p.id;
-                    opt.textContent = `${p.title} (${p.code})`;
+                    opt.textContent = p.title;
                     formSelect.appendChild(opt);
                 });
                 if (currentFormVal && (window.projectsData || []).some(p => p.id === currentFormVal)) {
@@ -2912,8 +3483,7 @@
             const newPrj = {
                 id: 'p_' + Date.now(),
                 title: document.getElementById('newProjectTitle').value.trim(),
-                code: document.getElementById('newProjectCode').value.trim(),
-                client: document.getElementById('newProjectClient').value.trim()
+                address: document.getElementById('newProjectAddress').value.trim()
             };
 
             await window.saveProjectData(newPrj);
@@ -2941,8 +3511,7 @@
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td class="p-2.5 font-bold text-white">${p.title}</td>
-                    <td class="p-2.5 font-mono text-sky-400">${p.code}</td>
-                    <td class="p-2.5 text-slate-300">${p.client}</td>
+                    <td class="p-2.5 text-slate-400 max-w-[280px] truncate" title="${p.address || ''}">${p.address || '-'}</td>
                     <td class="p-2.5 text-center">
                         <button onclick="deleteProject('${p.id}')" class="btn-touch text-red-400 hover:text-red-300 transition" title="حذف پروژه">
                             <i class="fa-solid fa-trash"></i>
@@ -2960,7 +3529,7 @@
             const day = document.getElementById('dayFilter')?.value || '';
             const sort = document.getElementById('sortOrder')?.value || 'row_asc';
 
-            let result = [...(window.expensesData || [])];
+            let result = [...(window.expensesData || [])].map(item => window.normalizeMissionRecord(item));
 
             if (window.currentUser) {
                 if (window.currentUser.role !== 'مدیر سیستم') {
@@ -2980,22 +3549,22 @@
                 result = result.filter(item => 
                     (item.location && item.location.toLowerCase().includes(search)) ||
                     (item.address && item.address.toLowerCase().includes(search)) ||
-                    (item.date && item.date.includes(search))
+                    (item.date && String(item.date).includes(search))
                 );
             }
 
             if (project) {
-                result = result.filter(item => item.projectId === project);
+                result = result.filter(item => String(item.projectId || item.project_id || '') === String(project));
             }
 
             if (day) {
-                result = result.filter(item => item.day === day);
+                result = result.filter(item => (item.day || item.day_name || '') === day);
             }
 
             result.sort((a, b) => {
                 if (sort === 'row_asc') return Number(a.rowNo || 0) - Number(b.rowNo || 0);
-                if (sort === 'date_asc') return (a.date || '').localeCompare(b.date || '');
-                if (sort === 'date_desc') return (b.date || '').localeCompare(a.date || '');
+                if (sort === 'date_asc') return String(a.date || '').localeCompare(String(b.date || ''));
+                if (sort === 'date_desc') return String(b.date || '').localeCompare(String(a.date || ''));
                 if (sort === 'cost_desc') return Number(b.totalCost || 0) - Number(a.totalCost || 0);
                 return 0;
             });
@@ -3035,29 +3604,43 @@
 
             let totalSum = 0;
 
-            window.filteredData.forEach((item) => {
+            window.filteredData.forEach((rawItem) => {
+                const item = window.normalizeMissionRecord(rawItem);
                 const rowTotal = (Number(item.outboundCost) || 0) + (Number(item.inboundCost) || 0);
                 totalSum += rowTotal;
 
-                const projectObj = (window.projectsData || []).find(p => p.id === item.projectId);
+                const projectObj = (window.projectsData || []).find(p => String(p.id) === String(item.projectId || item.project_id || ''));
                 const projectTitle = projectObj ? projectObj.title : (item.projectTitle || 'پروژه عمومی');
 
                 const tr = document.createElement('tr');
                 tr.className = 'hover:bg-slate-800/40 transition-colors duration-150';
+
+                if (!window.__receipts) window.__receipts = {};
+                window.__receipts[item.id] = { outbound: item.outboundReceipt || '', inbound: item.inboundReceipt || '' };
+
+                const hasAnyReceipt = !!(item.outboundReceipt || item.inboundReceipt);
+                const receiptBtns = `
+                    <div class="flex items-center justify-center gap-1.5">
+                        ${item.outboundReceipt ? `<button onclick="openMissionReceipt('${item.id}','outbound')" title="رسید رفت" class="btn-touch w-7 h-7 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 flex items-center justify-center transition"><i class="fa-solid fa-paperclip text-xs"></i></button>` : ''}
+                        ${item.inboundReceipt ? `<button onclick="openMissionReceipt('${item.id}','inbound')" title="رسید برگشت" class="btn-touch w-7 h-7 rounded-lg bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 flex items-center justify-center transition"><i class="fa-solid fa-paperclip text-xs"></i></button>` : ''}
+                        ${hasAnyReceipt ? '' : '<span class="text-slate-600 text-xs">—</span>'}
+                    </div>
+                `;
+
                 tr.innerHTML = `
                     <td class="p-3 text-center font-bold text-slate-400">${toPersianDigits(item.rowNo || '-')}</td>
                     <td class="p-3 font-medium text-slate-200">${toPersianDigits(item.date || '')}</td>
                     <td class="p-3 text-slate-300"><span class="px-2 py-0.5 rounded-md bg-slate-800 text-slate-300 border border-slate-700">${item.day || ''}</span></td>
                     <td class="p-3 text-sky-400 font-semibold">${projectTitle}</td>
-                    <td class="p-3 font-semibold text-white">${item.location || '-'}</td>
-                    <td class="p-3 text-slate-400">${item.address || '-'}</td>
-                    <td class="p-3 text-center text-slate-300 font-mono">${toPersianDigits(item.startTime || '-')}</td>
-                    <td class="p-3 text-center text-slate-300 font-mono">${toPersianDigits(item.endTime || '-')}</td>
+                    <td class="p-3 text-slate-400 max-w-[220px] truncate" title="${item.address || '-'}">${item.address || '-'}</td>
+                    <td class="p-3 text-center text-slate-300 font-mono">${toPersianDigits(normalizeTimeValue(item.startTime) || '-')}</td>
+                    <td class="p-3 text-center text-slate-300 font-mono">${toPersianDigits(normalizeTimeValue(item.endTime) || '-')}</td>
                     <td class="p-3 text-slate-300">${item.outboundVehicle || '-'}</td>
                     <td class="p-3 text-slate-300 font-semibold">${formatNum(item.outboundCost)}</td>
                     <td class="p-3 text-slate-300">${item.inboundVehicle || '-'}</td>
                     <td class="p-3 text-slate-300 font-semibold">${formatNum(item.inboundCost)}</td>
                     <td class="p-3 font-extrabold text-emerald-400 bg-emerald-950/20">${formatNum(rowTotal)}</td>
+                    <td class="p-3 text-center no-print">${receiptBtns}</td>
                     <td class="p-3 text-center no-print">
                         <div class="flex items-center justify-center gap-1.5">
                             <button onclick="editExpense('${item.id}')" title="ویرایش" class="btn-touch w-7 h-7 rounded-lg bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 flex items-center justify-center transition">
@@ -3077,10 +3660,9 @@
                     <td>${toPersianDigits(item.date || '')}</td>
                     <td>${item.day || ''}</td>
                     <td>${projectTitle}</td>
-                    <td>${item.location || '-'}</td>
                     <td>${item.address || '-'}</td>
-                    <td>${toPersianDigits(item.startTime || '-')}</td>
-                    <td>${toPersianDigits(item.endTime || '-')}</td>
+                    <td>${toPersianDigits(normalizeTimeValue(item.startTime) || '-')}</td>
+                    <td>${toPersianDigits(normalizeTimeValue(item.endTime) || '-')}</td>
                     <td>${item.outboundVehicle || '-'}</td>
                     <td>${formatNum(item.outboundCost)}</td>
                     <td>${item.inboundVehicle || '-'}</td>
@@ -3106,8 +3688,6 @@
                     const prjObj = (window.projectsData || []).find(p => p.id === prjId);
                     projectStats[prjId] = {
                         title: prjObj ? prjObj.title : (item.projectTitle || 'پروژه عمومی'),
-                        code: prjObj ? prjObj.code : 'PRJ-GEN',
-                        client: prjObj ? prjObj.client : 'عمومی',
                         count: 0,
                         outboundSum: 0,
                         inboundSum: 0,
@@ -3126,8 +3706,6 @@
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td style="font-weight: bold;">${stat.title}</td>
-                    <td>${stat.code}</td>
-                    <td>${stat.client}</td>
                     <td>${toPersianDigits(stat.count)} مورد</td>
                     <td>${formatNum(stat.outboundSum)}</td>
                     <td>${formatNum(stat.inboundSum)}</td>
@@ -3257,40 +3835,46 @@
             modal.classList.remove('hidden');
 
             if (editId) {
-                const item = (window.expensesData || []).find(x => x.id === editId);
+                const item = window.normalizeMissionRecord((window.expensesData || []).find(x => x.id === editId));
                 if (item) {
+                    const prjObj = (window.projectsData || []).find(p => String(p.id) === String(item.projectId || ''));
                     document.getElementById('modalTitle').innerText = 'ویرایش هزینه مأموریت';
                     document.getElementById('editId').value = item.id;
-                    document.getElementById('formRowNo').value = item.rowNo || '';
                     document.getElementById('formDate').value = item.date || '';
                     document.getElementById('formProject').value = item.projectId || (window.projectsData[0]?.id || '');
                     document.getElementById('formDay').value = item.day || 'شنبه';
-                    document.getElementById('formLocation').value = item.location || '';
-                    document.getElementById('formAddress').value = item.address || '';
-                    document.getElementById('formStartTime').value = item.startTime || '';
-                    document.getElementById('formEndTime').value = item.endTime || '';
+                    const addrEl = document.getElementById('formAddress');
+                    addrEl.value = item.address || (prjObj && prjObj.address) || '';
+                    document.getElementById('formStartTime').value = normalizeTimeValue(item.startTime);
+                    document.getElementById('formEndTime').value = normalizeTimeValue(item.endTime);
                     document.getElementById('formOutboundVehicle').value = item.outboundVehicle || 'شخصی';
-                    document.getElementById('formOutboundCost').value = item.outboundCost || 0;
+                    setRialValue(document.getElementById('formOutboundCost'), item.outboundCost);
                     document.getElementById('formInboundVehicle').value = item.inboundVehicle || 'شخصی';
-                    document.getElementById('formInboundCost').value = item.inboundCost || 0;
+                    setRialValue(document.getElementById('formInboundCost'), item.inboundCost);
+                    setMissionReceipt('Outbound', item.outboundReceipt || '');
+                    setMissionReceipt('Inbound', item.inboundReceipt || '');
                     calculateTotalFormSum();
                     handleDateInput(item.date || '');
+                    updateReceiptHints();
                 }
             } else {
                 document.getElementById('modalTitle').innerText = 'ثبت هزینه مأموریت جدید';
                 form.reset();
                 document.getElementById('editId').value = '';
-                document.getElementById('formRowNo').value = (window.expensesData || []).length + 1;
-                
+                setMissionReceipt('Outbound', '');
+                setMissionReceipt('Inbound', '');
+
                 const currentShamsiDate = getCurrentJalaliDateStr();
                 const currentTime = getCurrentTimeStr();
 
                 document.getElementById('formDate').value = currentShamsiDate;
                 document.getElementById('formStartTime').value = currentTime;
                 document.getElementById('formEndTime').value = '';
-                
+
+                handleFormProjectChange();
                 calculateTotalFormSum();
                 handleDateInput(currentShamsiDate);
+                updateReceiptHints();
             }
         }
 
@@ -3309,8 +3893,8 @@
         }
 
         function calculateTotalFormSum() {
-            const outbound = Number(document.getElementById('formOutboundCost').value) || 0;
-            const inbound = Number(document.getElementById('formInboundCost').value) || 0;
+            const outbound = parseRial(document.getElementById('formOutboundCost').value);
+            const inbound = parseRial(document.getElementById('formInboundCost').value);
             const sum = outbound + inbound;
             document.getElementById('formCalculatedTotal').innerText = formatNum(sum) + ' ریال';
         }
@@ -3327,35 +3911,54 @@
             const editId = document.getElementById('editId').value;
             const id = editId ? editId : Date.now().toString();
 
-            const outboundCost = Number(document.getElementById('formOutboundCost').value) || 0;
-            const inboundCost = Number(document.getElementById('formInboundCost').value) || 0;
+            const outboundCost = parseRial(document.getElementById('formOutboundCost').value);
+            const inboundCost = parseRial(document.getElementById('formInboundCost').value);
             const selectedPrjId = document.getElementById('formProject').value;
             const prjObj = (window.projectsData || []).find(p => p.id === selectedPrjId);
 
-            const existingItem = editId ? (window.expensesData || []).find(x => x.id === editId) : null;
+            const outboundVehicle = document.getElementById('formOutboundVehicle').value;
+            const inboundVehicle = document.getElementById('formInboundVehicle').value;
+
+            const existingItem = editId ? window.normalizeMissionRecord((window.expensesData || []).find(x => x.id === editId)) : null;
+
+            const outboundReceiptImg = (window.formOutboundReceiptData || existingItem?.outboundReceipt || '').trim();
+            const inboundReceiptImg = (window.formInboundReceiptData || existingItem?.inboundReceipt || '').trim();
+
+            if (needsReceiptVehicle(outboundVehicle) && !outboundReceiptImg) {
+                showCustomAlert(`انتخاب «${outboundVehicle}» برای مسیر رفت، پیوست تصویر رسید را الزامی می‌کند.`, 'رسید اجباری');
+                return;
+            }
+            if (needsReceiptVehicle(inboundVehicle) && !inboundReceiptImg) {
+                showCustomAlert(`انتخاب «${inboundVehicle}» برای مسیر برگشت، پیوست تصویر رسید را الزامی می‌کند.`, 'رسید اجباری');
+                return;
+            }
 
             const newEntry = {
                 id: id,
                 userId: existingItem?.userId || window.currentUser.id,
                 username: existingItem?.username || window.currentUser.username,
-                rowNo: Number(document.getElementById('formRowNo').value) || ((window.expensesData || []).length + 1),
+                rowNo: Number(existingItem?.rowNo) || ((window.expensesData || []).length + 1),
                 date: document.getElementById('formDate').value.trim(),
                 day: document.getElementById('formDay').value,
                 projectId: selectedPrjId,
                 projectTitle: prjObj ? prjObj.title : '',
-                location: document.getElementById('formLocation').value.trim(),
-                address: document.getElementById('formAddress').value.trim(),
-                startTime: document.getElementById('formStartTime').value.trim(),
-                endTime: document.getElementById('formEndTime').value.trim(),
-                outboundVehicle: document.getElementById('formOutboundVehicle').value,
+                location: '',
+                address: document.getElementById('formAddress').value.trim() || (prjObj && prjObj.address) || '',
+                startTime: normalizeTimeValue(document.getElementById('formStartTime').value),
+                endTime: normalizeTimeValue(document.getElementById('formEndTime').value),
+                outboundVehicle: outboundVehicle,
                 outboundCost: outboundCost,
-                inboundVehicle: document.getElementById('formInboundVehicle').value,
+                inboundVehicle: inboundVehicle,
                 inboundCost: inboundCost,
-                totalCost: outboundCost + inboundCost
+                totalCost: outboundCost + inboundCost,
+                outboundReceipt: outboundReceiptImg,
+                inboundReceipt: inboundReceiptImg
             };
 
             await window.saveExpenseData(newEntry);
             closeExpenseModal();
+            setMissionReceipt('Outbound', '');
+            setMissionReceipt('Inbound', '');
             showCustomAlert('اطلاعات مأموریت با موفقیت ذخیره شد.');
         }
 
@@ -3370,13 +3973,13 @@
 
         function exportToCSV() {
             let csvContent = "\uFEFF";
-            csvContent += "ردیف,تاریخ,روز هفته,پروژه,محل ماموریت,آدرس,ساعت شروع,ساعت خاتمه,وسیله رفت,مبلغ رفت,وسیله برگشت,مبلغ برگشت,جمع کل\n";
+            csvContent += "ردیف,تاریخ,روز هفته,پروژه,آدرس,ساعت شروع,ساعت خاتمه,وسیله رفت,مبلغ رفت,وسیله برگشت,مبلغ برگشت,جمع کل\n";
 
             (window.filteredData || []).forEach(row => {
                 const total = (Number(row.outboundCost) || 0) + (Number(row.inboundCost) || 0);
                 const prjObj = (window.projectsData || []).find(p => p.id === row.projectId);
                 const prjTitle = prjObj ? prjObj.title : '';
-                csvContent += `"${row.rowNo}","${row.date}","${row.day}","${prjTitle}","${row.location}","${row.address}","${row.startTime}","${row.endTime}","${row.outboundVehicle}","${row.outboundCost}","${row.inboundVehicle}","${row.inboundCost}","${total}"\n`;
+                csvContent += `"${row.rowNo}","${row.date}","${row.day}","${prjTitle}","${row.address}","${normalizeTimeValue(row.startTime)}","${normalizeTimeValue(row.endTime)}","${row.outboundVehicle}","${row.outboundCost}","${row.inboundVehicle}","${row.inboundCost}","${total}"\n`;
             });
 
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -3391,17 +3994,3 @@
     </script>
 </body>
 </html>
-```eof
-
-### 🎯 گام بعدی:
-وقتی کد بالا را در پروژه کپی کردید، کافیست متغیر `CUSTOM_FIREBASE_CONFIG` در سطر ۶۳۷ را با تنظیماتی که از کنسول Firebase می‌گیرید، جایگزین کنید (کافیست `null` را پاک کنید و کدی که گوگل به شما داده قرار دهید):
-
-```javascript
-const CUSTOM_FIREBASE_CONFIG = {
-  apiKey: "AIzaSy...",
-  authDomain: "akasra-app.firebaseapp.com",
-  projectId: "akasra-app",
-  storageBucket: "akasra-app.firebasestorage.app",
-  messagingSenderId: "123456789",
-  appId: "1:123456789:web:abcdef..."
-};

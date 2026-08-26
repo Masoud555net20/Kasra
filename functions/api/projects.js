@@ -22,29 +22,27 @@ export async function onRequest(context) {
       const item = body.project || body;
       const id = String(item.id || crypto.randomUUID());
       const title = String(item.title || '').trim();
-      const code = String(item.code || '').trim();
-      const client = String(item.client || '').trim();
+      const address = String(item.address ?? item.defaultAddress ?? '').trim();
       const status = String(item.status || 'فعال').trim();
       const description = String(item.description || '').trim();
       const createdBy = String(item.createdBy || item.created_by || '');
       const now = new Date().toISOString();
 
-      if (!title || !code) {
-        return json({ ok: false, message: 'عنوان و کد پروژه الزامی هستند.' }, 400);
+      if (!title) {
+        return json({ ok: false, message: 'عنوان پروژه الزامی است.' }, 400);
       }
 
       await db.prepare(`
-        INSERT INTO projects (id, title, code, client, status, description, created_by, created_at, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO projects (id, title, address, status, description, created_by, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(id) DO UPDATE SET
           title = excluded.title,
-          code = excluded.code,
-          client = excluded.client,
+          address = excluded.address,
           status = excluded.status,
           description = excluded.description,
           created_by = excluded.created_by,
           updated_at = excluded.updated_at
-      `).bind(id, title, code, client, status, description, createdBy, now, now).run();
+      `).bind(id, title, address, status, description, createdBy, now, now).run();
 
       const row = await db.prepare('SELECT * FROM projects WHERE id = ?').bind(id).first();
       return json({ ok: true, project: row });

@@ -1,0 +1,15 @@
+
+ ⛅️ wrangler 4.125.0 (update available 4.126.0)
+───────────────────────────────────────────────
+✨ Compiled Worker successfully
+Your Worker has access to the following bindings:
+Binding                                                                   Resource                  Mode
+env.DB (kasra-db)                                                         D1 Database               local
+env.CF_PAGES ("1")                                                        Environment Variable      local
+env.CF_PAGES_BRANCH ("main")                                              Environment Variable      local
+env.CF_PAGES_COMMIT_SHA ("67301697eb319eb9a2527e8c446738cd15cfb...")      Environment Variable      local
+env.CF_PAGES_URL ("https://6730169.kasra.pages.dev")                      Environment Variable      local
+
+⎔ Starting local server...
+[wrangler:info] Ready on http://127.0.0.1:8788
+[wrangler:info] GET /api/projects 200 OK (144ms)

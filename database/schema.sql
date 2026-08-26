@@ -23,8 +23,7 @@ CREATE TABLE users (
 CREATE TABLE projects (
   id TEXT PRIMARY KEY,
   title TEXT NOT NULL,
-  code TEXT NOT NULL UNIQUE,
-  client TEXT,
+  address TEXT,
   status TEXT NOT NULL DEFAULT 'فعال',
   description TEXT,
   created_by TEXT,
@@ -51,6 +50,8 @@ CREATE TABLE missions (
   inbound_vehicle TEXT,
   inbound_cost INTEGER NOT NULL DEFAULT 0,
   total_cost INTEGER NOT NULL DEFAULT 0,
+  outbound_receipt TEXT,
+  inbound_receipt TEXT,
   notes TEXT,
   status TEXT NOT NULL DEFAULT 'ثبت شده',
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -95,6 +96,5 @@ CREATE INDEX idx_users_username ON users(username);
 CREATE INDEX idx_missions_user_id ON missions(user_id);
 CREATE INDEX idx_missions_project_id ON missions(project_id);
 CREATE INDEX idx_missions_date ON missions(mission_date);
-CREATE INDEX idx_projects_code ON projects(code);
 CREATE INDEX idx_login_logs_user_id ON login_logs(user_id);
 CREATE INDEX idx_activity_logs_user_id ON activity_logs(user_id);
