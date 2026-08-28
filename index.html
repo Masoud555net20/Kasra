@@ -907,25 +907,22 @@
                 </div>
                 <div>
                     <h3 class="text-base sm:text-lg font-bold text-white flex items-center gap-2">
-                        <span>دستیار هوشمند Gemini</span>
-                        <span class="text-[10px] bg-purple-500/20 text-purple-300 border border-purple-500/30 px-2 py-0.5 rounded-full">Gemini 3 Flash</span>
+                        <span>دستیار هوشمند ابری</span>
+                        <span class="text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded-full">Cloudflare AI</span>
                     </h3>
-                    <p class="text-xs text-slate-400">ثبت هوشمند مأموریت با متن/تصویر و تحلیل مالی پروژه‌ها</p>
+                    <p class="text-xs text-slate-400">ثبت هوشمند مأموریت با متن/تصویر و تحلیل مالی پروژه‌ها — رایگان و بدون تحریم</p>
                 </div>
             </div>
 
-            <div id="geminiApiKeyAdminSection" class="mb-4 p-3 bg-slate-900/90 rounded-xl border border-purple-500/30 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 text-xs">
+            <div id="geminiApiKeyAdminSection" class="mb-4 p-3 bg-slate-900/90 rounded-xl border border-emerald-500/30 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 text-xs">
                 <div class="flex items-center gap-2 text-slate-300 font-medium shrink-0">
-                    <i class="fa-solid fa-key text-amber-400"></i>
-                    <span>کلید API مرکزی هوش مصنوعی (مدیر سیستم):</span>
+                    <i class="fa-solid fa-cloud-bolt text-emerald-400"></i>
+                    <span>موتور هوش مصنوعی ابری کلادفلر — رایگان، بدون کلید API و بدون تحریم:</span>
                 </div>
-                <div class="flex items-center gap-2 flex-1 max-w-sm">
-                    <input type="password" id="geminiApiKeyInput" placeholder="کلید API مرکزی Gemini" onchange="saveGeminiApiKey(this.value)" class="glass-input w-full px-3 py-1.5 rounded-lg text-xs font-mono">
-                    <button type="button" onclick="toggleApiKeyVisibility()" class="btn-touch px-2.5 py-1.5 bg-slate-800 text-slate-300 hover:text-white rounded-lg border border-slate-700 shrink-0" title="نمایش/مخفی‌سازی کلید">
-                        <i id="apiKeyVisIcon" class="fa-solid fa-eye"></i>
-                    </button>
-                    <button type="button" onclick="saveGeminiApiKey(document.getElementById('geminiApiKeyInput').value)" class="btn-touch px-3 py-1.5 bg-purple-600 hover:bg-purple-500 text-white rounded-lg font-bold text-xs shrink-0">
-                        ذخیره
+                <div class="flex items-center gap-2">
+                    <span id="cloudAiAdminBadge" class="px-2.5 py-1 rounded-lg font-bold font-mono text-[10px] bg-slate-800 text-slate-400 border border-slate-700">در حال بررسی...</span>
+                    <button type="button" onclick="refreshCloudAiStatus(true)" class="btn-touch px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-bold text-xs shrink-0">
+                        بررسی وضعیت
                     </button>
                 </div>
             </div>
@@ -933,8 +930,8 @@
             <div id="geminiApiKeyUserSection" class="mb-4 hidden">
                 <div id="aiKeyActiveStatusBadge" class="p-3 bg-emerald-950/40 border border-emerald-500/30 rounded-xl text-xs text-emerald-300 flex items-center justify-between gap-2">
                     <div class="flex items-center gap-2">
-                        <i class="fa-solid fa-shield-check text-emerald-400 text-sm animate-pulse"></i>
-                        <span id="aiKeyActiveStatusText" class="font-semibold">سرویس هوش مصنوعی فعال است (تنظیم‌شده توسط مدیر سیستم)</span>
+                        <i class="fa-solid fa-cloud text-emerald-400 text-sm animate-pulse"></i>
+                        <span id="aiKeyActiveStatusText" class="font-semibold">هوش مصنوعی ابری کلادفلر برای همه فعال است (بدون نیاز به کلید)</span>
                     </div>
                     <span class="text-[10px] bg-emerald-500/20 px-2 py-0.5 rounded-full border border-emerald-500/30 font-mono">READY</span>
                 </div>
@@ -1012,8 +1009,8 @@
             <div id="aiTabContentAnalysis" class="space-y-4 hidden">
                 <div class="p-3 bg-emerald-950/30 border border-emerald-500/20 rounded-xl text-xs text-emerald-200 flex flex-wrap items-center justify-between gap-2">
                     <div>
-                        <p class="font-bold"><i class="fa-solid fa-brain text-emerald-400 ml-1"></i>تحلیل هوشمند و گزارش صوتی Gemini:</p>
-                        <p class="text-slate-300 text-[11px] mt-0.5">تولید خودکار گزارش تحلیلی مدیریتی و قرائت صوتی آن با مدل TTS.</p>
+                        <p class="font-bold"><i class="fa-solid fa-brain text-emerald-400 ml-1"></i>تحلیل هوشمند و گزارش صوتی:</p>
+                        <p class="text-slate-300 text-[11px] mt-0.5">تولید خودکار گزارش تحلیلی مدیریتی و قرائت صوتی آن با موتور صدای مرورگر (فارسی).</p>
                     </div>
                     <div class="flex items-center gap-2">
                         <button onclick="handleAiFinancialAnalysis()" id="aiAnalysisBtn" class="btn-touch px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition shrink-0">
@@ -1029,9 +1026,8 @@
                 <div id="aiAudioPlayerContainer" class="hidden p-3 bg-slate-900 rounded-xl border border-amber-500/30 flex items-center justify-between gap-3">
                     <div class="flex items-center gap-2 text-amber-400 text-xs font-bold">
                         <i class="fa-solid fa-circle-play text-base animate-bounce"></i>
-                        <span>در حال پخش گزارش صوتی با Gemini TTS...</span>
+                        <span>در حال پخش گزارش صوتی فارسی (موتور صدای مرورگر)...</span>
                     </div>
-                    <audio id="geminiAudioPlayer" controls class="h-8 max-w-[240px]"></audio>
                 </div>
 
                 <div id="aiAnalysisResult" class="p-4 bg-slate-900/80 rounded-xl border border-slate-800 text-xs text-slate-200 leading-relaxed min-h-36 max-h-80 overflow-y-auto touch-scroll">
@@ -1071,8 +1067,8 @@
 
             <div id="aiTabContentImage" class="space-y-4 hidden">
                 <div class="p-3 bg-pink-950/30 border border-pink-500/20 rounded-xl text-xs text-pink-200">
-                    <p class="font-bold mb-1"><i class="fa-solid fa-palette text-pink-400 ml-1"></i>تولید پوستر و اینفوگرافیک هوشمند (Imagen 4):</p>
-                    <p class="text-slate-300 text-[11px]">با استفاده از مدل Imagen 4، یک بنر گرافیکی و اینفوگرافیک سه‌بعدی شیک برای گزارش هزینه‌ها خلق کنید.</p>
+                    <p class="font-bold mb-1"><i class="fa-solid fa-palette text-pink-400 ml-1"></i>تولید پوستر و اینفوگرافیک هوشمند (موتور تصویری ابری):</p>
+                    <p class="text-slate-300 text-[11px]">با استفاده از مدل‌های تصویری رایگان کلادفلر، یک بنر گرافیکی و اینفوگرافیک شیک برای گزارش هزینه‌ها خلق کنید.</p>
                 </div>
 
                 <div>
@@ -1083,7 +1079,7 @@
                 <div class="flex justify-end">
                     <button onclick="handleAiImageGenerate()" id="aiImageGenBtn" class="btn-touch px-5 py-2.5 rounded-xl bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500 text-white font-bold text-xs transition flex items-center gap-2 shadow-lg shadow-pink-600/30">
                         <i class="fa-solid fa-wand-magic-sparkles"></i>
-                        <span>تولید بنر و پوستر با Imagen 4</span>
+                        <span>تولید بنر و پوستر با هوش مصنوعی</span>
                     </button>
                 </div>
 
@@ -1298,218 +1294,97 @@
     <!-- Gemini logic & API Calls -->
     <script>
         window.sampleSignatureDataUrl = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNjAiIGhlaWghtD0iNTAiIHZpZXdCb3g9IjAgMCAxNjAgNTAiPjxwYXRoIGQ9Ik0gMTUgMzUgUSAzNSA1LCA2MCAzMCBUIDExMCAyMCBUMTQ1IDM4IE0gNDUgMTIgTCA3NSA0MiBMIDExNSAxNSIgc3Ryb2tlPSIjMWUyOTNiIiBzdHJva2Utd2lkdGg9IjIuNSIgZmlsbD0ibm9uZSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PC9zdmc+';
-        window.globalGeminiApiKey = localStorage.getItem('gemini_api_key') || '';
+        window.globalGeminiApiKey = '';
+        window.cloudAiStatus = { checked: false, available: false, models: null };
 
-        window.saveGeminiApiKey = function(val) {
-            if (val !== undefined && val !== null) {
-                const trimmed = val.trim();
-                localStorage.setItem('gemini_api_key', trimmed);
-                window.globalGeminiApiKey = trimmed;
+        /* ---------- موتور هوش مصنوعی ابری کلادفلر (Workers AI) ----------
+           درخواست‌ها به /api/ai روی همین سایت فرستاده می‌شوند؛ کلادفلر مدل‌های
+           Llama را رایگان اجرا می‌کند — بدون کلید API، بدون تحریم و بدون فیلترشکن. */
 
-                if (window.apiRequest) {
-                    window.apiRequest('/settings', {
-                        method: 'POST',
-                        body: JSON.stringify({ geminiApiKey: trimmed })
-                    })
-                        .then(() => showCustomAlert('کلید API هوش مصنوعی در دیتابیس بک‌اند (Cloudflare) ذخیره شد و برای تمام کاربران فعال گردید.', 'ذخیره موفق'))
-                        .catch(err => {
-                            console.error("Error saving API key to backend:", err);
-                            showCustomAlert('کلید در مرورگر ذخیره شد، اما ذخیره در بک‌اند ناموفق بود: ' + err.message);
-                        });
-                } else {
-                    showCustomAlert('کلید API در مرورگر محلی ذخیره شد.');
-                }
-            }
-        };
-
-        window.getGeminiApiKey = function() {
-            const input = document.getElementById('geminiApiKeyInput');
-            const val = input ? input.value.trim() : '';
-            if (val && window.currentUser && window.currentUser.role === 'مدیر سیستم') {
-                localStorage.setItem('gemini_api_key', val);
-                window.globalGeminiApiKey = val;
-                return val;
-            }
-            return window.globalGeminiApiKey || localStorage.getItem('gemini_api_key') || '';
-        };
-
-        /* ---------- تشخیص خودکار مدل Gemini ----------
-           اسم مدل‌های preview توسط گوگل بعد از مدتی بازنشسته می‌شوند و باعث خطای 404 می‌شوند.
-           این بخش مدل معتبر را با ListModels پیدا کرده و در localStorage کش می‌کند. */
-        const GEMINI_API_BASE = 'https://generativelanguage.googleapis.com/v1beta';
-        const GEMINI_MODEL_CACHE_KEY = 'gemini_model_cache';
-
-        function getGeminiModelCache() {
-            try { return JSON.parse(localStorage.getItem(GEMINI_MODEL_CACHE_KEY) || '{}'); } catch (e) { return {}; }
-        }
-
-        function setGeminiModelCache(kind, modelId) {
+        window.checkCloudAiService = async function() {
             try {
-                const cache = getGeminiModelCache();
-                cache[kind] = modelId;
-                localStorage.setItem(GEMINI_MODEL_CACHE_KEY, JSON.stringify(cache));
-            } catch (e) {}
-        }
-
-        function clearGeminiModelCache() {
-            try { localStorage.removeItem(GEMINI_MODEL_CACHE_KEY); } catch (e) {}
-        }
-
-        async function listGeminiModels(apiKey) {
-            const res = await fetch(`${GEMINI_API_BASE}/models?pageSize=200&key=${encodeURIComponent(apiKey)}`);
-            if (!res.ok) throw new Error(`ListModels (${res.status})`);
-            const data = await res.json();
-            return Array.isArray(data.models) ? data.models : [];
-        }
-
-        function modelVersionScore(name) {
-            const m = name.match(/(\d+(?:\.\d+)?)/);
-            let score = m ? parseFloat(m[1]) : 0;
-            if (name.includes('preview')) score -= 0.01;
-            if (name.includes('lite')) score -= 0.02;
-            return score;
-        }
-
-        const GEMINI_MODEL_CONFIG = {
-            text: {
-                pattern: /gemini.*flash/i,
-                method: 'generateContent',
-                exclude: /tts|image|imagen|embedding|aqa|veo|live|native|audio|robotics|computer-use/i,
-                preferred: ['gemini-flash-latest', 'gemini-2.5-flash', 'gemini-2.0-flash'],
-                fallback: 'gemini-flash-latest'
-            },
-            tts: {
-                pattern: /tts/i,
-                method: 'generateContent',
-                exclude: /imagen|veo/i,
-                preferred: ['gemini-2.5-flash-tts', 'gemini-2.5-flash-preview-tts'],
-                fallback: 'gemini-2.5-flash-preview-tts'
-            },
-            imagen: {
-                pattern: /imagen/i,
-                method: 'predict',
-                exclude: null,
-                preferred: ['imagen-4.0-generate-001', 'imagen-3.0-generate-002'],
-                fallback: 'imagen-3.0-generate-002'
-            }
-        };
-
-        async function resolveGeminiModel(apiKey, kind, excludeNames = []) {
-            const cached = getGeminiModelCache()[kind];
-            if (cached && !excludeNames.includes(cached)) return cached;
-
-            const cfg = GEMINI_MODEL_CONFIG[kind];
-            let modelId = null;
-
-            try {
-                const names = (await listGeminiModels(apiKey))
-                    .filter(m => Array.isArray(m.supportedGenerationMethods) && m.supportedGenerationMethods.includes(cfg.method))
-                    .map(m => m.name.replace(/^models\//, ''));
-
-                for (const p of cfg.preferred) {
-                    if (names.includes(p) && !excludeNames.includes(p)) { modelId = p; break; }
-                }
-
-                if (!modelId) {
-                    modelId = names
-                        .filter(n => !excludeNames.includes(n))
-                        .filter(n => cfg.pattern.test(n) && (!cfg.exclude || !cfg.exclude.test(n)))
-                        .sort((a, b) => modelVersionScore(b) - modelVersionScore(a))[0] || null;
-                }
+                const res = await fetch('/api/ai');
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                const data = await res.json();
+                window.cloudAiStatus = { checked: true, available: !!(data.ok && data.hasAiBinding), models: data.models || null };
             } catch (e) {
-                // اگر ListModels در دسترس نبود، از نام پیش‌فرض استفاده می‌شود
+                window.cloudAiStatus = { checked: true, available: false, models: null };
+            }
+            return window.cloudAiStatus;
+        };
+
+        window.refreshCloudAiStatus = async function(showAlert) {
+            const badge = document.getElementById('cloudAiAdminBadge');
+            if (badge) badge.innerText = 'در حال بررسی...';
+            const status = await checkCloudAiService();
+            if (badge) {
+                if (status.available) {
+                    badge.innerText = 'فعال (READY)';
+                    badge.className = 'px-2.5 py-1 rounded-lg font-bold font-mono text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30';
+                } else {
+                    badge.innerText = 'غیرفعال';
+                    badge.className = 'px-2.5 py-1 rounded-lg font-bold font-mono text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/30';
+                }
             }
 
-            if (!modelId) modelId = cfg.fallback;
-            setGeminiModelCache(kind, modelId);
-            return modelId;
+            const statusBadge = document.getElementById('aiKeyActiveStatusBadge');
+            const statusText = document.getElementById('aiKeyActiveStatusText');
+            if (statusBadge && statusText) {
+                if (status.available) {
+                    statusBadge.className = 'p-3 bg-emerald-950/40 border border-emerald-500/30 rounded-xl text-xs text-emerald-300 flex items-center justify-between gap-2';
+                    statusText.innerText = 'هوش مصنوعی ابری کلادفلر فعال است (رایگان و بدون کلید)';
+                } else {
+                    statusBadge.className = 'p-3 bg-amber-950/40 border border-amber-500/30 rounded-xl text-xs text-amber-300 flex items-center justify-between gap-2';
+                    statusText.innerText = 'اتصال به موتور هوش مصنوعی ابری برقرار نشد؛ اتصال اینترنت را بررسی کنید.';
+                }
+            }
+
+            if (showAlert) {
+                if (status.available) showCustomAlert('موتور هوش مصنوعی ابری کلادفلر فعال و آماده استفاده است.', 'وضعیت سرویس');
+                else showCustomAlert('موتور هوش مصنوعی ابری در دسترس نیست. اتصال اینترنت را بررسی کرده و دوباره تلاش کنید.');
+            }
+            return status;
+        };
+
+        // سازگاری با کدهای قبلی: کلید API دیگر لازم نیست و مقدار نشانگری برمی‌گردد
+        window.saveGeminiApiKey = function() { refreshCloudAiStatus(true); };
+        window.getGeminiApiKey = function() { return 'cloudflare'; };
+
+        /* تشخیص خودکار مدل Gemini حذف شد — انتخاب مدل در سرور (Workers AI) انجام می‌شود */
+
+        /* ---------- کلاینت موتور هوش مصنوعی ابری (Cloudflare Workers AI) ---------- */
+        const CLOUD_AI_ENDPOINT = '/api/ai';
+        const CLOUD_AI_TIMEOUT_MS = 120000;
+
+        async function cloudAiFetch(kind, payload) {
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), CLOUD_AI_TIMEOUT_MS);
+            try {
+                const res = await fetch(CLOUD_AI_ENDPOINT, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ kind, payload }),
+                    signal: controller.signal
+                });
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok || !data.ok) {
+                    throw new Error(data.message || ('موتور هوش مصنوعی پاسخ نداد (' + res.status + ').'));
+                }
+                return data.data;
+            } catch (err) {
+                if (err && err.name === 'AbortError') {
+                    throw new Error('پردازش هوش مصنوعی بیش از حد طول کشید. لطفاً دوباره تلاش کنید.');
+                }
+                throw err;
+            } finally {
+                clearTimeout(timer);
+            }
         }
 
         async function geminiFetch(apiKey, kind, payload) {
-            const buildUrl = (modelId) =>
-                `${GEMINI_API_BASE}/models/${modelId}:${kind === 'imagen' ? 'predict' : 'generateContent'}?key=${encodeURIComponent(apiKey)}`;
-
-            const modelId = await resolveGeminiModel(apiKey, kind);
-            try {
-                return await fetchGeminiWithBackoff(buildUrl(modelId), {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-            } catch (err) {
-                // اگر مدل کش‌شده بازنشسته شده بود (404)، کش پاک و مدل جایگزین امتحان می‌شود
-                if (String(err.message).includes('(404)')) {
-                    clearGeminiModelCache();
-                    const retryModelId = await resolveGeminiModel(apiKey, kind, [modelId]);
-                    if (retryModelId && retryModelId !== modelId) {
-                        return await fetchGeminiWithBackoff(buildUrl(retryModelId), {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(payload)
-                        });
-                    }
-                }
-                throw err;
-            }
-        };
-
-        window.toggleApiKeyVisibility = function() {
-            const input = document.getElementById('geminiApiKeyInput');
-            const icon = document.getElementById('apiKeyVisIcon');
-            if (!input || !icon) return;
-            if (input.type === 'password') {
-                input.type = 'text';
-                icon.className = 'fa-solid fa-eye-slash';
-            } else {
-                input.type = 'password';
-                icon.className = 'fa-solid fa-eye';
-            }
-        };
-
-        async function fetchGeminiWithBackoff(url, options, maxRetries = 3) {
-            let delay = 1000;
-            for (let i = 0; i < maxRetries; i++) {
-                let res;
-                try {
-                    res = await fetch(url, options);
-                } catch (networkErr) {
-                    if (i === maxRetries - 1) throw new Error("ارتباط با سرویس Gemini برقرار نشد. اتصال اینترنت یا فیلترشکن را بررسی کنید.");
-                    await new Promise(r => setTimeout(r, delay));
-                    delay *= 2;
-                    continue;
-                }
-
-                if (res.ok) return await res.json();
-
-                let errMessage = '';
-                let errReason = '';
-                try {
-                    const errPayload = await res.json();
-                    errMessage = errPayload?.error?.message || '';
-                    const info = (errPayload?.error?.details || []).find(d => d && d.reason);
-                    errReason = info?.reason || '';
-                } catch (e) {}
-
-                if (res.status === 400 && (errReason === 'API_KEY_INVALID' || errMessage.includes('API key not valid'))) {
-                    throw new Error("کلید API جِمینای نامعتبر است. لطفاً از مدیر سیستم بخواهید کلید معتبر را در تنظیمات دستیار هوشمند ثبت کند.");
-                }
-                if (res.status === 401) {
-                    throw new Error("کلید API جِمینای فعال نیست یا توسط مدیر سیستم وارد نشده است (401 Unauthorized). لطفاً از مدیر سیستم بخواهید کلید API معتبر را ثبت کند.");
-                }
-                if (res.status === 403) {
-                    throw new Error("دسترسی به مدل Gemini مجاز نیست (403). ممکن است کلید API محدود شده یا مدل برای حساب شما فعال نباشد. جزئیات: " + errMessage);
-                }
-                if (res.status === 404) {
-                    throw new Error("مدل Gemini درخواستی یافت نشد (404). مدل جایگزین به‌صورت خودکار انتخاب می‌شود؛ لطفاً یک‌بار دیگر تلاش کنید. جزئیات: " + errMessage);
-                }
-                if (res.status === 429 || res.status >= 500) {
-                    if (i === maxRetries - 1) throw new Error(`سرویس Gemini موقتاً پاسخ نمی‌دهد (${res.status}). کمی بعد دوباره تلاش کنید. جزئیات: ${errMessage}`);
-                    await new Promise(r => setTimeout(r, delay));
-                    delay *= 2;
-                    continue;
-                }
-                throw new Error(`خطای API جِمینای (${res.status}): ${errMessage || 'پاسخ نامشخص'}`);
-            }
+            // تمام انواع درخواست (text/vision/imagen) به موتور ابری کلادفلر مسیریابی می‌شود؛
+            // پارامتر apiKey صرفاً برای سازگاری با امضای قدیمی توابع نگه داشته شده است.
+            return cloudAiFetch(kind, payload);
         }
 
         async function parseMissionTextWithGemini(userPrompt) {
@@ -1630,30 +1505,19 @@
 
         window.openAiAssistantModal = function() {
             document.getElementById('aiAssistantModal').classList.remove('hidden');
-            const savedKey = getGeminiApiKey();
 
             const adminSection = document.getElementById('geminiApiKeyAdminSection');
             const userSection = document.getElementById('geminiApiKeyUserSection');
-            const keyInput = document.getElementById('geminiApiKeyInput');
 
             if (window.currentUser && window.currentUser.role === 'مدیر سیستم') {
                 if (adminSection) adminSection.classList.remove('hidden');
                 if (userSection) userSection.classList.add('hidden');
-                if (keyInput) keyInput.value = savedKey;
             } else {
                 if (adminSection) adminSection.classList.add('hidden');
                 if (userSection) userSection.classList.remove('hidden');
-
-                const statusBadge = document.getElementById('aiKeyActiveStatusBadge');
-                const statusText = document.getElementById('aiKeyActiveStatusText');
-                if (savedKey) {
-                    if (statusBadge) statusBadge.className = "p-3 bg-emerald-950/40 border border-emerald-500/30 rounded-xl text-xs text-emerald-300 flex items-center justify-between gap-2";
-                    if (statusText) statusText.innerText = "سرویس هوش مصنوعی فعال است (تنظیم‌شده توسط مدیر سیستم)";
-                } else {
-                    if (statusBadge) statusBadge.className = "p-3 bg-amber-950/40 border border-amber-500/30 rounded-xl text-xs text-amber-300 flex items-center justify-between gap-2";
-                    if (statusText) statusText.innerText = "سرویس هوش مصنوعی هنوز توسط مدیر سیستم فعال نشده است.";
-                }
             }
+
+            refreshCloudAiStatus(false);
         };
 
         window.closeAiAssistantModal = function() {
@@ -1704,98 +1568,41 @@
             }
         };
 
-        function pcmToWavBlob(pcmDataInt16, sampleRate = 24000) {
-            const numChannels = 1;
-            const buffer = new ArrayBuffer(44 + pcmDataInt16.length * 2);
-            const view = new DataView(buffer);
-
-            const writeString = (v, offset, str) => {
-                for (let i = 0; i < str.length; i++) v.setUint8(offset + i, str.charCodeAt(i));
-            };
-
-            writeString(view, 0, 'RIFF');
-            view.setUint32(4, 36 + pcmDataInt16.length * 2, true);
-            writeString(view, 8, 'WAVE');
-            writeString(view, 12, 'fmt ');
-            view.setUint32(16, 16, true);
-            view.setUint16(20, 1, true);
-            view.setUint16(22, numChannels, true);
-            view.setUint32(24, sampleRate, true);
-            view.setUint32(28, sampleRate * numChannels * 2, true);
-            view.setUint16(32, numChannels * 2, true);
-            view.setUint16(34, 16, true);
-            writeString(view, 36, 'data');
-            view.setUint32(40, pcmDataInt16.length * 2, true);
-
-            let offset = 44;
-            for (let i = 0; i < pcmDataInt16.length; i++, offset += 2) {
-                view.setInt16(offset, pcmDataInt16[i], true);
-            }
-
-            return new Blob([view], { type: 'audio/wav' });
-        }
-
-        window.handleAiTtsSpeaker = async function() {
-            const apiKey = getGeminiApiKey();
-            if (!apiKey) {
-                showCustomAlert('کلید API هوش مصنوعی توسط مدیر سیستم فعال نشده است.');
+        window.handleAiTtsSpeaker = function() {
+            if (!('speechSynthesis' in window)) {
+                showCustomAlert('مرورگر شما از پخش صوتی پشتیبانی نمی‌کند. لطفاً از Chrome یا Edge استفاده کنید.');
                 return;
             }
 
-            const loader = document.getElementById('aiLoadingState');
-            loader.classList.remove('hidden');
-
-            try {
-                const dataSummaryText = (window.filteredData || []).slice(0, 10).map(d => 
+            let speechText = '';
+            const resultBox = document.getElementById('aiAnalysisResult');
+            const boxText = resultBox ? (resultBox.innerText || '').trim() : '';
+            if (boxText.length > 80 && !boxText.includes('شروع تحلیل»')) {
+                speechText = boxText;
+            } else {
+                const dataSummaryText = (window.filteredData || []).slice(0, 10).map(d =>
                     `مأموریت ${d.location} در تاریخ ${d.date} با هزینه کل ${d.totalCost} ریال.`
                 ).join(' ');
-
-                const speechPrompt = `Say cheerfully in clear fluent Persian: خلاصه گزارش مأموریت‌های اداری ثبت شده: مجموع ${window.filteredData?.length || 0} مأموریت ثبت شده است. ${dataSummaryText}`;
-
-                const payload = {
-                    contents: [{ parts: [{ text: speechPrompt }] }],
-                    generationConfig: {
-                        responseModalities: ["AUDIO"],
-                        speechConfig: {
-                            voiceConfig: { prebuiltVoiceConfig: { voiceName: "Kore" } }
-                        }
-                    }
-                };
-
-                const resData = await geminiFetch(apiKey, 'tts', payload);
-
-                loader.classList.add('hidden');
-
-                const candidatePart = resData?.candidates?.[0]?.content?.parts?.[0];
-                const base64Audio = candidatePart?.inlineData?.data;
-                const mimeType = candidatePart?.inlineData?.mimeType || '';
-
-                if (base64Audio) {
-                    const sampleRateMatch = mimeType.match(/rate=(\d+)/);
-                    const sampleRate = sampleRateMatch ? parseInt(sampleRateMatch[1], 10) : 24000;
-
-                    const binaryString = window.atob(base64Audio);
-                    const bytes = new Uint8Array(binaryString.length);
-                    for (let i = 0; i < binaryString.length; i++) {
-                        bytes[i] = binaryString.charCodeAt(i);
-                    }
-                    const pcm16 = new Int16Array(bytes.buffer);
-                    const wavBlob = pcmToWavBlob(pcm16, sampleRate);
-                    const audioUrl = URL.createObjectURL(wavBlob);
-
-                    const playerContainer = document.getElementById('aiAudioPlayerContainer');
-                    const audioPlayer = document.getElementById('geminiAudioPlayer');
-                    audioPlayer.src = audioUrl;
-                    playerContainer.classList.remove('hidden');
-                    audioPlayer.play();
-                } else {
-                    showCustomAlert('امکان تولید فایل صوتی وجود نداشت.');
-                }
-            } catch (err) {
-                loader.classList.add('hidden');
-                console.error("Gemini TTS Error:", err);
-                showCustomAlert('خطا در تولید گزارش صوتی: ' + err.message);
+                speechText = `خلاصه گزارش مأموریت‌های اداری ثبت شده: مجموع ${window.filteredData?.length || 0} مأموریت ثبت شده است. ${dataSummaryText}`;
             }
+
+            const synth = window.speechSynthesis;
+            synth.cancel();
+
+            const utterance = new SpeechSynthesisUtterance(speechText.slice(0, 4000));
+            utterance.lang = 'fa-IR';
+            utterance.rate = 1;
+            utterance.pitch = 1;
+            const voices = synth.getVoices() || [];
+            const faVoice = voices.find(v => (v.lang || '').toLowerCase().startsWith('fa'));
+            if (faVoice) utterance.voice = faVoice;
+
+            const playerContainer = document.getElementById('aiAudioPlayerContainer');
+            if (playerContainer) playerContainer.classList.remove('hidden');
+            utterance.onend = function() { if (playerContainer) playerContainer.classList.add('hidden'); };
+            utterance.onerror = function() { if (playerContainer) playerContainer.classList.add('hidden'); };
+
+            synth.speak(utterance);
         };
 
         window.askPresetQuestion = function(q) {
@@ -1815,7 +1622,7 @@
             if (!query) return;
 
             const resBox = document.getElementById('aiChatResponseBox');
-            resBox.innerHTML = '<p class="text-sky-400 font-bold animate-pulse text-center">Gemini در حال تحلیل داده‌ها و پاسخگویی...</p>';
+            resBox.innerHTML = '<p class="text-sky-400 font-bold animate-pulse text-center">هوش مصنوعی ابری در حال تحلیل داده‌ها و پاسخگویی...</p>';
 
             try {
                 const dataContext = JSON.stringify((window.filteredData || []).map(d => ({
@@ -1933,7 +1740,7 @@
                 closeAiAssistantModal();
 
                 applyParsedMissionToForm(parsed);
-                showCustomAlert('اطلاعات مأموریت توسط Gemini با موفقیت استخراج و در فرم درج شد.', 'هوش مصنوعی Gemini');
+                showCustomAlert('اطلاعات مأموریت توسط هوش مصنوعی ابری با موفقیت استخراج و در فرم درج شد.', 'هوش مصنوعی ابری');
             } catch (err) {
                 loader.classList.add('hidden');
                 console.error("Gemini AI Text Parse Error:", err);
@@ -1993,7 +1800,7 @@
 
                     calculateTotalFormSum();
                     updateReceiptHints();
-                    showCustomAlert('اطلاعات رسید تصویر توسط Gemini OCR استخراج و در فرم درج گردید.', 'هوش مصنوعی Gemini');
+                    showCustomAlert('اطلاعات رسید تصویر توسط هوش مصنوعی ابری استخراج و در فرم درج گردید.', 'هوش مصنوعی ابری');
                 } catch (err) {
                     loader.classList.add('hidden');
                     console.error("Gemini OCR Error:", err);
@@ -2283,11 +2090,10 @@
 
         async function syncCloudData() {
             try {
-                const [usersRes, projectsRes, missionsRes, settingsRes] = await Promise.all([
+                const [usersRes, projectsRes, missionsRes] = await Promise.all([
                     apiRequest('/users'),
                     apiRequest('/projects'),
-                    apiRequest('/missions'),
-                    apiRequest('/settings')
+                    apiRequest('/missions')
                 ]);
 
                 if (Array.isArray(usersRes?.items)) {
@@ -2303,11 +2109,6 @@
                 if (Array.isArray(missionsRes?.items)) {
                     window.expensesData = sanitizeMissionList(missionsRes.items);
                     localStorage.setItem('akasra_expenses', JSON.stringify(window.expensesData));
-                }
-
-                if (settingsRes?.settings?.geminiApiKey) {
-                    window.globalGeminiApiKey = settingsRes.settings.geminiApiKey;
-                    localStorage.setItem('gemini_api_key', window.globalGeminiApiKey);
                 }
 
                 if (typeof renderUsersTable === 'function') renderUsersTable();
@@ -2490,22 +2291,7 @@
                 loadLocalProjects();
             });
 
-            const settingsDocRef = doc(window.db, 'artifacts', appId, 'public', 'data', 'settings', 'config');
-            onSnapshot(settingsDocRef, (docSnap) => {
-                if (docSnap.exists()) {
-                    const data = docSnap.data();
-                    if (data && data.geminiApiKey) {
-                        window.globalGeminiApiKey = data.geminiApiKey;
-                        localStorage.setItem('gemini_api_key', data.geminiApiKey);
-                        const apiKeyInput = document.getElementById('geminiApiKeyInput');
-                        if (apiKeyInput && window.currentUser && window.currentUser.role === 'مدیر سیستم') {
-                            apiKeyInput.value = data.geminiApiKey;
-                        }
-                    }
-                }
-            }, (err) => {
-                console.warn("Settings snapshot listener error:", err);
-            });
+            // شنونده قدیمی Firestore برای کلید Gemini حذف شد — موتور هوش مصنوعی ابری نیازی به کلید ندارد
         }
 
         function loadLocalMissions() {

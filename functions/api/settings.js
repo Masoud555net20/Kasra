@@ -17,10 +17,12 @@ export async function onRequest(context) {
         .prepare('SELECT value, updated_at FROM settings WHERE key = ?')
         .bind(GEMINI_KEY_ROW)
         .first();
+      // کلید API هرگز به کلاینت برگردانده نمی‌شود؛ سرویس هوش مصنوعی ابری بدون کلید کار می‌کند
       return json({
         ok: true,
         settings: {
-          geminiApiKey: row?.value || '',
+          provider: 'cloudflare-workers-ai',
+          hasLegacyApiKey: !!(row && row.value),
           updatedAt: row?.updated_at || null
         }
       });
