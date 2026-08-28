@@ -1023,6 +1023,21 @@
                     </div>
                 </div>
 
+                <div class="flex items-center justify-between gap-2 flex-wrap mb-2">
+                    <div class="flex items-center gap-2 text-slate-300 text-[11px] font-medium">
+                        <i class="fa-solid fa-headphones text-slate-500"></i>
+                        <span>صدای قرائت گزارش:</span>
+                    </div>
+                    <select id="ttsVoiceSelect" onchange="onTtsVoiceChange()" class="glass-input px-2 py-1.5 rounded-lg text-[11px] max-w-[270px]">
+                        <option value="auto">خودکار (بهترین صدای فارسی در دسترس)</option>
+                    </select>
+                </div>
+                <p class="text-slate-500 text-[10px] leading-relaxed -mt-1 mb-2">
+                    <i class="fa-solid fa-circle-info text-slate-500 ml-1"></i>
+                    صداهای فارسی با ★ مشخص شده‌اند. اگر صدای فارسی نصب نباشد، برنامه به‌صورت خودکار از موتور صوتی آنلاین فارسی استفاده می‌کند — بدون نیاز به نصب هیچ چیز.
+                    برای افزودن صدای فارسی به مرورگر: در Edge صداهای آنلاین «Farid / Dilara» خودکار در لیست ظاهر می‌شوند؛ در ویندوز: Settings ← Time &amp; Language ← Language ← Add language ← فارسی ← تیک Text-to-speech (در صورت تحریم فقط برای همین نصب یک‌بار VPN لازم است؛ صدای نصب‌شده دائمی و آفلاین است).
+                </p>
+
                 <div id="aiAudioPlayerContainer" class="hidden p-3 bg-slate-900 rounded-xl border border-amber-500/30 flex items-center justify-between gap-3">
                     <div class="flex items-center gap-2 text-amber-400 text-xs font-bold">
                         <i class="fa-solid fa-circle-play text-base animate-bounce"></i>
@@ -1567,6 +1582,7 @@
             }
 
             refreshCloudAiStatus(false);
+            if ('speechSynthesis' in window) populateTtsVoices();
         };
 
         window.closeAiAssistantModal = function() {
@@ -1673,6 +1689,34 @@
             ) || null;
         }
 
+        /* ---------- انتخابگر صدای قرائت ---------- */
+        function populateTtsVoices() {
+            const sel = document.getElementById('ttsVoiceSelect');
+            if (!sel || !('speechSynthesis' in window)) return;
+            const voices = window.speechSynthesis.getVoices() || [];
+            const sorted = [...voices].sort((a, b) => {
+                const faA = findPersianVoice([a]) ? 0 : 1;
+                const faB = findPersianVoice([b]) ? 0 : 1;
+                return (faA - faB) || String(a.name).localeCompare(String(b.name));
+            });
+            const saved = (function() { try { return localStorage.getItem('tts_voice_uri') || 'auto'; } catch (e) { return 'auto'; } })();
+            sel.innerHTML = '<option value="auto">خودکار (بهترین صدای فارسی در دسترس)</option>' +
+                sorted.map(v => '<option value="' + String(v.voiceURI || v.name).replace(/"/g, '&quot;') + '">' +
+                    (findPersianVoice([v]) ? '★ ' : '') + v.name + ' — ' + v.lang + '</option>').join('');
+            if ([...sel.options].some(o => o.value === saved)) sel.value = saved;
+        }
+
+        window.onTtsVoiceChange = function() {
+            const sel = document.getElementById('ttsVoiceSelect');
+            if (sel) { try { localStorage.setItem('tts_voice_uri', sel.value); } catch (e) {} }
+            if (aiTtsState.playing) stopAiTts();
+        };
+
+        if ('speechSynthesis' in window) {
+            populateTtsVoices();
+            window.speechSynthesis.addEventListener('voiceschanged', populateTtsVoices);
+        }
+
         function stopAiTts() {
             const st = aiTtsState;
             st.playing = false;
@@ -1728,7 +1772,10 @@
             /* حالت ۱: صدای فارسی خود مرورگر (بهترین کیفیت، مثل Edge) */
             if ('speechSynthesis' in window) {
                 const voices = await waitBrowserVoices(2000);
-                const faVoice = findPersianVoice(voices);
+                populateTtsVoices();
+                const sel = document.getElementById('ttsVoiceSelect');
+                const chosenUri = (sel && sel.value && sel.value !== 'auto') ? sel.value : null;
+                const faVoice = (chosenUri && voices.find(v => (v.voiceURI || v.name) === chosenUri)) || findPersianVoice(voices);
                 if (faVoice) {
                     window.speechSynthesis.cancel();
                     const utterance = new SpeechSynthesisUtterance(speechText.slice(0, 4500));
