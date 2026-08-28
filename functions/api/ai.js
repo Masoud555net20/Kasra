@@ -63,7 +63,7 @@ const FIELD_EXAMPLES = {
   startTime: '08:00', endTime: '12:30',
   location: 'بهداشت و درمان صنعت نفت', address: 'نشانی کامل محل مأموریت',
   outboundVehicle: 'اسنپ/تپسی', inboundVehicle: 'آژانس', vehicleType: 'اسنپ/تپسی',
-  outboundCost: 600000, inboundCost: 800000, amount: 600000, suggestedProjectId: '1'
+  outboundCost: 600000, inboundCost: 0, amount: 600000, suggestedProjectId: '1'
 };
 
 /* اسکیمای Gemini را به نمونه تخت تبدیل می‌کند تا مدل به‌جای داده، ساختار اسکیما را اکو نکند */
