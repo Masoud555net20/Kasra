@@ -1387,9 +1387,31 @@
             return cloudAiFetch(kind, payload);
         }
 
+        // اگر مدل ساختار اسکیما را اکو کرده باشد، داده واقعی استخراج می‌شود
+        function isSchemaEchoObj(o) {
+            return !!(o && typeof o === 'object' && !Array.isArray(o) && Object.keys(o).length > 0 &&
+                Object.keys(o).every(k => ['type', 'properties', 'items', 'description', 'required', 'enum', 'format'].includes(k)));
+        }
+
+        function unwrapClientSchemaEcho(o) {
+            if (!o || typeof o !== 'object' || Array.isArray(o)) return o;
+            if (isSchemaEchoObj(o) && o.properties) return unwrapClientSchemaEcho(o.properties);
+            const out = {};
+            let changed = false;
+            for (const [k, v] of Object.entries(o)) {
+                if (isSchemaEchoObj(v)) {
+                    out[k] = v.properties ? unwrapClientSchemaEcho(v.properties) : (v.items ? [unwrapClientSchemaEcho(v.items)] : '');
+                    changed = true;
+                } else {
+                    out[k] = v;
+                }
+            }
+            return changed ? out : o;
+        }
+
         // پارس مقاوم JSON خروجی مدل: آبجکت آماده، بلوک کد یا متن همراه با توضیح را می‌پذیرد
         function safeParseModelJson(raw, friendlyName) {
-            if (raw && typeof raw === 'object') return raw;
+            if (raw && typeof raw === 'object') return unwrapClientSchemaEcho(raw);
             let text = String(raw ?? '').trim();
             const fence = text.match(/```(?:json)?\s*([\s\S]*?)```/i);
             if (fence) text = fence[1].trim();
@@ -1398,7 +1420,7 @@
             if (start !== -1 && end > start) text = text.slice(start, end + 1);
             try {
                 const parsed = JSON.parse(text);
-                if (parsed && typeof parsed === 'object') return parsed;
+                if (parsed && typeof parsed === 'object') return unwrapClientSchemaEcho(parsed);
             } catch (e) {}
             throw new Error('پاسخ ' + (friendlyName || 'هوش مصنوعی') + ' قابل تفسیر نبود. لطفاً دوباره تلاش کنید.');
         }

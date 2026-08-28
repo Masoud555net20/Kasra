@@ -52,9 +52,46 @@ function buildJsonInstruction(generationConfig) {
   if (!wantsJson) return '';
   let hint = '\n\nمهم: پاسخ را فقط و فقط به‌صورت یک شیء JSON معتبر و خالص برگردان؛ بدون هیچ توضیح اضافه، متن خوشامد یا بلوک کد.';
   if (generationConfig.responseSchema) {
-    hint += '\nساختار دقیق JSON: ' + JSON.stringify(generationConfig.responseSchema);
+    hint += '\nساختار خروجی نمونه (فقط همین کلیدها را در سطح اولِ شیء JSON برگردان و مقادیر را از متن کاربر پر کن): ' + JSON.stringify(schemaToExample(generationConfig.responseSchema));
   }
   return hint;
+}
+
+/* اسکیمای Gemini را به نمونه تخت تبدیل می‌کند تا مدل به‌جای داده، ساختار اسکیما را اکو نکند */
+function schemaToExample(schema) {
+  if (!schema || typeof schema !== 'object') return '';
+  const type = String(schema.type || '').toUpperCase();
+  if (schema.properties && typeof schema.properties === 'object') {
+    const out = {};
+    for (const [k, v] of Object.entries(schema.properties)) out[k] = schemaToExample(v);
+    return out;
+  }
+  if (type === 'ARRAY') return [schemaToExample(schema.items)];
+  if (type === 'NUMBER' || type === 'INTEGER') return 0;
+  if (type === 'BOOLEAN') return true;
+  return '';
+}
+
+function looksLikeSchemaEcho(v) {
+  return !!(v && typeof v === 'object' && !Array.isArray(v) && Object.keys(v).length > 0 &&
+    Object.keys(v).every(k => ['type', 'properties', 'items', 'description', 'required', 'enum', 'format'].includes(k)));
+}
+
+/* اگر مدل ساختار اسکیما را به‌جای داده برگرداند، داده واقعی بیرون کشیده می‌شود */
+function unwrapSchemaEcho(obj) {
+  if (!obj || typeof obj !== 'object' || Array.isArray(obj)) return obj;
+  if (looksLikeSchemaEcho(obj) && obj.properties) return unwrapSchemaEcho(obj.properties);
+  const out = {};
+  let changed = false;
+  for (const [k, v] of Object.entries(obj)) {
+    if (looksLikeSchemaEcho(v)) {
+      out[k] = v.properties ? unwrapSchemaEcho(v.properties) : (v.items ? [unwrapSchemaEcho(v.items)] : '');
+      changed = true;
+    } else {
+      out[k] = v;
+    }
+  }
+  return changed ? out : obj;
 }
 
 function extractJsonBlock(raw) {
@@ -144,7 +181,7 @@ async function runTextChain(ai, messages, temperature, needsJson) {
             errors.push(model + ': پاسخ JSON معتبر نبود');
             continue; // مدل/تلاش بعدی امتحان می‌شود
           }
-          return { model, text: JSON.stringify(parsed) };
+          return { model, text: JSON.stringify(unwrapSchemaEcho(parsed)) };
         }
         return { model, text: raw };
       } catch (err) {
@@ -201,7 +238,7 @@ async function handleVision(ai, payload, imagePart) {
               errors.push(model + ': پاسخ JSON معتبر نبود');
               continue;
             }
-            return { model, data: textResponseShape(JSON.stringify(parsed)) };
+            return { model, data: textResponseShape(JSON.stringify(unwrapSchemaEcho(parsed))) };
           }
           return { model, data: textResponseShape(raw) };
         }
