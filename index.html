@@ -1445,7 +1445,8 @@
    - اگر فقط یک ساعت در متن بود آن را در startTime بگذار.
    - ارقام فارسی/عربی را به لاتین تبدیل کن.
 ۷. اگر برای رفت یا برگشت مبلغی ذکر نشده بود، مبلغ آن سمت را دقیقاً ۰ بگذار و هرگز مبلغ ذکرشده را در هر دو فیلد outboundCost و inboundCost کپی نکن. مثال: «با اسنپ ۷۵ هزار تومان و برگشتم با آژانس» یعنی outboundCost=750000 و inboundCost=0.
-۸. ترتیب سفر را دقیق رعایت کن: هر وسیله/مبلغی که کاربر برای مسیر رفت (اول سفر) گفته باید فقط در outboundVehicle و outboundCost بنشیند و هرچه برای مسیر برگشت (بازگشت) گفته شده فقط در inboundVehicle و inboundCost. کلمات کلیدی برگشت: «برگشتم»، «برگشت»، «بازگشتم»، «برای برگشت». در مثال قبل: outboundVehicle="اسنپ/تپسی" و inboundVehicle="آژانس" — نه برعکس.`;
+۸. ترتیب سفر را دقیق رعایت کن: هر وسیله/مبلغی که کاربر برای مسیر رفت (اول سفر) گفته باید فقط در outboundVehicle و outboundCost بنشیند و هرچه برای مسیر برگشت (بازگشت) گفته شده فقط در inboundVehicle و inboundCost. کلمات کلیدی برگشت: «برگشتم»، «برگشت»، «بازگشتم»، «برای برگشت». در مثال قبل: outboundVehicle="اسنپ/تپسی" و inboundVehicle="آژانس" — نه برعکس.
+۹. هرگز هیچ عدد یا مبلغی را از خودت اختراع و حدس نزن؛ مبلغ هر سمت فقط و فقط اگر در متن کاربر صراحتاً ذکر شده باشد پر می‌شود، در غیر این صورت دقیقاً ۰ بگذار (حتی اگر وسیله آن سمت در متن آمده است).`;
 
             const payload = {
                 contents: [{ parts: [{ text: userPrompt }] }],
@@ -1863,9 +1864,9 @@
             if (parsed.startTime) document.getElementById('formStartTime').value = normalizeTimeValue(parsed.startTime);
             if (parsed.endTime) document.getElementById('formEndTime').value = normalizeTimeValue(parsed.endTime);
             if (parsed.outboundVehicle) document.getElementById('formOutboundVehicle').value = parsed.outboundVehicle;
-            setRialValue(document.getElementById('formOutboundCost'), parsed.outboundCost);
+            if (parsed.outboundCost > 0) setRialValue(document.getElementById('formOutboundCost'), parsed.outboundCost);
             if (parsed.inboundVehicle) document.getElementById('formInboundVehicle').value = parsed.inboundVehicle;
-            setRialValue(document.getElementById('formInboundCost'), parsed.inboundCost);
+            if (parsed.inboundCost > 0) setRialValue(document.getElementById('formInboundCost'), parsed.inboundCost);
             if (parsed.suggestedProjectId && (window.projectsData || []).some(p => p.id === parsed.suggestedProjectId)) {
                 document.getElementById('formProject').value = parsed.suggestedProjectId;
                 handleFormProjectChange();
