@@ -1333,6 +1333,126 @@
             return window.globalGeminiApiKey || localStorage.getItem('gemini_api_key') || '';
         };
 
+        /* ---------- تشخیص خودکار مدل Gemini ----------
+           اسم مدل‌های preview توسط گوگل بعد از مدتی بازنشسته می‌شوند و باعث خطای 404 می‌شوند.
+           این بخش مدل معتبر را با ListModels پیدا کرده و در localStorage کش می‌کند. */
+        const GEMINI_API_BASE = 'https://generativelanguage.googleapis.com/v1beta';
+        const GEMINI_MODEL_CACHE_KEY = 'gemini_model_cache';
+
+        function getGeminiModelCache() {
+            try { return JSON.parse(localStorage.getItem(GEMINI_MODEL_CACHE_KEY) || '{}'); } catch (e) { return {}; }
+        }
+
+        function setGeminiModelCache(kind, modelId) {
+            try {
+                const cache = getGeminiModelCache();
+                cache[kind] = modelId;
+                localStorage.setItem(GEMINI_MODEL_CACHE_KEY, JSON.stringify(cache));
+            } catch (e) {}
+        }
+
+        function clearGeminiModelCache() {
+            try { localStorage.removeItem(GEMINI_MODEL_CACHE_KEY); } catch (e) {}
+        }
+
+        async function listGeminiModels(apiKey) {
+            const res = await fetch(`${GEMINI_API_BASE}/models?pageSize=200&key=${encodeURIComponent(apiKey)}`);
+            if (!res.ok) throw new Error(`ListModels (${res.status})`);
+            const data = await res.json();
+            return Array.isArray(data.models) ? data.models : [];
+        }
+
+        function modelVersionScore(name) {
+            const m = name.match(/(\d+(?:\.\d+)?)/);
+            let score = m ? parseFloat(m[1]) : 0;
+            if (name.includes('preview')) score -= 0.01;
+            if (name.includes('lite')) score -= 0.02;
+            return score;
+        }
+
+        const GEMINI_MODEL_CONFIG = {
+            text: {
+                pattern: /gemini.*flash/i,
+                method: 'generateContent',
+                exclude: /tts|image|imagen|embedding|aqa|veo|live|native|audio|robotics|computer-use/i,
+                preferred: ['gemini-flash-latest', 'gemini-2.5-flash', 'gemini-2.0-flash'],
+                fallback: 'gemini-flash-latest'
+            },
+            tts: {
+                pattern: /tts/i,
+                method: 'generateContent',
+                exclude: /imagen|veo/i,
+                preferred: ['gemini-2.5-flash-tts', 'gemini-2.5-flash-preview-tts'],
+                fallback: 'gemini-2.5-flash-preview-tts'
+            },
+            imagen: {
+                pattern: /imagen/i,
+                method: 'predict',
+                exclude: null,
+                preferred: ['imagen-4.0-generate-001', 'imagen-3.0-generate-002'],
+                fallback: 'imagen-3.0-generate-002'
+            }
+        };
+
+        async function resolveGeminiModel(apiKey, kind, excludeNames = []) {
+            const cached = getGeminiModelCache()[kind];
+            if (cached && !excludeNames.includes(cached)) return cached;
+
+            const cfg = GEMINI_MODEL_CONFIG[kind];
+            let modelId = null;
+
+            try {
+                const names = (await listGeminiModels(apiKey))
+                    .filter(m => Array.isArray(m.supportedGenerationMethods) && m.supportedGenerationMethods.includes(cfg.method))
+                    .map(m => m.name.replace(/^models\//, ''));
+
+                for (const p of cfg.preferred) {
+                    if (names.includes(p) && !excludeNames.includes(p)) { modelId = p; break; }
+                }
+
+                if (!modelId) {
+                    modelId = names
+                        .filter(n => !excludeNames.includes(n))
+                        .filter(n => cfg.pattern.test(n) && (!cfg.exclude || !cfg.exclude.test(n)))
+                        .sort((a, b) => modelVersionScore(b) - modelVersionScore(a))[0] || null;
+                }
+            } catch (e) {
+                // اگر ListModels در دسترس نبود، از نام پیش‌فرض استفاده می‌شود
+            }
+
+            if (!modelId) modelId = cfg.fallback;
+            setGeminiModelCache(kind, modelId);
+            return modelId;
+        }
+
+        async function geminiFetch(apiKey, kind, payload) {
+            const buildUrl = (modelId) =>
+                `${GEMINI_API_BASE}/models/${modelId}:${kind === 'imagen' ? 'predict' : 'generateContent'}?key=${encodeURIComponent(apiKey)}`;
+
+            const modelId = await resolveGeminiModel(apiKey, kind);
+            try {
+                return await fetchGeminiWithBackoff(buildUrl(modelId), {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+            } catch (err) {
+                // اگر مدل کش‌شده بازنشسته شده بود (404)، کش پاک و مدل جایگزین امتحان می‌شود
+                if (String(err.message).includes('(404)')) {
+                    clearGeminiModelCache();
+                    const retryModelId = await resolveGeminiModel(apiKey, kind, [modelId]);
+                    if (retryModelId && retryModelId !== modelId) {
+                        return await fetchGeminiWithBackoff(buildUrl(retryModelId), {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+                    }
+                }
+                throw err;
+            }
+        };
+
         window.toggleApiKeyVisibility = function() {
             const input = document.getElementById('geminiApiKeyInput');
             const icon = document.getElementById('apiKeyVisIcon');
@@ -1349,33 +1469,52 @@
         async function fetchGeminiWithBackoff(url, options, maxRetries = 3) {
             let delay = 1000;
             for (let i = 0; i < maxRetries; i++) {
+                let res;
                 try {
-                    const res = await fetch(url, options);
-                    if (res.ok) return await res.json();
-                    if (res.status === 401) {
-                        throw new Error("کلید API جِمینای فعال نیست یا توسط مدیر سیستم وارد نشده است (401 Unauthorized). لطفاً از مدیر سیستم بخواهید کلید API معتبر را ثبت کند.");
-                    }
-                    if (res.status === 429 || res.status >= 500) {
-                        await new Promise(r => setTimeout(r, delay));
-                        delay *= 2;
-                        continue;
-                    }
-                    const errText = await res.text();
-                    throw new Error(`خطای API جِمینای (${res.status}): ${errText}`);
-                } catch (err) {
-                    if (err.message.includes('401') || err.message.includes('Unauthorized')) throw err;
-                    if (i === maxRetries - 1) throw err;
+                    res = await fetch(url, options);
+                } catch (networkErr) {
+                    if (i === maxRetries - 1) throw new Error("ارتباط با سرویس Gemini برقرار نشد. اتصال اینترنت یا فیلترشکن را بررسی کنید.");
                     await new Promise(r => setTimeout(r, delay));
                     delay *= 2;
+                    continue;
                 }
+
+                if (res.ok) return await res.json();
+
+                let errMessage = '';
+                let errReason = '';
+                try {
+                    const errPayload = await res.json();
+                    errMessage = errPayload?.error?.message || '';
+                    const info = (errPayload?.error?.details || []).find(d => d && d.reason);
+                    errReason = info?.reason || '';
+                } catch (e) {}
+
+                if (res.status === 400 && (errReason === 'API_KEY_INVALID' || errMessage.includes('API key not valid'))) {
+                    throw new Error("کلید API جِمینای نامعتبر است. لطفاً از مدیر سیستم بخواهید کلید معتبر را در تنظیمات دستیار هوشمند ثبت کند.");
+                }
+                if (res.status === 401) {
+                    throw new Error("کلید API جِمینای فعال نیست یا توسط مدیر سیستم وارد نشده است (401 Unauthorized). لطفاً از مدیر سیستم بخواهید کلید API معتبر را ثبت کند.");
+                }
+                if (res.status === 403) {
+                    throw new Error("دسترسی به مدل Gemini مجاز نیست (403). ممکن است کلید API محدود شده یا مدل برای حساب شما فعال نباشد. جزئیات: " + errMessage);
+                }
+                if (res.status === 404) {
+                    throw new Error("مدل Gemini درخواستی یافت نشد (404). مدل جایگزین به‌صورت خودکار انتخاب می‌شود؛ لطفاً یک‌بار دیگر تلاش کنید. جزئیات: " + errMessage);
+                }
+                if (res.status === 429 || res.status >= 500) {
+                    if (i === maxRetries - 1) throw new Error(`سرویس Gemini موقتاً پاسخ نمی‌دهد (${res.status}). کمی بعد دوباره تلاش کنید. جزئیات: ${errMessage}`);
+                    await new Promise(r => setTimeout(r, delay));
+                    delay *= 2;
+                    continue;
+                }
+                throw new Error(`خطای API جِمینای (${res.status}): ${errMessage || 'پاسخ نامشخص'}`);
             }
         }
 
         async function parseMissionTextWithGemini(userPrompt) {
             const apiKey = getGeminiApiKey();
             if (!apiKey) throw new Error("کلید API هوش مصنوعی توسط مدیر سیستم فعال نشده است. لطفاً به مدیر سیستم اطلاع دهید.");
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
-
             const projectsSummary = (window.projectsData || []).map(p => `کد: ${p.id} - نام: ${p.title}`).join(' | ');
 
             const systemInstruction = `تو یک دستیار استخراج هوشمند اطلاعات مأموریت‌های اداری هستی.
@@ -1413,11 +1552,7 @@
                 }
             };
 
-            const data = await fetchGeminiWithBackoff(apiUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
+            const data = await geminiFetch(apiKey, 'text', payload);
 
             const rawJson = data?.candidates?.[0]?.content?.parts?.[0]?.text;
             if (!rawJson) throw new Error("پاسخی از مدل دریافت نشد.");
@@ -1427,7 +1562,6 @@
         async function scanReceiptWithGemini(base64Data, mimeType) {
             const apiKey = getGeminiApiKey();
             if (!apiKey) throw new Error("کلید API هوش مصنوعی توسط مدیر سیستم فعال نشده است.");
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
 
             const systemInstruction = `تصویر فاکتور، رسید اسنپ/تپسی یا قبض تاکسی را خوانده و اطلاعات آن را استخراج کن. مبالغ را به ریال تبدیل کن (اگر تومان است ضرب در ۱۰).`;
 
@@ -1455,11 +1589,7 @@
                 }
             };
 
-            const data = await fetchGeminiWithBackoff(apiUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
+            const data = await geminiFetch(apiKey, 'text', payload);
 
             const rawJson = data?.candidates?.[0]?.content?.parts?.[0]?.text;
             if (!rawJson) throw new Error("امکان خواندن تصویر رسید وجود نداشت.");
@@ -1469,7 +1599,6 @@
         async function generateFinancialAnalysisWithGemini() {
             const apiKey = getGeminiApiKey();
             if (!apiKey) throw new Error("کلید API هوش مصنوعی توسط مدیر سیستم فعال نشده است.");
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
 
             const dataSummary = (window.filteredData || []).map(d => ({
                 date: d.date,
@@ -1494,11 +1623,7 @@
                 systemInstruction: { parts: [{ text: systemInstruction }] }
             };
 
-            const response = await fetchGeminiWithBackoff(apiUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
+            const response = await geminiFetch(apiKey, 'text', payload);
 
             return response?.candidates?.[0]?.content?.parts?.[0]?.text || "خطا در تولید گزارش تحلیلی.";
         }
@@ -1627,8 +1752,6 @@
 
                 const speechPrompt = `Say cheerfully in clear fluent Persian: خلاصه گزارش مأموریت‌های اداری ثبت شده: مجموع ${window.filteredData?.length || 0} مأموریت ثبت شده است. ${dataSummaryText}`;
 
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`;
-
                 const payload = {
                     contents: [{ parts: [{ text: speechPrompt }] }],
                     generationConfig: {
@@ -1639,11 +1762,7 @@
                     }
                 };
 
-                const resData = await fetchGeminiWithBackoff(apiUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
+                const resData = await geminiFetch(apiKey, 'tts', payload);
 
                 loader.classList.add('hidden');
 
@@ -1711,8 +1830,6 @@
                     project: d.projectTitle
                 })), null, 2);
 
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
-
                 const systemInstruction = `تو تحلیل‌گر مالی و پاسخگوی هوشمند سامانه مأموریت‌ها هستی. بر اساس داده‌های JSON ارائه‌شده مأموریت‌ها، به سوال کاربر دقیق، خلاصه و محترمانه به فارسی پاسخ بده.`;
 
                 const payload = {
@@ -1720,11 +1837,7 @@
                     systemInstruction: { parts: [{ text: systemInstruction }] }
                 };
 
-                const responseData = await fetchGeminiWithBackoff(apiUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
+                const responseData = await geminiFetch(apiKey, 'text', payload);
 
                 const ansText = responseData?.candidates?.[0]?.content?.parts?.[0]?.text || "پاسخی دریافت نشد.";
                 resBox.innerHTML = `<div class="text-slate-100 font-medium leading-relaxed">${ansText.replace(/\n/g, '<br>')}</div>`;
@@ -1748,18 +1861,12 @@
             loader.classList.remove('hidden');
 
             try {
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=${apiKey}`;
-
                 const payload = {
                     instances: [{ prompt: prompt }],
                     parameters: { sampleCount: 1 }
                 };
 
-                const resData = await fetchGeminiWithBackoff(apiUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
+                const resData = await geminiFetch(apiKey, 'imagen', payload);
 
                 loader.classList.add('hidden');
 
