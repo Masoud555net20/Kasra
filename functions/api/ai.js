@@ -57,13 +57,24 @@ function buildJsonInstruction(generationConfig) {
   return hint;
 }
 
+/* مقادیر نمونه بر اساس نام فیلد — به مدل‌های کوچک کمک می‌کند فرمت درست را تقلید کنند */
+const FIELD_EXAMPLES = {
+  date: '1404-06-15', day: 'پنجشنبه', time: '08:00',
+  startTime: '08:00', endTime: '12:30',
+  location: 'بهداشت و درمان صنعت نفت', address: 'نشانی کامل محل مأموریت',
+  outboundVehicle: 'اسنپ/تپسی', inboundVehicle: 'آژانس', vehicleType: 'اسنپ/تپسی',
+  outboundCost: 600000, inboundCost: 800000, amount: 600000, suggestedProjectId: '1'
+};
+
 /* اسکیمای Gemini را به نمونه تخت تبدیل می‌کند تا مدل به‌جای داده، ساختار اسکیما را اکو نکند */
 function schemaToExample(schema) {
   if (!schema || typeof schema !== 'object') return '';
   const type = String(schema.type || '').toUpperCase();
   if (schema.properties && typeof schema.properties === 'object') {
     const out = {};
-    for (const [k, v] of Object.entries(schema.properties)) out[k] = schemaToExample(v);
+    for (const [k, v] of Object.entries(schema.properties)) {
+      out[k] = Object.prototype.hasOwnProperty.call(FIELD_EXAMPLES, k) ? FIELD_EXAMPLES[k] : schemaToExample(v);
+    }
     return out;
   }
   if (type === 'ARRAY') return [schemaToExample(schema.items)];

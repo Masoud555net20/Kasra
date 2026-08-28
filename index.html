@@ -1437,8 +1437,13 @@
 ۱. اگر تاریخ در متن گفته نشده بود، تاریخ امروز را بگذار: (${getCurrentJalaliDateStr()})
 ۲. روز هفته را متناظر با تاریخ شمسی به فارسی ارائه بده (شنبه، یکشنبه، دوشنبه، سه شنبه، چهارشنبه، پنجشنبه، جمعه).
 ۳. تمام مبالغ را به ریال تبدیل کن (اگر کاربر گفت تومان، ضرب در ۱۰ کن).
-۴. وسیله رفت یا برگشت را از موارد (شخصی، اسنپ/تپسی، آژانس، حمل و نقل عمومی، خودرو شرکت) انتخاب کن.
-۵. شناسه پروژه (suggestedProjectId) را از لیست پروژه‌های موجود تطبیق بده.`;
+۴. وسیله رفت یا برگشت را دقیقاً و فقط با یکی از این مقادیر بنویس: شخصی | اسنپ/تپسی | آژانس | حمل و نقل عمومی | خودرو شرکت
+۵. شناسه پروژه (suggestedProjectId) را از لیست پروژه‌های موجود تطبیق بده.
+۶. ساعت شروع (startTime) و ساعت خاتمه (endTime) را جداگانه و همیشه با فرمت ۲۴ ساعته HH:MM و ارقام لاتین بنویس (مثال: startTime: "08:00" و endTime: "12:30").
+   - اگر کاربر گفت «از ساعت ۸ تا ۱۲:۳۰» یعنی startTime=08:00 و endTime=12:30.
+   - معادل تقریبی کلمات زمانی: صبح=08:00، ظهر=12:00، بعدازظهر=14:00، عصر=17:00، شب=20:00.
+   - اگر فقط یک ساعت در متن بود آن را در startTime بگذار.
+   - ارقام فارسی/عربی را به لاتین تبدیل کن.`;
 
             const payload = {
                 contents: [{ parts: [{ text: userPrompt }] }],
@@ -1606,11 +1611,68 @@
             }
         };
 
-        window.handleAiTtsSpeaker = function() {
-            if (!('speechSynthesis' in window)) {
-                showCustomAlert('مرورگر شما از پخش صوتی پشتیبانی نمی‌کند. لطفاً از Chrome یا Edge استفاده کنید.');
-                return;
+        /* ---------- قرائت صوتی فارسی (پروکسی /api/tts کلادفلر) ----------
+           چون صدای فارسی روی اکثر مرورگرهای ویندوز نصب نیست و متن با صدای انگلیسی خوانده می‌شد،
+           صدا از سرویس TTS فارسی سمت سرور دریافت و قطعه‌قطعه پخش می‌شود. */
+        let aiTtsState = { playing: false, audio: null, urls: [], index: 0 };
+
+        function splitSpeechText(text, maxLen = 190) {
+            const clean = String(text || '').replace(/\s+/g, ' ').trim();
+            if (!clean) return [];
+            if (clean.length <= maxLen) return [clean];
+            const chunks = [];
+            let buf = '';
+            for (const w of clean.split(' ')) {
+                if ((buf + ' ' + w).trim().length > maxLen && buf) {
+                    const cut = Math.max(buf.lastIndexOf('.'), buf.lastIndexOf('!'), buf.lastIndexOf('؟'), buf.lastIndexOf('؛'), buf.lastIndexOf('،'));
+                    if (cut > maxLen * 0.4) {
+                        chunks.push(buf.slice(0, cut + 1).trim());
+                        buf = buf.slice(cut + 1).trim() + ' ' + w;
+                    } else {
+                        chunks.push(buf.trim());
+                        buf = w;
+                    }
+                } else {
+                    buf = (buf + ' ' + w).trim();
+                }
             }
+            if (buf.trim()) chunks.push(buf.trim());
+            return chunks.filter(Boolean);
+        }
+
+        function stopAiTts() {
+            const st = aiTtsState;
+            st.playing = false;
+            if (st.audio) {
+                st.audio.onended = null;
+                st.audio.onerror = null;
+                try { st.audio.pause(); } catch (e) {}
+                st.audio.removeAttribute('src');
+            }
+            const playerContainer = document.getElementById('aiAudioPlayerContainer');
+            if (playerContainer) playerContainer.classList.add('hidden');
+        }
+
+        function playNextAiTtsChunk() {
+            const st = aiTtsState;
+            if (!st.playing || !st.audio || st.index >= st.urls.length) { stopAiTts(); return; }
+            const url = st.urls[st.index++];
+            st.audio.onended = function() { playNextAiTtsChunk(); };
+            st.audio.onerror = function() {
+                stopAiTts();
+                showCustomAlert('سرویس صدای فارسی موقتاً در دسترس نیست. لطفاً چند لحظه بعد دوباره تلاش کنید.');
+            };
+            st.audio.src = url;
+            st.audio.play().catch(function() { stopAiTts(); });
+        }
+
+        window.handleAiTtsSpeaker = function() {
+            const playerContainer = document.getElementById('aiAudioPlayerContainer');
+            const audioPlayer = document.getElementById('geminiAudioPlayer');
+            if (!audioPlayer) return;
+
+            // کلیک دوباره هنگام پخش = توقف
+            if (aiTtsState.playing) { stopAiTts(); return; }
 
             let speechText = '';
             const resultBox = document.getElementById('aiAnalysisResult');
@@ -1624,23 +1686,17 @@
                 speechText = `خلاصه گزارش مأموریت‌های اداری ثبت شده: مجموع ${window.filteredData?.length || 0} مأموریت ثبت شده است. ${dataSummaryText}`;
             }
 
-            const synth = window.speechSynthesis;
-            synth.cancel();
+            const chunks = splitSpeechText(speechText);
+            if (!chunks.length) return;
 
-            const utterance = new SpeechSynthesisUtterance(speechText.slice(0, 4000));
-            utterance.lang = 'fa-IR';
-            utterance.rate = 1;
-            utterance.pitch = 1;
-            const voices = synth.getVoices() || [];
-            const faVoice = voices.find(v => (v.lang || '').toLowerCase().startsWith('fa'));
-            if (faVoice) utterance.voice = faVoice;
-
-            const playerContainer = document.getElementById('aiAudioPlayerContainer');
+            aiTtsState = {
+                playing: true,
+                audio: audioPlayer,
+                urls: chunks.map(c => '/api/tts?text=' + encodeURIComponent(c)),
+                index: 0
+            };
             if (playerContainer) playerContainer.classList.remove('hidden');
-            utterance.onend = function() { if (playerContainer) playerContainer.classList.add('hidden'); };
-            utterance.onerror = function() { if (playerContainer) playerContainer.classList.add('hidden'); };
-
-            synth.speak(utterance);
+            playNextAiTtsChunk();
         };
 
         window.askPresetQuestion = function(q) {
@@ -2820,20 +2876,15 @@
 
         function normalizeTimeValue(v) {
             if (!v) return '';
-            let s = toEnDigits(String(v)).trim().replace(/\s/g, '').replace(/[.٫،]/g, ':');
-            let m = s.match(/^(\d{1,2}):(\d{1,2})/);
-            if (m) {
-                const hh = Math.min(23, parseInt(m[1], 10) || 0);
-                const mm = Math.min(59, parseInt(m[2], 10) || 0);
-                return `${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}`;
-            }
-            m = s.match(/^(\d{2})(\d{2})$/);
-            if (m) {
-                const hh = Math.min(23, parseInt(m[1], 10) || 0);
-                const mm = Math.min(59, parseInt(m[2], 10) || 0);
-                return `${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}`;
-            }
-            return s;
+            const s = toEnDigits(String(v)).replace(/[٫،]/g, ':');
+            const pad2 = (n) => String(n).padStart(2, '0');
+            let m = s.match(/(\d{1,2})\s*:\s*(\d{1,2})/);
+            if (m && +m[1] <= 23 && +m[2] <= 59) return pad2(+m[1]) + ':' + pad2(+m[2]);
+            m = s.match(/\b(\d{2})(\d{2})\b/);
+            if (m && +m[1] <= 23 && +m[2] <= 59) return m[1] + ':' + m[2];
+            m = s.match(/\b(\d{1,2})\b/);
+            if (m && +m[1] <= 23) return pad2(+m[1]) + ':00';
+            return '';
         }
 
         function needsReceiptVehicle(v) {
