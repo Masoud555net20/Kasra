@@ -100,27 +100,59 @@ function buildMessages(payload) {
   return messages;
 }
 
-async function runTextChain(ai, messages, temperature) {
+function coerceModelText(out) {
+  if (typeof out === 'string') return out;
+  if (!out || typeof out !== 'object') return out == null ? '' : String(out);
+  const v = out.response ?? out.result ?? out.description ?? out.text ?? out.content ?? out.message;
+  if (typeof v === 'string') return v;
+  if (v && typeof v === 'object') {
+    if (typeof v.text === 'string') return v.text;
+    if (typeof v.content === 'string') return v.content;
+    if (typeof v.response === 'string') return v.response;
+    return ''; // ساختار ناشناخته → فرصت به مدل بعدی داده می‌شود
+  }
+  return v == null ? '' : String(v);
+}
+
+function tryParseJson(text) {
+  try {
+    const parsed = JSON.parse(text);
+    return (parsed && typeof parsed === 'object') ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+async function runTextChain(ai, messages, temperature, needsJson) {
   const errors = [];
   const variants = [
     { messages, max_tokens: 4096, temperature },
-    { messages, max_tokens: 2048 }
+    { messages, max_tokens: 2048, temperature: 0.2 }
   ];
   for (const model of TEXT_MODELS) {
     for (const inputs of variants) {
       try {
         const out = await ai.run(model, inputs);
-        const text = out && (out.response ?? out.result ?? out.description);
-        if (text && String(text).trim()) {
-          return { model, text: String(text) };
+        const raw = coerceModelText(out);
+        if (!raw || !raw.trim()) {
+          errors.push(model + ': پاسخ خالی');
+          continue;
         }
-        errors.push(model + ': پاسخ خالی');
+        if (needsJson) {
+          const parsed = tryParseJson(extractJsonBlock(raw));
+          if (!parsed) {
+            errors.push(model + ': پاسخ JSON معتبر نبود');
+            continue; // مدل/تلاش بعدی امتحان می‌شود
+          }
+          return { model, text: JSON.stringify(parsed) };
+        }
+        return { model, text: raw };
       } catch (err) {
         errors.push(model + ': ' + String((err && err.message) || err).slice(0, 120));
       }
     }
   }
-  throw new Error('مدل‌های متنی هوش مصنوعی پاسخ ندادند. ' + errors.slice(0, 3).join(' | '));
+  throw new Error('مدل‌های متنی هوش مصنوعی پاسخ معتبر ندادند. ' + errors.slice(0, 3).join(' | '));
 }
 
 async function handleText(ai, payload) {
@@ -136,9 +168,8 @@ async function handleText(ai, payload) {
   else messages.push({ role: 'user', content: jsonHint.trim() });
 
   const temperature = Number((payload.generationConfig && payload.generationConfig.temperature) ?? 0.4);
-  const { model, text } = await runTextChain(ai, messages, temperature);
-  const finalText = jsonHint ? extractJsonBlock(text) : text;
-  return { model, data: textResponseShape(finalText) };
+  const { model, text } = await runTextChain(ai, messages, temperature, !!jsonHint);
+  return { model, data: textResponseShape(text) };
 }
 
 async function handleVision(ai, payload, imagePart) {
@@ -162,10 +193,17 @@ async function handleVision(ai, payload, imagePart) {
     for (const inputs of variants) {
       try {
         const out = await ai.run(model, inputs);
-        const text = out && (out.description ?? out.response ?? out.result);
-        if (text && String(text).trim()) {
-          const finalText = jsonHint ? extractJsonBlock(text) : String(text);
-          return { model, data: textResponseShape(finalText) };
+        const raw = coerceModelText(out);
+        if (raw && raw.trim()) {
+          if (jsonHint) {
+            const parsed = tryParseJson(extractJsonBlock(raw));
+            if (!parsed) {
+              errors.push(model + ': پاسخ JSON معتبر نبود');
+              continue;
+            }
+            return { model, data: textResponseShape(JSON.stringify(parsed)) };
+          }
+          return { model, data: textResponseShape(raw) };
         }
         errors.push(model + ': پاسخ خالی');
       } catch (err) {

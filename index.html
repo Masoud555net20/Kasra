@@ -1387,6 +1387,22 @@
             return cloudAiFetch(kind, payload);
         }
 
+        // پارس مقاوم JSON خروجی مدل: آبجکت آماده، بلوک کد یا متن همراه با توضیح را می‌پذیرد
+        function safeParseModelJson(raw, friendlyName) {
+            if (raw && typeof raw === 'object') return raw;
+            let text = String(raw ?? '').trim();
+            const fence = text.match(/```(?:json)?\s*([\s\S]*?)```/i);
+            if (fence) text = fence[1].trim();
+            const start = text.indexOf('{');
+            const end = text.lastIndexOf('}');
+            if (start !== -1 && end > start) text = text.slice(start, end + 1);
+            try {
+                const parsed = JSON.parse(text);
+                if (parsed && typeof parsed === 'object') return parsed;
+            } catch (e) {}
+            throw new Error('پاسخ ' + (friendlyName || 'هوش مصنوعی') + ' قابل تفسیر نبود. لطفاً دوباره تلاش کنید.');
+        }
+
         async function parseMissionTextWithGemini(userPrompt) {
             const apiKey = getGeminiApiKey();
             if (!apiKey) throw new Error("کلید API هوش مصنوعی توسط مدیر سیستم فعال نشده است. لطفاً به مدیر سیستم اطلاع دهید.");
@@ -1431,7 +1447,7 @@
 
             const rawJson = data?.candidates?.[0]?.content?.parts?.[0]?.text;
             if (!rawJson) throw new Error("پاسخی از مدل دریافت نشد.");
-            return JSON.parse(rawJson);
+            return safeParseModelJson(rawJson, 'استخراج متن مأموریت');
         }
 
         async function scanReceiptWithGemini(base64Data, mimeType) {
@@ -1468,7 +1484,7 @@
 
             const rawJson = data?.candidates?.[0]?.content?.parts?.[0]?.text;
             if (!rawJson) throw new Error("امکان خواندن تصویر رسید وجود نداشت.");
-            return JSON.parse(rawJson);
+            return safeParseModelJson(rawJson, 'اسکن رسید');
         }
 
         async function generateFinancialAnalysisWithGemini() {
