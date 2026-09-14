@@ -1,4 +1,4 @@
-import { json, parseJsonBody, ensureDb, hashPassword, normalizeUsername } from './_helpers.js';
+import { json, parseJsonBody, ensureDb, hashPassword, normalizeUsername, logActivity } from './_helpers.js';
 
 export async function onRequest(context) {
   const { request, env } = context;
@@ -97,6 +97,8 @@ export async function onRequest(context) {
         return json({ ok: false, message: 'پروژه ثبت مأموریت الزامی است.' }, 400);
       }
 
+      const existingMission = await db.prepare('SELECT id FROM missions WHERE id = ?').bind(id).first();
+
       await db.prepare(`
         INSERT INTO missions (
           id, user_id, username, row_no, mission_date, day_name, project_id, project_title,
@@ -134,6 +136,10 @@ export async function onRequest(context) {
       ).run();
 
       const row = await db.prepare('SELECT * FROM missions WHERE id = ?').bind(id).first();
+
+      await logActivity(db, userId, 'mission', id, existingMission ? 'update' : 'create',
+        JSON.stringify({ username, date: missionDate, location, totalCost, projectId, projectTitle }));
+
       return json({ ok: true, mission: row });
     }
 
@@ -149,7 +155,16 @@ export async function onRequest(context) {
         return json({ ok: false, message: 'شناسه مأموریت الزامی است.' }, 400);
       }
 
+      const deletedRow = await db
+        .prepare('SELECT user_id, username, mission_date, location FROM missions WHERE id = ?')
+        .bind(id)
+        .first();
+
       await db.prepare('DELETE FROM missions WHERE id = ?').bind(id).run();
+
+      await logActivity(db, deletedRow ? deletedRow.user_id : null, 'mission', id, 'delete',
+        deletedRow ? JSON.stringify({ username: deletedRow.username, date: deletedRow.mission_date, location: deletedRow.location }) : null);
+
       return json({ ok: true, deletedId: id });
     }
 

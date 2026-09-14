@@ -64,6 +64,27 @@ export function normalizeUsername(raw) {
     .toLowerCase();
 }
 
+/* ---------- ثبت لاگ فعالیت (activity_logs) ----------
+   best-effort: هرگز عملیات اصلی را با خطای لاگ متوقف نمی‌کند */
+export async function logActivity(db, userId, entityType, entityId, action, details) {
+  try {
+    await db.prepare(`
+      INSERT INTO activity_logs (id, user_id, entity_type, entity_id, action, details, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `).bind(
+      crypto.randomUUID(),
+      userId || null,
+      String(entityType || ''),
+      entityId ? String(entityId) : null,
+      String(action || ''),
+      details ? String(details).slice(0, 2000) : null,
+      new Date().toISOString()
+    ).run();
+  } catch (e) {
+    console.warn('activity log failed:', e);
+  }
+}
+
 /* ---------- رمزنگاری رمز عبور (PBKDF2-SHA256) ----------
    فرمت ذخیره: pbkdf2$<iterations>$<saltHex>$<hashHex>
    سازگاری با کاربران قدیمی: اگر رمز ذخیره‌شده hash نبود، مقایسه متنی انجام و

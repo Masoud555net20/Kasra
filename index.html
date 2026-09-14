@@ -2204,37 +2204,13 @@
         };
     </script>
 
-    <!-- Main Logic and Firebase Integration -->
+    <!-- Main Logic - منبع داده: دیتابیس D1 کلادفلر -->
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        // =========================================================================
-        // 🔒 FIREBASE CONFIGURATION SECTION (کلیدهای اختصاصی دیتابیس ابری شما)
-        // جهت متصل ماندن دائمی روی تمامی هاست‌ها (کلادفلر، سی‌پنل و ...)، 
-        // کلیدهای پروژه Firebase خود را در صورت تمایل در ابجکت زیر قرار دهید.
-        // =========================================================================
-        const CUSTOM_FIREBASE_CONFIG = null; 
-
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'akasra-expense-tracker';
-        let firebaseConfig = CUSTOM_FIREBASE_CONFIG;
-
-        if (!firebaseConfig && typeof __firebase_config !== 'undefined' && __firebase_config) {
-            try {
-                firebaseConfig = JSON.parse(__firebase_config);
-            } catch (e) {
-                console.warn("Firebase config parse error:", e);
-            }
-        }
-
         window.expensesData = [];
         window.filteredData = [];
         window.usersData = [];
         window.projectsData = [];
         window.currentUser = null;
-        window.db = null;
-        window.auth = null;
         window.chartInstance = null;
         window.API_BASE = '/api';
 
@@ -2271,15 +2247,11 @@
 
         const apiRequest = window.apiRequest;
 
-        const initialSeedUsers = [
-            { id: "u1", username: "admin", fullName: "مدیر سیستم", role: "مدیر سیستم", signature: window.sampleSignatureDataUrl },
-            { id: "u2", username: "hamed", fullName: "حامد خیرآبادی", role: "کارشناس", signature: window.sampleSignatureDataUrl }
-        ];
-
         function sanitizeUsersList(list) {
             if (!Array.isArray(list)) return [];
             return list.map(u => {
                 const normalized = normalizeUserRecord(u);
+                delete normalized.password; // رمز عبور فقط به‌صورت هش در دیتابیس کلادفلر نگه‌داری میشود
                 if (!normalized.signature || normalized.signature.includes('data:image/svg+xml;utf8,')) {
                     normalized.signature = window.sampleSignatureDataUrl;
                 }
@@ -2327,18 +2299,6 @@
         window.sanitizeMissionList = function(list) {
             return sanitizeMissionList(list);
         };
-
-        const initialSeedProjects = [
-            { id: "p1", title: "پروژه نوسازی مدارس", address: "تهران، جردن، اداره کل نوسازی مدارس" },
-            { id: "p2", title: "پروژه صنعت نفت", address: "خیابان به آفرین، بهداشت و درمان صنعت نفت" },
-            { id: "p3", title: "پروژه عمومی و اداری", address: "دفتر مرکزی شرکت" }
-        ];
-
-        const initialSeedMissions = [
-            { id: "1", userId: "u2", username: "hamed", rowNo: 1, date: "1405/03/03", day: "یکشنبه", projectId: "p2", projectTitle: "پروژه صنعت نفت", location: "بهداشت و درمان صنعت نفت", address: "خیابان به آفرین", startTime: "07:58", endTime: "10:10", outboundVehicle: "شخصی", outboundCost: 900000, inboundVehicle: "شخصی", inboundCost: 0, totalCost: 900000 },
-            { id: "2", userId: "u2", username: "hamed", rowNo: 2, date: "1405/03/03", day: "یکشنبه", projectId: "p1", projectTitle: "پروژه نوسازی مدارس", location: "اداره کل نوسازی مدارس تهران", address: "جردن", startTime: "10:30", endTime: "10:50", outboundVehicle: "شخصی", outboundCost: 950000, inboundVehicle: "شخصی", inboundCost: 0, totalCost: 950000 },
-            { id: "3", userId: "u2", username: "hamed", rowNo: 3, date: "1405/03/03", day: "یکشنبه", projectId: "p2", projectTitle: "پروژه صنعت نفت", location: "نفت فلات قاره", address: "پارک وی", startTime: "11:08", endTime: "12:15", outboundVehicle: "شخصی", outboundCost: 0, inboundVehicle: "شخصی", inboundCost: 700000, totalCost: 700000 }
-        ];
 
         async function syncCloudData() {
             try {
@@ -2421,120 +2381,14 @@
             }
         }
 
-        function setupFirestoreListeners() {
-            if (!window.db) return;
-
-            const expensesCol = collection(window.db, 'artifacts', appId, 'public', 'data', 'expenses');
-            onSnapshot(expensesCol, (snapshot) => {
-                const firestoreItems = [];
-                if (!snapshot.empty) {
-                    snapshot.forEach((doc) => {
-                        firestoreItems.push({ ...doc.data(), id: doc.id });
-                    });
-                }
-
-                const localMissions = JSON.parse(localStorage.getItem('akasra_expenses') || '[]');
-                const mergedMap = new Map();
-
-                localMissions.forEach(m => mergedMap.set(m.id, m));
-                firestoreItems.forEach(m => mergedMap.set(m.id, m));
-
-                const mergedList = Array.from(mergedMap.values());
-
-                mergedList.forEach(m => {
-                    if (!firestoreItems.some(fm => fm.id === m.id)) {
-                        setDoc(doc(expensesCol, m.id), m).catch(err => console.error("Firestore auto-upload expense error:", err));
-                    }
-                });
-
-                window.expensesData = mergedList;
-                localStorage.setItem('akasra_expenses', JSON.stringify(window.expensesData));
-                applyFilters();
-            }, (err) => {
-                console.error("Expenses snapshot error:", err);
-                loadLocalMissions();
-            });
-
-            const usersCol = collection(window.db, 'artifacts', appId, 'public', 'data', 'users');
-            onSnapshot(usersCol, (snapshot) => {
-                const firestoreUsers = [];
-                if (!snapshot.empty) {
-                    snapshot.forEach((doc) => {
-                        firestoreUsers.push({ ...doc.data(), id: doc.id });
-                    });
-                }
-
-                const localUsers = JSON.parse(localStorage.getItem('akasra_users') || '[]');
-                const mergedMap = new Map();
-
-                initialSeedUsers.forEach(u => mergedMap.set(u.id, u));
-                localUsers.forEach(u => mergedMap.set(u.id, u));
-                firestoreUsers.forEach(u => mergedMap.set(u.id, u));
-
-                const mergedList = Array.from(mergedMap.values());
-
-                mergedList.forEach(u => {
-                    if (!firestoreUsers.some(fu => fu.id === u.id)) {
-                        setDoc(doc(usersCol, u.id), u).catch(err => console.error("Firestore auto-upload user error:", err));
-                    }
-                });
-
-                window.usersData = sanitizeUsersList(mergedList);
-                localStorage.setItem('akasra_users', JSON.stringify(window.usersData));
-                renderUsersTable();
-                populateUserDropdownFilter();
-            }, (err) => {
-                console.error("Users snapshot error:", err);
-                loadLocalUsers();
-            });
-
-            const projectsCol = collection(window.db, 'artifacts', appId, 'public', 'data', 'projects');
-            onSnapshot(projectsCol, (snapshot) => {
-                if (snapshot.empty) {
-                    const localProjects = JSON.parse(localStorage.getItem('akasra_projects') || '[]');
-                    const combined = [...initialSeedProjects];
-                    localProjects.forEach(lp => {
-                        if (!combined.some(p => p.id === lp.id)) combined.push(lp);
-                    });
-                    combined.forEach(async (p) => {
-                        await setDoc(doc(projectsCol, p.id), p);
-                    });
-                } else {
-                    const firestoreProjects = [];
-                    snapshot.forEach((doc) => {
-                        firestoreProjects.push({ ...doc.data(), id: doc.id });
-                    });
-
-                    const localProjects = JSON.parse(localStorage.getItem('akasra_projects') || '[]');
-                    const merged = [...firestoreProjects];
-                    localProjects.forEach(lp => {
-                        if (!merged.some(p => p.id === lp.id)) {
-                            merged.push(lp);
-                            setDoc(doc(projectsCol, lp.id), lp).catch(err => console.error(err));
-                        }
-                    });
-
-                    window.projectsData = merged;
-                    localStorage.setItem('akasra_projects', JSON.stringify(window.projectsData));
-                    populateProjectDropdowns();
-                    renderProjectsTable();
-                    applyFilters();
-                }
-            }, (err) => {
-                console.error("Projects snapshot error:", err);
-                loadLocalProjects();
-            });
-
-            // شنونده قدیمی Firestore برای کلید Gemini حذف شد — موتور هوش مصنوعی ابری نیازی به کلید ندارد
-        }
-
+        /* منبع واحد حقیقت: دیتابیس D1 کلادفلر است.
+           داده ساختگی/نمونه در برنامه وجود ندارد تا لیست‌ها همیشه با دیتابیس اصلی هماهنگ باشند. */
         function loadLocalMissions() {
             const saved = localStorage.getItem('akasra_expenses');
             if (saved) {
-                try { window.expensesData = JSON.parse(saved); } catch (e) { window.expensesData = [...initialSeedMissions]; }
+                try { window.expensesData = JSON.parse(saved); } catch (e) { window.expensesData = []; }
             } else {
-                window.expensesData = [...initialSeedMissions];
-                localStorage.setItem('akasra_expenses', JSON.stringify(initialSeedMissions));
+                window.expensesData = [];
             }
             applyFilters();
         }
@@ -2542,24 +2396,22 @@
         function loadLocalUsers() {
             const saved = localStorage.getItem('akasra_users');
             if (saved) {
-                try { 
-                    window.usersData = sanitizeUsersList(JSON.parse(saved)); 
-                } catch (e) { 
-                    window.usersData = [...initialSeedUsers]; 
+                try {
+                    window.usersData = sanitizeUsersList(JSON.parse(saved));
+                } catch (e) {
+                    window.usersData = [];
                 }
             } else {
-                window.usersData = [...initialSeedUsers];
-                localStorage.setItem('akasra_users', JSON.stringify(initialSeedUsers));
+                window.usersData = [];
             }
         }
 
         function loadLocalProjects() {
             const saved = localStorage.getItem('akasra_projects');
             if (saved) {
-                try { window.projectsData = JSON.parse(saved); } catch (e) { window.projectsData = [...initialSeedProjects]; }
+                try { window.projectsData = JSON.parse(saved); } catch (e) { window.projectsData = []; }
             } else {
-                window.projectsData = [...initialSeedProjects];
-                localStorage.setItem('akasra_projects', JSON.stringify(initialSeedProjects));
+                window.projectsData = [];
             }
             if (typeof window.populateProjectDropdowns === 'function') {
                 window.populateProjectDropdowns();
@@ -2568,6 +2420,9 @@
 
         window.saveExpenseData = async function(item) {
             if (!window.expensesData) window.expensesData = [];
+            // نسخه پشتیبان برای rollback — تا وضعیت محلی همیشه با دیتابیس اصلی (D1) هماهنگ بماند
+            const backup = JSON.parse(JSON.stringify(window.expensesData));
+
             const idx = window.expensesData.findIndex(x => x.id === item.id);
             if (idx >= 0) window.expensesData[idx] = item;
             else window.expensesData.push(item);
@@ -2593,37 +2448,24 @@
                         localStorage.setItem('akasra_expenses', JSON.stringify(window.expensesData));
                     }
                 }
+                applyFilters();
+                return { ok: true };
             } catch (e) {
-                console.warn("Cloudflare missions sync failed, using local fallback:", e);
+                // عملیات در دیتابیس اصلی انجام نشد → بازگردانی کامل وضعیت محلی (rollback)
+                window.expensesData = backup;
+                try { localStorage.setItem('akasra_expenses', JSON.stringify(window.expensesData)); } catch (se) {}
+                applyFilters();
+                console.warn("Cloudflare missions sync failed:", e);
                 if (typeof showCustomAlert === 'function') {
-                    showCustomAlert('ذخیره مأموریت در دیتابیس ابری ناموفق بود: ' + (e.message || e), 'خطای ذخیره‌سازی');
+                    showCustomAlert('ذخیره مأموریت در دیتابیس ابری انجام نشد و تغییرات بازگردانی شد: ' + (e.message || e), 'خطای ذخیره‌سازی');
                 }
                 return { ok: false, message: e.message || String(e) };
             }
-
-            if (window.db) {
-                try {
-                    if (!window.auth?.currentUser) {
-                        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                            await signInWithCustomToken(window.auth, __initial_auth_token);
-                        } else {
-                            await signInAnonymously(window.auth);
-                        }
-                    }
-                    if (window.auth?.currentUser) {
-                        const docRef = doc(window.db, 'artifacts', appId, 'public', 'data', 'expenses', item.id);
-                        await setDoc(docRef, item);
-                    }
-                } catch (e) {
-                    console.error("Firestore expense save error:", e);
-                }
-            }
-
-            return { ok: true };
         };
 
         window.deleteExpenseData = async function(id) {
-            window.expensesData = (window.expensesData || []).filter(x => x.id !== id);
+            const backup = JSON.parse(JSON.stringify(window.expensesData || []));
+            window.expensesData = backup.filter(x => x.id !== id);
             try {
                 localStorage.setItem('akasra_expenses', JSON.stringify(window.expensesData));
             } catch (e) {
@@ -2635,37 +2477,35 @@
             try {
                 // شناسه باید در query string ارسال شود (بک‌اند آن را از ?id= می‌خواند)
                 await apiRequest('/missions?id=' + encodeURIComponent(id), { method: 'DELETE' });
+                return { ok: true };
             } catch (e) {
+                // حذف در دیتابیس اصلی انجام نشد → رکورد در لیست محلی بازگردانی می‌شود (rollback)
+                window.expensesData = backup;
+                try { localStorage.setItem('akasra_expenses', JSON.stringify(window.expensesData)); } catch (se) {}
+                applyFilters();
                 console.warn("Cloudflare missions delete failed:", e);
                 if (typeof showCustomAlert === 'function') {
-                    showCustomAlert('حذف رکورد از دیتابیس ابری ناموفق بود؛ پس از ورود مجدد ممکن است رکورد دوباره نمایش داده شود. اتصال اینترنت را بررسی کنید.');
+                    showCustomAlert('حذف رکورد از دیتابیس ابری ناموفق بود و رکورد بازگردانی شد. اتصال اینترنت را بررسی کنید.', 'خطای حذف');
                 }
-            }
-
-            if (window.db) {
-                try {
-                    if (!window.auth?.currentUser) {
-                        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                            await signInWithCustomToken(window.auth, __initial_auth_token);
-                        } else {
-                            await signInAnonymously(window.auth);
-                        }
-                    }
-                    if (window.auth?.currentUser) {
-                        const docRef = doc(window.db, 'artifacts', appId, 'public', 'data', 'expenses', id);
-                        await deleteDoc(docRef);
-                    }
-                } catch (e) { console.error("Firestore expense delete error:", e); }
+                return { ok: false, message: e.message || String(e) };
             }
         };
 
         window.saveUserData = async function(userItem) {
             if (!window.usersData) window.usersData = [];
-            const idx = window.usersData.findIndex(x => x.id === userItem.id);
+            const backup = JSON.parse(JSON.stringify(window.usersData));
+
+            /* رمز عبور هرگز در حافظه محلی ذخیره نمی‌شود؛ فقط برای هش‌سازی به سرور ارسال می‌گردد.
+               این کار باعث می‌شود رکورد محلی همیشه با جدول users دیتابیس کلادفلر هماهنگ بماند. */
+            const submittedPassword = String(userItem.password ?? '').trim();
+            const localRecord = { ...userItem };
+            delete localRecord.password;
+
+            const idx = window.usersData.findIndex(x => x.id === localRecord.id);
             if (idx >= 0) {
-                window.usersData[idx] = userItem;
+                window.usersData[idx] = localRecord;
             } else {
-                window.usersData.push(userItem);
+                window.usersData.push(localRecord);
             }
 
             try {
@@ -2680,43 +2520,34 @@
             try {
                 const payload = await apiRequest('/users', {
                     method: 'POST',
-                    body: JSON.stringify({ user: userItem })
+                    body: JSON.stringify({ user: { ...localRecord, password: submittedPassword } })
                 });
                 if (payload && payload.user) {
-                    window.usersData = (window.usersData || []).map(u => u.id === userItem.id ? { ...u, ...payload.user } : u);
+                    const saved = { ...payload.user };
+                    delete saved.password;
+                    window.usersData = (window.usersData || []).map(u => u.id === localRecord.id ? { ...u, ...saved } : u);
                     localStorage.setItem('akasra_users', JSON.stringify(window.usersData));
+                    renderUsersTable();
+                    populateUserDropdownFilter();
                 }
+                return { ok: true };
             } catch (e) {
+                // عملیات در دیتابیس اصلی انجام نشد → بازگردانی وضعیت محلی (rollback)
+                window.usersData = backup;
+                try { localStorage.setItem('akasra_users', JSON.stringify(window.usersData)); } catch (se) {}
+                renderUsersTable();
+                populateUserDropdownFilter();
                 console.warn("Cloudflare users sync failed:", e);
                 if (typeof showCustomAlert === 'function') {
-                    showCustomAlert('ذخیره کاربر در دیتابیس ابری ناموفق بود: ' + (e.message || e), 'خطای ذخیره‌سازی');
+                    showCustomAlert('ذخیره کاربر در دیتابیس ابری انجام نشد و تغییرات بازگردانی شد: ' + (e.message || e), 'خطای ذخیره‌سازی');
                 }
                 return { ok: false, message: e.message || String(e) };
             }
-
-            if (window.db) {
-                try {
-                    if (!window.auth?.currentUser) {
-                        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                            await signInWithCustomToken(window.auth, __initial_auth_token);
-                        } else {
-                            await signInAnonymously(window.auth);
-                        }
-                    }
-                    if (window.auth?.currentUser) {
-                        const docRef = doc(window.db, 'artifacts', appId, 'public', 'data', 'users', userItem.id);
-                        await setDoc(docRef, userItem);
-                    }
-                } catch (e) {
-                    console.error("Firestore user save error:", e);
-                }
-            }
-
-            return { ok: true };
         };
 
         window.deleteUserData = async function(userId) {
-            window.usersData = (window.usersData || []).filter(x => x.id !== userId);
+            const backup = JSON.parse(JSON.stringify(window.usersData || []));
+            window.usersData = backup.filter(x => x.id !== userId);
             try {
                 localStorage.setItem('akasra_users', JSON.stringify(window.usersData));
             } catch (e) {
@@ -2728,24 +2559,26 @@
 
             try {
                 await apiRequest('/users?id=' + encodeURIComponent(userId), { method: 'DELETE' });
+                return { ok: true };
             } catch (e) {
+                // حذف در دیتابیس اصلی انجام نشد → کاربر بازگردانی می‌شود (rollback)
+                window.usersData = backup;
+                try { localStorage.setItem('akasra_users', JSON.stringify(window.usersData)); } catch (se) {}
+                renderUsersTable();
+                populateUserDropdownFilter();
                 console.warn("Cloudflare users delete failed:", e);
                 if (typeof showCustomAlert === 'function') {
-                    showCustomAlert('حذف کاربر از دیتابیس ابری ناموفق بود: ' + (e.message || e), 'خطای حذف');
+                    showCustomAlert('حذف کاربر از دیتابیس ابری ناموفق بود و بازگردانی شد: ' + (e.message || e), 'خطای حذف');
                 }
                 return { ok: false, message: e.message || String(e) };
-            }
-
-            if (window.db && window.auth?.currentUser) {
-                try {
-                    const docRef = doc(window.db, 'artifacts', appId, 'public', 'data', 'users', userId);
-                    await deleteDoc(docRef);
-                } catch (e) { console.error("Firestore user delete error:", e); }
             }
         };
 
         window.saveProjectData = async function(projectItem) {
             if (!window.projectsData) window.projectsData = [];
+            // نسخه پشتیبان برای rollback — تا وضعیت محلی همیشه با دیتابیس اصلی (D1) هماهنگ بماند
+            const backup = JSON.parse(JSON.stringify(window.projectsData));
+
             const idx = window.projectsData.findIndex(x => x.id === projectItem.id);
             if (idx >= 0) window.projectsData[idx] = projectItem;
             else window.projectsData.push(projectItem);
@@ -2776,20 +2609,14 @@
                 return { ok: false, message: e.message || String(e) };
             }
 
-            if (window.db && window.auth?.currentUser) {
-                try {
-                    const docRef = doc(window.db, 'artifacts', appId, 'public', 'data', 'projects', projectItem.id);
-                    await setDoc(docRef, projectItem);
-                } catch (e) {
-                    console.error("Firestore project save error:", e);
-                }
-            }
-
             return { ok: true };
         };
 
         window.deleteProjectData = async function(projectId) {
-            window.projectsData = (window.projectsData || []).filter(x => x.id !== projectId);
+            // نسخه پشتیبان برای rollback در صورت شکست حذف در دیتابیس ابری
+            const backup = JSON.parse(JSON.stringify(window.projectsData || []));
+
+            window.projectsData = backup.filter(x => x.id !== projectId);
             try {
                 localStorage.setItem('akasra_projects', JSON.stringify(window.projectsData));
             } catch (e) {
@@ -2802,20 +2629,18 @@
             try {
                 await apiRequest('/projects?id=' + encodeURIComponent(projectId), { method: 'DELETE' });
             } catch (e) {
+                // حذف در دیتابیس اصلی انجام نشد → پروژه بازگردانی می‌شود (rollback)
+                window.projectsData = backup;
+                try { localStorage.setItem('akasra_projects', JSON.stringify(window.projectsData)); } catch (se) {}
+                populateProjectDropdowns();
+                renderProjectsTable();
                 console.warn("Cloudflare projects delete failed:", e);
                 if (typeof showCustomAlert === 'function') {
-                    showCustomAlert('حذف پروژه از دیتابیس ابری ناموفق بود: ' + (e.message || e), 'خطای حذف');
+                    showCustomAlert('حذف پروژه از دیتابیس ابری ناموفق بود و بازگردانی شد: ' + (e.message || e), 'خطای حذف');
                 }
                 return { ok: false, message: e.message || String(e) };
             }
 
-            if (window.db && window.auth?.currentUser) {
-                try {
-                    const docRef = doc(window.db, 'artifacts', appId, 'public', 'data', 'projects', projectId);
-                    await deleteDoc(docRef);
-                } catch (e) { console.error("Firestore project delete error:", e); }
-            }
-        };
 
         window.exportSystemBackup = function() {
             const backupData = {
@@ -3586,8 +3411,8 @@
 
             const user = (window.usersData || []).find(u => u.id === userId);
             if (user) {
-                user.password = newPassword;
-                const res = await window.saveUserData(user);
+                // رمز جدید فقط برای هش‌سازی به سرور ارسال میشود و در حافظه محلی ذخیره نمی‌گردد
+                const res = await window.saveUserData({ ...user, password: newPassword });
                 if (res && res.ok === false) {
                     return; // پیام خطا در saveUserData نمایش داده شده است
                 }

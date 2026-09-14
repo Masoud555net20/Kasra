@@ -1,4 +1,4 @@
-import { json, parseJsonBody, ensureDb, sanitizeUser, hashPassword, normalizeUsername } from './_helpers.js';
+import { json, parseJsonBody, ensureDb, sanitizeUser, hashPassword, normalizeUsername, logActivity } from './_helpers.js';
 
 export async function onRequest(context) {
   const { request, env } = context;
@@ -71,6 +71,10 @@ export async function onRequest(context) {
       `).bind(id, username, storedPassword, fullName, role, signature, isActive ? 1 : 0, now, now).run();
 
       const row = await db.prepare('SELECT * FROM users WHERE id = ?').bind(id).first();
+
+      await logActivity(db, null, 'user', id, existing ? 'update' : 'create',
+        JSON.stringify({ username, fullName, role, isActive: isActive ? 1 : 0 }));
+
       return json({ ok: true, user: sanitizeUser(row) });
     }
 
@@ -85,7 +89,7 @@ export async function onRequest(context) {
         return json({ ok: false, message: 'شناسه کاربر الزامی است.' }, 400);
       }
 
-      const user = await db.prepare('SELECT id, full_name FROM users WHERE id = ?').bind(id).first();
+      const user = await db.prepare('SELECT id, username, full_name FROM users WHERE id = ?').bind(id).first();
       if (!user) {
         return json({ ok: false, message: 'کاربر مورد نظر یافت نشد.' }, 404);
       }
@@ -112,6 +116,9 @@ export async function onRequest(context) {
       if (stillThere) {
         return json({ ok: false, message: 'حذف کاربر در دیتابیس انجام نشد.' }, 500);
       }
+
+      await logActivity(db, null, 'user', id, 'delete', JSON.stringify({ username: user.username, fullName: user.full_name }));
+
       return json({ ok: true, deletedId: id });
     }
 

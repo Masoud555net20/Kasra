@@ -1,4 +1,4 @@
-import { json, parseJsonBody, ensureDb } from './_helpers.js';
+import { json, parseJsonBody, ensureDb, logActivity } from './_helpers.js';
 
 export async function onRequest(context) {
   const { request, env } = context;
@@ -38,6 +38,8 @@ export async function onRequest(context) {
         return json({ ok: false, message: 'عنوان پروژه الزامی است.' }, 400);
       }
 
+      const existingProject = await db.prepare('SELECT id FROM projects WHERE id = ?').bind(id).first();
+
       await db.prepare(`
         INSERT INTO projects (id, title, address, status, description, created_by, created_at, updated_at)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
@@ -51,6 +53,10 @@ export async function onRequest(context) {
       `).bind(id, title, address, status, description, createdBy, now, now).run();
 
       const row = await db.prepare('SELECT * FROM projects WHERE id = ?').bind(id).first();
+
+      await logActivity(db, createdBy, 'project', id, existingProject ? 'update' : 'create',
+        JSON.stringify({ title, status, address }));
+
       return json({ ok: true, project: row });
     }
 
@@ -67,6 +73,7 @@ export async function onRequest(context) {
 
       // مأموریت‌های مرتبط ابتدا از پروژه جدا می‌شوند (عنوان پروژه در خود مأموریت حفظ می‌ماند)
       // سپس پروژه حذف می‌شود — هر دو عملیات اتمیک اجرا می‌شوند
+      const proj = await db.prepare('SELECT title, created_by FROM projects WHERE id = ?').bind(id).first();
       const now = new Date().toISOString();
       await db.batch([
         db.prepare('UPDATE missions SET project_id = NULL, updated_at = ? WHERE project_id = ?').bind(now, id),
@@ -77,6 +84,10 @@ export async function onRequest(context) {
       if (stillThere) {
         return json({ ok: false, message: 'حذف پروژه در دیتابیس انجام نشد.' }, 500);
       }
+
+      await logActivity(db, proj ? proj.created_by : null, 'project', id, 'delete',
+        proj ? JSON.stringify({ title: proj.title }) : null);
+
       return json({ ok: true, deletedId: id });
     }
 

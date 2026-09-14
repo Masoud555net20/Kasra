@@ -40,11 +40,14 @@ export async function onRequest(context) {
       LIMIT 1
     `).bind(username).first();
 
+    const clientIp = request.headers.get('CF-Connecting-IP') || request.headers.get('X-Forwarded-For') || null;
+    const userAgent = request.headers.get('User-Agent') || null;
+
     const logFailure = async (message) => {
       await db.prepare(`
-        INSERT INTO login_logs (id, username, success, error_message, created_at)
-        VALUES (?, ?, 0, ?, ?)
-      `).bind(crypto.randomUUID(), username, message, new Date().toISOString()).run();
+        INSERT INTO login_logs (id, username, ip_address, user_agent, success, error_message, created_at)
+        VALUES (?, ?, ?, ?, 0, ?, ?)
+      `).bind(crypto.randomUUID(), username, clientIp, userAgent, message, new Date().toISOString()).run();
     };
 
     if (!row) {
@@ -77,9 +80,9 @@ export async function onRequest(context) {
     }
 
     await db.prepare(`
-      INSERT INTO login_logs (id, user_id, username, success, created_at)
-      VALUES (?, ?, ?, 1, ?)
-    `).bind(crypto.randomUUID(), row.id, row.username, new Date().toISOString()).run();
+      INSERT INTO login_logs (id, user_id, username, ip_address, user_agent, success, created_at)
+      VALUES (?, ?, ?, ?, ?, 1, ?)
+    `).bind(crypto.randomUUID(), row.id, row.username, clientIp, userAgent, new Date().toISOString()).run();
 
     await db.prepare(`
       UPDATE users
