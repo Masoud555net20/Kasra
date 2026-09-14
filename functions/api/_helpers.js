@@ -48,6 +48,22 @@ export function ensureDb(env) {
   return env.DB;
 }
 
+/* ---------- نرمال‌سازی نام کاربری ----------
+   خطاهای رایج کیبورد موبایل را اصلاح می‌کند:
+   - فاصله اضافه (مثل «a. m» به‌جای «a.m»)
+   - نقطه عربی/فارسی (٫) به‌جای نقطه لاتین (.)
+   - ي/ك عربی به‌جای ی/ک فارسی
+   - نویسه‌های نامرئی (zero-width) */
+export function normalizeUsername(raw) {
+  return String(raw ?? '')
+    .replace(/[\u066B\u066C\u0669]/g, '.')
+    .replace(/\u064A/g, '\u06CC')
+    .replace(/\u0643/g, '\u06A9')
+    .replace(/[\u200B-\u200F\u2060\uFEFF]/g, '')
+    .replace(/\s+/g, '')
+    .toLowerCase();
+}
+
 /* ---------- رمزنگاری رمز عبور (PBKDF2-SHA256) ----------
    فرمت ذخیره: pbkdf2$<iterations>$<saltHex>$<hashHex>
    سازگاری با کاربران قدیمی: اگر رمز ذخیره‌شده hash نبود، مقایسه متنی انجام و

@@ -1,4 +1,4 @@
-import { json, parseJsonBody, ensureDb, verifyPassword, hashPassword, isHashedPassword } from '../_helpers.js';
+import { json, parseJsonBody, ensureDb, verifyPassword, hashPassword, isHashedPassword, normalizeUsername } from '../_helpers.js';
 
 export async function onRequest(context) {
   const { request, env } = context;
@@ -12,7 +12,7 @@ export async function onRequest(context) {
   }
 
   const body = await parseJsonBody(request);
-  const username = String(body.username || '').trim();
+  const username = normalizeUsername(body.username);
   const password = String(body.password ?? '').trim();
 
   if (!username || !password) {
@@ -49,7 +49,10 @@ export async function onRequest(context) {
 
     if (!row) {
       await logFailure('کاربر یافت نشد');
-      return json({ ok: false, message: 'نام کاربری یا کلمه عبور اشتباه است.' }, 401);
+      return json({
+        ok: false,
+        message: `نام کاربری «${username}» در سامانه ثبت نشده است. لطفاً نام کاربری را بررسی کنید (بدون فاصله و با حروف لاتین).`
+      }, 401);
     }
 
     if (Number(row.is_active ?? 1) !== 1) {
@@ -60,7 +63,7 @@ export async function onRequest(context) {
     const passwordOk = await verifyPassword(password, row.password);
     if (!passwordOk) {
       await logFailure('رمز عبور اشتباه');
-      return json({ ok: false, message: 'نام کاربری یا کلمه عبور اشتباه است.' }, 401);
+      return json({ ok: false, message: 'کلمه عبور اشتباه است. دوباره تلاش کنید.' }, 401);
     }
 
     // ارتقای شفاف رمزهای متنی قدیمی به hash (یک‌بار برای هر کاربر)

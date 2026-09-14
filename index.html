@@ -297,7 +297,7 @@
                             <label class="mb-2 block text-xs font-bold text-slate-300">نام کاربری</label>
                             <div class="relative">
                                 <div class="absolute right-0 top-0 flex h-full w-11 items-center justify-center text-slate-500"><i class="fa-solid fa-user text-xs"></i></div>
-                                <input type="text" id="loginUsername" required autocomplete="username" placeholder="نام کاربری خود را وارد کنید" class="glass-input w-full rounded-2xl py-3.5 pl-4 pr-11 text-sm">
+                                <input type="text" id="loginUsername" required autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" inputmode="latin" placeholder="نام کاربری خود را وارد کنید" class="glass-input w-full rounded-2xl py-3.5 pl-4 pr-11 text-sm">
                             </div>
                         </div>
 
@@ -308,7 +308,7 @@
                             </div>
                             <div class="relative">
                                 <div class="absolute right-0 top-0 flex h-full w-11 items-center justify-center text-slate-500"><i class="fa-solid fa-key text-xs"></i></div>
-                                <input type="password" id="loginPassword" required autocomplete="current-password" placeholder="کلمه عبور را وارد کنید" class="glass-input w-full rounded-2xl py-3.5 pl-12 pr-11 text-sm">
+                                <input type="password" id="loginPassword" required autocomplete="current-password" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="کلمه عبور را وارد کنید" class="glass-input w-full rounded-2xl py-3.5 pl-12 pr-11 text-sm">
                                 <button type="button" onclick="toggleLoginPassword()" class="absolute left-2 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-xl text-slate-500 transition hover:bg-emerald-500/10 hover:text-emerald-400" title="نمایش / مخفی‌سازی رمز" aria-label="نمایش یا مخفی‌سازی رمز">
                                     <i id="loginPassVisIcon" class="fa-solid fa-eye text-xs"></i>
                                 </button>
@@ -819,11 +819,11 @@
                     </div>
                     <div>
                         <label class="block text-[11px] text-slate-400 mb-1">نام کاربری</label>
-                        <input type="text" id="newUsername" required placeholder="alim" class="glass-input w-full px-2.5 py-1.5 rounded-lg">
+                        <input type="text" id="newUsername" required autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="alim یا a.m" class="glass-input w-full px-2.5 py-1.5 rounded-lg">
                     </div>
                     <div>
                         <label class="block text-[11px] text-slate-400 mb-1">کلمه عبور</label>
-                        <input type="password" id="newPassword" required placeholder="••••••" class="glass-input w-full px-2.5 py-1.5 rounded-lg">
+                        <input type="password" id="newPassword" required autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="••••••" class="glass-input w-full px-2.5 py-1.5 rounded-lg">
                     </div>
                     <div>
                         <label class="block text-[11px] text-slate-400 mb-1">نقش کاربر</label>
@@ -3235,11 +3235,29 @@
             }
         };
 
+        /* نرمال‌سازی نام کاربری در سمت کلاینت — همان قواعد سرور:
+           حذف فاصله‌های اشتباه کیبورد موبایل، تبدیل نقطه/ی/ک عربی به فارسی، حذف نویسه‌های نامرئی */
+        function normalizeLoginUsername(raw) {
+            return String(raw ?? '')
+                .replace(/[\u066B\u066C\u0669]/g, '.')
+                .replace(/\u064A/g, '\u06CC')
+                .replace(/\u0643/g, '\u06A9')
+                .replace(/[\u200B-\u200F\u2060\uFEFF]/g, '')
+                .replace(/\s+/g, '')
+                .toLowerCase();
+        }
+
         window.handleLogin = async function(e) {
             e.preventDefault();
-            const usernameInput = document.getElementById('loginUsername').value.trim().toLowerCase();
+            const usernameInput = normalizeLoginUsername(document.getElementById('loginUsername').value);
             const passwordInput = document.getElementById('loginPassword').value.trim();
             const errorBox = document.getElementById('loginError');
+            const errorText = errorBox.querySelector('span') || errorBox;
+
+            const showError = function(message) {
+                errorText.textContent = message || 'خطا در ورود به سیستم.';
+                errorBox.classList.remove('hidden');
+            };
 
             /* احراز هویت فقط از طریق جدول users دیتابیس کلادفلر انجام می‌شود.
                هیچ fallback محلی وجود ندارد تا ورود با هر دستگاه همیشه به دیتابیس مرکزی متکی باشد. */
@@ -3264,11 +3282,10 @@
                     return;
                 }
 
-                errorBox.innerText = (result && result.message) || 'نام کاربری یا کلمه عبور اشتباه است.';
+                errorText.textContent = (result && result.message) || 'نام کاربری یا کلمه عبور اشتباه است.';
                 errorBox.classList.remove('hidden');
             } catch (err) {
-                errorBox.innerText = (err && err.message) || 'خطا در اتصال به سرور دیتابیس. اتصال اینترنت را بررسی کنید.';
-                errorBox.classList.remove('hidden');
+                showError((err && err.message) || 'خطا در اتصال به سرور دیتابیس. اتصال اینترنت را بررسی کنید.');
             }
         };
 
@@ -3423,7 +3440,7 @@
             }
 
             const fullName = document.getElementById('newFullName').value.trim();
-            const username = document.getElementById('newUsername').value.trim().toLowerCase();
+            const username = normalizeLoginUsername(document.getElementById('newUsername').value);
             const password = document.getElementById('newPassword').value.trim();
             const role = document.getElementById('newRole').value;
             const sigFileInput = document.getElementById('newSignatureFile');
@@ -3434,7 +3451,7 @@
             }
 
             const currentUsersList = window.usersData || JSON.parse(localStorage.getItem('akasra_users') || '[]');
-            if (currentUsersList.some(u => u.username.trim().toLowerCase() === username)) {
+            if (currentUsersList.some(u => normalizeLoginUsername(u.username) === username)) {
                 showCustomAlert('این نام کاربری قبلاً در سیستم ثبت شده است.');
                 return;
             }

@@ -1,4 +1,4 @@
-import { json, parseJsonBody, ensureDb, sanitizeUser, hashPassword } from './_helpers.js';
+import { json, parseJsonBody, ensureDb, sanitizeUser, hashPassword, normalizeUsername } from './_helpers.js';
 
 export async function onRequest(context) {
   const { request, env } = context;
@@ -22,7 +22,7 @@ export async function onRequest(context) {
       const body = await parseJsonBody(request);
       const item = body.user || body;
       const id = String(item.id || crypto.randomUUID());
-      const username = String(item.username || '').trim();
+      const username = normalizeUsername(item.username);
       const password = String(item.password ?? '').trim();
       const fullName = String(item.fullName || item.full_name || '').trim();
       const role = String(item.role || 'کارشناس').trim();

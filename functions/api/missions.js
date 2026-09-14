@@ -1,4 +1,4 @@
-import { json, parseJsonBody, ensureDb, hashPassword } from './_helpers.js';
+import { json, parseJsonBody, ensureDb, hashPassword, normalizeUsername } from './_helpers.js';
 
 export async function onRequest(context) {
   const { request, env } = context;
@@ -22,7 +22,7 @@ export async function onRequest(context) {
       const item = body.mission || body;
       const id = String(item.id || crypto.randomUUID());
       let userId = String(item.userId || item.user_id || '').trim();
-      let username = String(item.username || '').trim();
+      let username = normalizeUsername(item.username);
       let rowNo = Number(item.rowNo ?? item.row_no ?? 0);
       const missionDate = String(item.date || item.mission_date || '').trim();
       const dayName = String(item.day || '').trim();
