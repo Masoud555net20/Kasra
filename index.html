@@ -2613,6 +2613,10 @@
                 }
             } catch (e) {
                 console.warn("Cloudflare missions sync failed, using local fallback:", e);
+                if (typeof showCustomAlert === 'function') {
+                    showCustomAlert('ذخیره مأموریت در دیتابیس ابری ناموفق بود: ' + (e.message || e), 'خطای ذخیره‌سازی');
+                }
+                return { ok: false, message: e.message || String(e) };
             }
 
             if (window.db) {
@@ -2632,6 +2636,8 @@
                     console.error("Firestore expense save error:", e);
                 }
             }
+
+            return { ok: true };
         };
 
         window.deleteExpenseData = async function(id) {
@@ -2700,6 +2706,10 @@
                 }
             } catch (e) {
                 console.warn("Cloudflare users sync failed:", e);
+                if (typeof showCustomAlert === 'function') {
+                    showCustomAlert('ذخیره کاربر در دیتابیس ابری ناموفق بود: ' + (e.message || e), 'خطای ذخیره‌سازی');
+                }
+                return { ok: false, message: e.message || String(e) };
             }
 
             if (window.db) {
@@ -2719,6 +2729,8 @@
                     console.error("Firestore user save error:", e);
                 }
             }
+
+            return { ok: true };
         };
 
         window.deleteUserData = async function(userId) {
@@ -2736,6 +2748,10 @@
                 await apiRequest('/users?id=' + encodeURIComponent(userId), { method: 'DELETE' });
             } catch (e) {
                 console.warn("Cloudflare users delete failed:", e);
+                if (typeof showCustomAlert === 'function') {
+                    showCustomAlert('حذف کاربر از دیتابیس ابری ناموفق بود: ' + (e.message || e), 'خطای حذف');
+                }
+                return { ok: false, message: e.message || String(e) };
             }
 
             if (window.db && window.auth?.currentUser) {
@@ -2772,6 +2788,10 @@
                 }
             } catch (e) {
                 console.warn("Cloudflare projects sync failed:", e);
+                if (typeof showCustomAlert === 'function') {
+                    showCustomAlert('ذخیره پروژه در دیتابیس ابری ناموفق بود: ' + (e.message || e), 'خطای ذخیره‌سازی');
+                }
+                return { ok: false, message: e.message || String(e) };
             }
 
             if (window.db && window.auth?.currentUser) {
@@ -2782,6 +2802,8 @@
                     console.error("Firestore project save error:", e);
                 }
             }
+
+            return { ok: true };
         };
 
         window.deleteProjectData = async function(projectId) {
@@ -2799,6 +2821,10 @@
                 await apiRequest('/projects?id=' + encodeURIComponent(projectId), { method: 'DELETE' });
             } catch (e) {
                 console.warn("Cloudflare projects delete failed:", e);
+                if (typeof showCustomAlert === 'function') {
+                    showCustomAlert('حذف پروژه از دیتابیس ابری ناموفق بود: ' + (e.message || e), 'خطای حذف');
+                }
+                return { ok: false, message: e.message || String(e) };
             }
 
             if (window.db && window.auth?.currentUser) {
@@ -3409,7 +3435,10 @@
 
         async function saveAndFinishNewUser(newUser, e) {
             try {
-                await window.saveUserData(newUser);
+                const res = await window.saveUserData(newUser);
+                if (res && res.ok === false) {
+                    return; // پیام خطا در saveUserData نمایش داده شده است
+                }
                 if (e && e.target) e.target.reset();
                 showCustomAlert(`کاربر جدید «${newUser.fullName}» با موفقیت تعریف گردید و در دیتابیس به همراه حافظه محلی ذخیره شد.`, 'موفقیت');
             } catch (err) {
@@ -3573,7 +3602,10 @@
             const user = (window.usersData || []).find(u => u.id === userId);
             if (user) {
                 user.password = newPassword;
-                await window.saveUserData(user);
+                const res = await window.saveUserData(user);
+                if (res && res.ok === false) {
+                    return; // پیام خطا در saveUserData نمایش داده شده است
+                }
                 closeResetPasswordModal();
                 showCustomAlert(`کلمه عبور کاربر «${user.fullName}» با موفقیت تغییر یافت.`, 'تغییر رمز عبور');
             }
@@ -3624,13 +3656,17 @@
             const newPrj = {
                 id: 'p_' + Date.now(),
                 title: document.getElementById('newProjectTitle').value.trim(),
-                address: document.getElementById('newProjectAddress').value.trim()
+                address: document.getElementById('newProjectAddress').value.trim(),
+                createdBy: window.currentUser ? window.currentUser.id : null
             };
 
-            await window.saveProjectData(newPrj);
+            const res = await window.saveProjectData(newPrj);
             applyFilters();
+            if (res && res.ok === false) {
+                return; // فرم باز می‌ماند؛ پیام خطا در saveProjectData نمایش داده شده است
+            }
             e.target.reset();
-            showCustomAlert('پروژه جدید با موفقیت ثبت شد.');
+            showCustomAlert('پروژه جدید با موفقیت در دیتابیس کلادفلر ثبت شد.');
         }
 
         function deleteProject(id) {
@@ -4096,11 +4132,14 @@
                 inboundReceipt: inboundReceiptImg
             };
 
-            await window.saveExpenseData(newEntry);
+            const res = await window.saveExpenseData(newEntry);
+            if (res && res.ok === false) {
+                return; // فرم باز می‌ماند؛ پیام خطا در saveExpenseData نمایش داده شده است
+            }
             closeExpenseModal();
             setMissionReceipt('Outbound', '');
             setMissionReceipt('Inbound', '');
-            showCustomAlert('اطلاعات مأموریت با موفقیت ذخیره شد.');
+            showCustomAlert('اطلاعات مأموریت با موفقیت در دیتابیس ذخیره شد.');
         }
 
         function resetFilters() {
@@ -4119,7 +4158,7 @@
             (window.filteredData || []).forEach(row => {
                 const total = (Number(row.outboundCost) || 0) + (Number(row.inboundCost) || 0);
                 const prjObj = (window.projectsData || []).find(p => p.id === row.projectId);
-                const prjTitle = prjObj ? prjObj.title : '';
+                const prjTitle = prjObj ? prjObj.title : (row.projectTitle || row.project_title || '');
                 csvContent += `"${row.rowNo}","${row.date}","${row.day}","${prjTitle}","${row.address}","${normalizeTimeValue(row.startTime)}","${normalizeTimeValue(row.endTime)}","${row.outboundVehicle}","${row.outboundCost}","${row.inboundVehicle}","${row.inboundCost}","${total}"\n`;
             });
 

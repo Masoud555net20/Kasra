@@ -25,8 +25,14 @@ export async function onRequest(context) {
       const address = String(item.address ?? item.defaultAddress ?? '').trim();
       const status = String(item.status || 'فعال').trim();
       const description = String(item.description || '').trim();
-      const createdBy = String(item.createdBy || item.created_by || '');
       const now = new Date().toISOString();
+
+      // created_by دارای قید کلید خارجی است؛ مقدار خالی یا ناموجود باعث خطای FK می‌شود → NULL می‌گذاریم
+      let createdBy = String(item.createdBy ?? item.created_by ?? '').trim() || null;
+      if (createdBy) {
+        const owner = await db.prepare('SELECT id FROM users WHERE id = ?').bind(createdBy).first();
+        if (!owner) createdBy = null;
+      }
 
       if (!title) {
         return json({ ok: false, message: 'عنوان پروژه الزامی است.' }, 400);
@@ -50,12 +56,27 @@ export async function onRequest(context) {
 
     if (request.method === 'DELETE') {
       const url = new URL(request.url);
-      const id = url.searchParams.get('id');
+      let id = url.searchParams.get('id');
+      if (!id) {
+        const body = await parseJsonBody(request);
+        id = String(body.id || '').trim();
+      }
       if (!id) {
         return json({ ok: false, message: 'شناسه پروژه الزامی است.' }, 400);
       }
 
-      await db.prepare('DELETE FROM projects WHERE id = ?').bind(id).run();
+      // مأموریت‌های مرتبط ابتدا از پروژه جدا می‌شوند (عنوان پروژه در خود مأموریت حفظ می‌ماند)
+      // سپس پروژه حذف می‌شود — هر دو عملیات اتمیک اجرا می‌شوند
+      const now = new Date().toISOString();
+      await db.batch([
+        db.prepare('UPDATE missions SET project_id = NULL, updated_at = ? WHERE project_id = ?').bind(now, id),
+        db.prepare('DELETE FROM projects WHERE id = ?').bind(id)
+      ]);
+
+      const stillThere = await db.prepare('SELECT id FROM projects WHERE id = ?').bind(id).first();
+      if (stillThere) {
+        return json({ ok: false, message: 'حذف پروژه در دیتابیس انجام نشد.' }, 500);
+      }
       return json({ ok: true, deletedId: id });
     }
 

@@ -53,12 +53,42 @@ export async function onRequest(context) {
 
     if (request.method === 'DELETE') {
       const url = new URL(request.url);
-      const id = url.searchParams.get('id');
+      let id = url.searchParams.get('id');
+      if (!id) {
+        const body = await parseJsonBody(request);
+        id = String(body.id || '').trim();
+      }
       if (!id) {
         return json({ ok: false, message: 'شناسه کاربر الزامی است.' }, 400);
       }
 
-      await db.prepare('DELETE FROM users WHERE id = ?').bind(id).run();
+      const user = await db.prepare('SELECT id, full_name FROM users WHERE id = ?').bind(id).first();
+      if (!user) {
+        return json({ ok: false, message: 'کاربر مورد نظر یافت نشد.' }, 404);
+      }
+
+      // کاربری که مأموریت ثبت‌شده دارد قابل حذف نیست (user_id در missions اجباری است)
+      const cnt = await db.prepare('SELECT COUNT(*) AS n FROM missions WHERE user_id = ?').bind(id).first();
+      const missionCount = Number(cnt?.n || 0);
+      if (missionCount > 0) {
+        return json({
+          ok: false,
+          message: `کاربر «${user.full_name}» دارای ${missionCount} مأموریت ثبت‌شده است و حذف نشد؛ ابتدا مأموریت‌های او را حذف یا منتقل کنید.`
+        }, 409);
+      }
+
+      // لاگ‌های ورود/فعالیت و پروژه‌های ایجادشده بدون کاربر باقی می‌مانند (ارجاع NULL می‌شود)
+      await db.batch([
+        db.prepare('UPDATE login_logs SET user_id = NULL WHERE user_id = ?').bind(id),
+        db.prepare('UPDATE activity_logs SET user_id = NULL WHERE user_id = ?').bind(id),
+        db.prepare('UPDATE projects SET created_by = NULL WHERE created_by = ?').bind(id),
+        db.prepare('DELETE FROM users WHERE id = ?').bind(id)
+      ]);
+
+      const stillThere = await db.prepare('SELECT id FROM users WHERE id = ?').bind(id).first();
+      if (stillThere) {
+        return json({ ok: false, message: 'حذف کاربر در دیتابیس انجام نشد.' }, 500);
+      }
       return json({ ok: true, deletedId: id });
     }
 
