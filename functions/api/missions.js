@@ -139,7 +139,12 @@ export async function onRequest(context) {
 
     if (request.method === 'DELETE') {
       const url = new URL(request.url);
-      const id = url.searchParams.get('id');
+      // شناسه از query string (?id=...) یا در صورت نبود، از body JSON خوانده می‌شود
+      let id = url.searchParams.get('id');
+      if (!id) {
+        const body = await parseJsonBody(request);
+        id = String(body.id || '').trim();
+      }
       if (!id) {
         return json({ ok: false, message: 'شناسه مأموریت الزامی است.' }, 400);
       }

@@ -2645,12 +2645,13 @@
             applyFilters();
 
             try {
-                await apiRequest('/missions', {
-                    method: 'DELETE',
-                    body: JSON.stringify({ id })
-                });
+                // شناسه باید در query string ارسال شود (بک‌اند آن را از ?id= می‌خواند)
+                await apiRequest('/missions?id=' + encodeURIComponent(id), { method: 'DELETE' });
             } catch (e) {
                 console.warn("Cloudflare missions delete failed:", e);
+                if (typeof showCustomAlert === 'function') {
+                    showCustomAlert('حذف رکورد از دیتابیس ابری ناموفق بود؛ پس از ورود مجدد ممکن است رکورد دوباره نمایش داده شود. اتصال اینترنت را بررسی کنید.');
+                }
             }
 
             if (window.db) {
