@@ -20,6 +20,9 @@ CREATE TABLE users (
   last_login_at TEXT
 );
 
+-- یکتایی نام کاربری به‌صورت case-insensitive (Admin و admin یکسان درنظر گرفته می‌شوند)
+CREATE UNIQUE INDEX IF NOT EXISTS idx_users_username_ci ON users(lower(username));
+
 CREATE TABLE projects (
   id TEXT PRIMARY KEY,
   title TEXT NOT NULL,

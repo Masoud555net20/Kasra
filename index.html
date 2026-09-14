@@ -2272,8 +2272,8 @@
         const apiRequest = window.apiRequest;
 
         const initialSeedUsers = [
-            { id: "u1", username: "admin", password: "123456", fullName: "مدیر سیستم", role: "مدیر سیستم", signature: window.sampleSignatureDataUrl },
-            { id: "u2", username: "hamed", password: "123456", fullName: "حامد خیرآبادی", role: "کارشناس", signature: window.sampleSignatureDataUrl }
+            { id: "u1", username: "admin", fullName: "مدیر سیستم", role: "مدیر سیستم", signature: window.sampleSignatureDataUrl },
+            { id: "u2", username: "hamed", fullName: "حامد خیرآبادی", role: "کارشناس", signature: window.sampleSignatureDataUrl }
         ];
 
         function sanitizeUsersList(list) {
@@ -2414,28 +2414,10 @@
                 showLoginModal();
             }
 
-            if (firebaseConfig && !cloudSynced) {
-                try {
-                    const app = initializeApp(firebaseConfig);
-                    window.db = getFirestore(app);
-                    window.auth = getAuth(app);
-
-                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                        await signInWithCustomToken(window.auth, __initial_auth_token);
-                    } else {
-                        await signInAnonymously(window.auth);
-                    }
-
-                    setupFirestoreListeners();
-                    updateSyncBadge(true, "دیتابیس ابری زنده فعال است");
-                    return;
-                } catch (err) {
-                    console.warn("Firebase init failed, switching to local store:", err);
-                }
-            }
-
+            /* منبع واحد حقیقت: دیتابیس D1 کلادفلر.
+               Firebase/Firestore دیگر به‌عنوان منبع دوم داده استفاده نمی‌شود تا داده‌ها همیشه هماهنگ بمانند. */
             if (!cloudSynced) {
-                updateSyncBadge(false, "ذخیره محلی (برخط/آفلاین)");
+                updateSyncBadge(false, 'اتصال به دیتابیس ابری برقرار نشد');
             }
         }
 
@@ -3259,6 +3241,8 @@
             const passwordInput = document.getElementById('loginPassword').value.trim();
             const errorBox = document.getElementById('loginError');
 
+            /* احراز هویت فقط از طریق جدول users دیتابیس کلادفلر انجام می‌شود.
+               هیچ fallback محلی وجود ندارد تا ورود با هر دستگاه همیشه به دیتابیس مرکزی متکی باشد. */
             try {
                 const result = await apiRequest('/auth/login', {
                     method: 'POST',
@@ -3266,40 +3250,24 @@
                 });
 
                 if (result && result.ok && result.user) {
-                    const normalizedUser = normalizeUserRecord({ ...result.user, password: passwordInput });
-                    const user = { ...normalizedUser, password: passwordInput };
+                    const user = normalizeUserRecord(result.user);
+                    delete user.password;
                     window.currentUser = user;
                     window.usersData = [user, ...(window.usersData || []).filter(u => u.id !== user.id)];
-                    sessionStorage.setItem('akasra_logged_user', JSON.stringify(user));
+                    try {
+                        sessionStorage.setItem('akasra_logged_user', JSON.stringify(user));
+                    } catch (se) {}
                     document.getElementById('loginModal').classList.add('hidden');
                     errorBox.classList.add('hidden');
                     updateUserUI();
                     applyFilters();
                     return;
                 }
+
+                errorBox.innerText = (result && result.message) || 'نام کاربری یا کلمه عبور اشتباه است.';
+                errorBox.classList.remove('hidden');
             } catch (err) {
-                console.warn('Cloudflare auth request failed, falling back to local login:', err);
-            }
-
-            if (!window.usersData || window.usersData.length === 0) {
-                const saved = localStorage.getItem('akasra_users');
-                if (saved) {
-                    try { window.usersData = JSON.parse(saved); } catch (e) {}
-                }
-            }
-
-            const user = (window.usersData || []).find(u => 
-                u.username.trim().toLowerCase() === usernameInput && String(u.password || '').trim() === passwordInput
-            );
-
-            if (user) {
-                window.currentUser = user;
-                sessionStorage.setItem('akasra_logged_user', JSON.stringify(user));
-                document.getElementById('loginModal').classList.add('hidden');
-                errorBox.classList.add('hidden');
-                updateUserUI();
-                applyFilters();
-            } else {
+                errorBox.innerText = (err && err.message) || 'خطا در اتصال به سرور دیتابیس. اتصال اینترنت را بررسی کنید.';
                 errorBox.classList.remove('hidden');
             }
         };

@@ -1,4 +1,4 @@
-import { json, parseJsonBody, ensureDb, sanitizeUser } from './_helpers.js';
+import { json, parseJsonBody, ensureDb, sanitizeUser, hashPassword } from './_helpers.js';
 
 export async function onRequest(context) {
   const { request, env } = context;
@@ -23,7 +23,7 @@ export async function onRequest(context) {
       const item = body.user || body;
       const id = String(item.id || crypto.randomUUID());
       const username = String(item.username || '').trim();
-      const password = String(item.password || '');
+      const password = String(item.password ?? '').trim();
       const fullName = String(item.fullName || item.full_name || '').trim();
       const role = String(item.role || 'کارشناس').trim();
       const signature = item.signature || null;
@@ -32,6 +32,29 @@ export async function onRequest(context) {
 
       if (!username || !fullName) {
         return json({ ok: false, message: 'نام کاربری و نام کامل الزامی هستند.' }, 400);
+      }
+
+      const existing = await db.prepare('SELECT * FROM users WHERE id = ?').bind(id).first();
+
+      // جلوگیری از نام کاربری تکراری (به‌صورت case-insensitive) با کاربر دیگری
+      const duplicate = await db
+        .prepare('SELECT id, full_name FROM users WHERE lower(username) = lower(?) AND id <> ?')
+        .bind(username, id)
+        .first();
+      if (duplicate) {
+        return json({
+          ok: false,
+          message: `نام کاربری «${username}» قبلاً برای کاربر «${duplicate.full_name}» ثبت شده است.`
+        }, 409);
+      }
+
+      // رمز عبور: در ایجاد الزامی است؛ در ویرایش اگر خالی بود رمز قبلی حفظ می‌شود
+      let storedPassword = existing ? existing.password : null;
+      if (password) {
+        storedPassword = await hashPassword(password);
+      }
+      if (!storedPassword) {
+        return json({ ok: false, message: 'رمز عبور برای کاربر جدید الزامی است.' }, 400);
       }
 
       await db.prepare(`
@@ -45,7 +68,7 @@ export async function onRequest(context) {
           signature = excluded.signature,
           is_active = excluded.is_active,
           updated_at = excluded.updated_at
-      `).bind(id, username, password, fullName, role, signature, isActive ? 1 : 0, now, now).run();
+      `).bind(id, username, storedPassword, fullName, role, signature, isActive ? 1 : 0, now, now).run();
 
       const row = await db.prepare('SELECT * FROM users WHERE id = ?').bind(id).first();
       return json({ ok: true, user: sanitizeUser(row) });

@@ -1,7 +1,8 @@
+-- رمز عبور 123456 به‌صورت PBKDF2-SHA256 هش شده است (هرگز متن ساده ذخیره نکنید)
 INSERT OR IGNORE INTO users (id, username, password, full_name, role, signature, is_active)
 VALUES
-  ('u1', 'admin', '123456', 'مدیر سیستم', 'مدیر سیستم', NULL, 1),
-  ('u2', 'hamed', '123456', 'حامد خیرآبادی', 'کارشناس', NULL, 1);
+  ('u1', 'admin', 'pbkdf2$100000$1e289094a6ac5410be498a37c40e10c6$0809e15ed62b4c3da86c5a03fef3c4285f28761eec4fd574b6a6c1d432315274', 'مدیر سیستم', 'مدیر سیستم', NULL, 1),
+  ('u2', 'hamed', 'pbkdf2$100000$1e289094a6ac5410be498a37c40e10c6$0809e15ed62b4c3da86c5a03fef3c4285f28761eec4fd574b6a6c1d432315274', 'حامد خیرآبادی', 'کارشناس', NULL, 1);
 
 INSERT OR IGNORE INTO projects (id, title, address, status, description, created_by)
 VALUES

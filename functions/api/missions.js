@@ -1,4 +1,4 @@
-import { json, parseJsonBody, ensureDb } from './_helpers.js';
+import { json, parseJsonBody, ensureDb, hashPassword } from './_helpers.js';
 
 export async function onRequest(context) {
   const { request, env } = context;
@@ -72,7 +72,7 @@ export async function onRequest(context) {
         await db.prepare(`
           INSERT OR IGNORE INTO users (id, username, password, full_name, role, signature, is_active, created_at, updated_at)
           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `).bind(safeUserId, username, String(item.password || '123456'), fullName, String(item.role || 'کارشناس'), item.signature || null, 1, now, now).run();
+        `).bind(safeUserId, username, await hashPassword(String(item.password || '123456').trim()), fullName, String(item.role || 'کارشناس'), item.signature || null, 1, now, now).run();
       } else if (!existingUser && !username && userId) {
         return json({ ok: false, message: 'برای ثبت مأموریت، نام کاربر باید وجود داشته باشد.' }, 400);
       }
