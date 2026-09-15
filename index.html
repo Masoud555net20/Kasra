@@ -774,7 +774,7 @@
                     <div>
                         <label id="formInboundReceiptLabel" class="block text-xs text-slate-400 mb-1">
                             تصویر رسید برگشت <span id="formInboundReceiptStar" class="hidden text-red-400 font-bold">*</span>
-                            <span class="text-[10px] text-slate-500">(برای اسنپ/تپسی و آژانس اجباری)</span>
+                            <span class="text-[10px] text-slate-500">(اختیاری)</span>
                         </label>
                         <div class="flex items-center gap-2">
                             <input type="file" id="formInboundReceiptFile" accept="image/*" capture="environment" onchange="previewMissionReceipt(event,'Inbound')" class="glass-input w-full px-2 py-1.5 rounded-lg text-[10px] text-slate-300">
@@ -3035,14 +3035,17 @@
         }
 
         window.updateReceiptHints = function() {
-            ['Outbound', 'Inbound'].forEach(dir => {
-                const sel = document.getElementById(dir === 'Outbound' ? 'formOutboundVehicle' : 'formInboundVehicle');
-                const fileInput = document.getElementById('form' + dir + 'ReceiptFile');
-                const star = document.getElementById('form' + dir + 'ReceiptStar');
-                const need = needsReceiptVehicle(sel ? sel.value : '');
-                if (fileInput) fileInput.required = need;
-                if (star) star.classList.toggle('hidden', !need);
-            });
+            // رفت: برای اسنپ/تپسی و آژانس رسید اجباری است — برگشت: همیشه اختیاری
+            const outSel = document.getElementById('formOutboundVehicle');
+            const outFile = document.getElementById('formOutboundReceiptFile');
+            const outStar = document.getElementById('formOutboundReceiptStar');
+            const outNeed = needsReceiptVehicle(outSel ? outSel.value : '');
+            if (outFile) outFile.required = outNeed;
+            if (outStar) outStar.classList.toggle('hidden', !outNeed);
+            const inFile = document.getElementById('formInboundReceiptFile');
+            const inStar = document.getElementById('formInboundReceiptStar');
+            if (inFile) inFile.required = false;
+            if (inStar) inStar.classList.add('hidden');
         };
 
         function compressReceiptImage(file, callback) {
@@ -4068,10 +4071,7 @@
                 showCustomAlert(`انتخاب «${outboundVehicle}» برای مسیر رفت، پیوست تصویر رسید را الزامی می‌کند.`, 'رسید اجباری');
                 return;
             }
-            if (needsReceiptVehicle(inboundVehicle) && !inboundReceiptImg) {
-                showCustomAlert(`انتخاب «${inboundVehicle}» برای مسیر برگشت، پیوست تصویر رسید را الزامی می‌کند.`, 'رسید اجباری');
-                return;
-            }
+            // مسیر برگشت: وسیله و رسید همیشه اختیاری است (بدون اعتبارسنجی)
 
             const newEntry = {
                 id: id,
