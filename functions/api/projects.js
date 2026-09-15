@@ -23,22 +23,32 @@ export async function onRequest(context) {
       const id = String(item.id || crypto.randomUUID());
       const title = String(item.title || '').trim();
       const address = String(item.address ?? item.defaultAddress ?? '').trim();
-      const status = String(item.status || 'فعال').trim();
-      const description = String(item.description || '').trim();
       const now = new Date().toISOString();
 
+      const existingRow = await db.prepare('SELECT * FROM projects WHERE id = ?').bind(id).first();
+
+      // در حالت ویرایش، فیلدهایی که کلاینت نفرستاده (وضعیت، توضیحات، سازنده) باید از رکورد قبلی حفظ شوند
+      // تا ویرایش عنوان/آدرس باعث ریست شدن آن‌ها در دیتابیس نشود
+      const status = (item.status !== undefined && item.status !== null && String(item.status).trim() !== '')
+        ? String(item.status).trim()
+        : (existingRow?.status || 'فعال');
+      const description = (item.description !== undefined && item.description !== null)
+        ? String(item.description).trim()
+        : (existingRow?.description || '');
+
       // created_by دارای قید کلید خارجی است؛ مقدار خالی یا ناموجود باعث خطای FK می‌شود → NULL می‌گذاریم
-      let createdBy = String(item.createdBy ?? item.created_by ?? '').trim() || null;
+      // در حالت ویرایش اگر کلاینت سازنده را نفرستاده باشد، سازنده قبلی حفظ می‌شود
+      let createdBy = String(item.createdBy ?? item.created_by ?? '').trim() || existingRow?.created_by || null;
       if (createdBy) {
         const owner = await db.prepare('SELECT id FROM users WHERE id = ?').bind(createdBy).first();
-        if (!owner) createdBy = null;
+        if (!owner) createdBy = existingRow?.created_by || null;
       }
 
       if (!title) {
         return json({ ok: false, message: 'عنوان پروژه الزامی است.' }, 400);
       }
 
-      const existingProject = await db.prepare('SELECT id FROM projects WHERE id = ?').bind(id).first();
+      const existingProject = existingRow ? { id: existingRow.id } : null;
 
       await db.prepare(`
         INSERT INTO projects (id, title, address, status, description, created_by, created_at, updated_at)

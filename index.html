@@ -2455,6 +2455,25 @@
             return normalizeMissionRecord(item);
         };
 
+        // رکورد پروژه در سرور (D1) با created_by برمی‌گردد ولی کلاینت با createdBy کار می‌کند؛
+        // این نرمالایزر هر دو قالب را یکسان می‌کند تا ویرایش، سازنده/وضعیت/توضیحات قبلی را گم نکند
+        function normalizeProjectRecord(p) {
+            if (!p || typeof p !== 'object') return p;
+            const normalized = { ...p };
+            normalized.id = normalized.id ?? '';
+            normalized.title = normalized.title ?? '';
+            normalized.address = normalized.address ?? normalized.defaultAddress ?? '';
+            normalized.status = normalized.status ?? 'فعال';
+            normalized.description = normalized.description ?? '';
+            normalized.createdBy = normalized.createdBy ?? normalized.created_by ?? null;
+            normalized.created_by = normalized.created_by ?? normalized.createdBy ?? null;
+            return normalized;
+        }
+
+        window.normalizeProjectRecord = function(item) {
+            return normalizeProjectRecord(item);
+        };
+
         function sanitizeMissionList(list) {
             if (!Array.isArray(list)) return [];
             return list.map(item => normalizeMissionRecord(item));
@@ -2762,9 +2781,15 @@
                     body: JSON.stringify({ project: projectItem })
                 });
                 if (payload && payload.project) {
-                    window.projectsData = (window.projectsData || []).map(p => p.id === projectItem.id ? { ...p, ...payload.project } : p);
+                    const merged = (typeof normalizeProjectRecord === 'function')
+                        ? normalizeProjectRecord({ ...projectItem, ...payload.project })
+                        : { ...projectItem, ...payload.project };
+                    window.projectsData = (window.projectsData || []).map(p => String(p.id) === String(projectItem.id) ? merged : p);
                     localStorage.setItem('akasra_projects', JSON.stringify(window.projectsData));
                 }
+                populateProjectDropdowns();
+                renderProjectsTable();
+                applyFilters();
             } catch (e) {
                 console.warn("Cloudflare projects sync failed:", e);
                 if (typeof showCustomAlert === 'function') {
@@ -3641,12 +3666,15 @@
             if (!title) { showCustomAlert('عنوان پروژه الزامی است.'); return; }
             let newPrj;
             if (editingProjectId) {
-                const existing = (window.projectsData || []).find(x => x.id === editingProjectId);
+                const existing = (window.projectsData || []).find(x => String(x.id) === String(editingProjectId)) || {};
                 newPrj = {
                     id: editingProjectId,
                     title: title,
                     address: address,
-                    createdBy: existing && existing.createdBy ? existing.createdBy : (window.currentUser ? window.currentUser.id : null)
+                    status: existing.status || 'فعال',
+                    description: existing.description || '',
+                    createdBy: existing.createdBy || existing.created_by || (window.currentUser ? window.currentUser.id : null),
+                    created_by: existing.created_by || existing.createdBy || (window.currentUser ? window.currentUser.id : null)
                 };
             } else {
                 newPrj = {
