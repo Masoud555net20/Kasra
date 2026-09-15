@@ -622,13 +622,44 @@
                 <i class="fa-solid fa-xmark text-lg"></i>
             </button>
 
-            <div class="flex items-center gap-3 mb-5">
-                <div class="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
-                    <i class="fa-solid fa-pen-to-square text-lg"></i>
+            <div class="flex items-center justify-between gap-3 mb-5">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
+                        <i class="fa-solid fa-pen-to-square text-lg"></i>
+                    </div>
+                    <div>
+                        <h3 id="modalTitle" class="text-base sm:text-lg font-bold text-white">ثبت هزینه مأموریت جدید</h3>
+                        <p class="text-xs text-slate-400">اطلاعات رفت و آمد و پروژه مربوطه را وارد نمایید</p>
+                    </div>
                 </div>
-                <div>
-                    <h3 id="modalTitle" class="text-base sm:text-lg font-bold text-white">ثبت هزینه مأموریت جدید</h3>
-                    <p class="text-xs text-slate-400">اطلاعات رفت و آمد و پروژه مربوطه را وارد نمایید</p>
+                <button type="button" onclick="toggleMissionVoiceFill()" id="missionVoiceBtn" title="ثبت صوتی با هوش مصنوعی ابری — صحبت کنید تا فرم پر شود" class="btn-touch shrink-0 w-11 h-11 rounded-2xl bg-gradient-to-tr from-teal-600 to-emerald-500 hover:from-teal-500 hover:to-emerald-400 text-white flex items-center justify-center shadow-lg shadow-teal-600/40 transition relative">
+                    <i id="missionVoiceBtnIcon" class="fa-solid fa-microphone-lines text-base"></i>
+                    <span id="missionVoiceBtnRing" class="absolute inset-0 rounded-2xl border-2 border-teal-300 hidden animate-ping opacity-60"></span>
+                </button>
+            </div>
+
+            <div id="missionVoicePanel" class="hidden mb-4 p-3 rounded-2xl bg-teal-950/40 border border-teal-500/30 space-y-2">
+                <div class="flex items-center justify-between gap-2">
+                    <p id="missionVoiceStatus" class="text-[11px] text-teal-200 font-bold flex items-center gap-1.5">
+                        <span class="w-2 h-2 rounded-full bg-teal-400 animate-pulse"></span>
+                        <span>روی میکروفن بزنید و شرح مأموریت را بگویید...</span>
+                    </p>
+                    <button type="button" onclick="toggleMissionVoicePanel(false)" class="text-slate-400 hover:text-white text-xs w-6 h-6 rounded-full bg-slate-800 flex items-center justify-center shrink-0">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+                <textarea id="missionVoiceTranscript" rows="2" placeholder="متن گفتار شما اینجا نمایش داده می‌شود... (مثلا: امروز رفتم بهداشت درمان نفت با اسنپ ۶۰ هزار تومن، برگشتم شخصی، از ۸ تا ۱۲)" class="glass-input w-full p-2.5 rounded-xl text-xs leading-relaxed"></textarea>
+                <div class="flex items-center justify-between gap-2">
+                    <span class="text-[10px] text-slate-400">با موتور ابری کلادفلر (Cloudflare AI) پر می‌شود</span>
+                    <div class="flex items-center gap-2">
+                        <button type="button" onclick="clearMissionVoiceTranscript()" class="btn-touch px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] transition border border-slate-700">
+                            <i class="fa-solid fa-eraser ml-1"></i>پاک کردن
+                        </button>
+                        <button type="button" onclick="handleMissionVoiceFill()" id="missionVoiceFillBtn" class="btn-touch px-4 py-1.5 rounded-xl bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-500 hover:to-emerald-500 text-white font-bold text-[11px] transition flex items-center gap-1.5 shadow-lg shadow-teal-600/30">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i>
+                            <span>پر کردن فرم با هوش مصنوعی</span>
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -2169,10 +2200,62 @@
             updateVoiceUI(false);
         };
 
+        window.missionVoiceRecognition = null;
+        window.missionVoiceIsRecording = false;
+
+        function updateMissionVoiceUI(recording) {
+            const btn = document.getElementById('missionVoiceBtn');
+            const icon = document.getElementById('missionVoiceBtnIcon');
+            const ring = document.getElementById('missionVoiceBtnRing');
+            const status = document.getElementById('missionVoiceStatus');
+            if (!btn || !icon) return;
+            if (recording) {
+                btn.className = 'btn-touch shrink-0 w-11 h-11 rounded-2xl bg-red-600 text-white flex items-center justify-center shadow-lg relative';
+                icon.className = 'fa-solid fa-stop text-base';
+                if (ring) ring.classList.remove('hidden');
+                if (status) status.innerHTML = '<span>در حال شنیدن... دوباره بزنید تا تمام شود</span>';
+            } else {
+                btn.className = 'btn-touch shrink-0 w-11 h-11 rounded-2xl bg-gradient-to-tr from-teal-600 to-emerald-500 text-white flex items-center justify-center shadow-lg relative';
+                icon.className = 'fa-solid fa-microphone-lines text-base';
+                if (ring) ring.classList.add('hidden');
+                if (status) status.innerHTML = '<span>روی میکروفن بزنید و شرح مأموریت را بگویید...</span>';
+            }
+        }
+
+        window.toggleMissionVoicePanel = function(show) {
+            const panel = document.getElementById('missionVoicePanel');
+            if (!panel) return;
+            if (typeof show === 'boolean') panel.classList.toggle('hidden', !show);
+            else panel.classList.toggle('hidden');
+        };
+
+        window.stopMissionVoiceSilently = function() {
+            window.missionVoiceIsRecording = false;
+            if (window.missionVoiceRecognition) {
+                try { window.missionVoiceRecognition.stop(); } catch (e) {}
+                window.missionVoiceRecognition = null;
+            }
+            updateMissionVoiceUI(false);
+        };
+
+        window.clearMissionVoiceTranscript = function() {
+            if (window.stopMissionVoiceSilently) window.stopMissionVoiceSilently();
+            const ta = document.getElementById('missionVoiceTranscript');
+            if (ta) ta.value = '';
+        };
+
         window.clearVoiceTranscript = function() {
             stopVoiceRecordingSilently();
             const ta = document.getElementById('voiceTranscript');
             if (ta) ta.value = '';
+        };
+
+        window.toggleMissionVoiceFill = function() {
+            const panel = document.getElementById('missionVoicePanel');
+            const opening = panel ? panel.classList.contains('hidden') : true;
+            if (panel) panel.classList.remove('hidden');
+            if (window.missionVoiceIsRecording) { window.stopMissionVoiceSilently(); return; }
+            if (opening) startMissionVoiceRecording();
         };
 
         window.handleVoiceMissionSubmit = async function() {
@@ -2200,6 +2283,71 @@
                 loader.classList.add('hidden');
                 console.error("Gemini Voice Parse Error:", err);
                 showCustomAlert('خطا در پردازش صوتی مأموریت: ' + err.message);
+            }
+        };
+
+        function startMissionVoiceRecording() {
+            const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SR) {
+                showCustomAlert('مرورگر شما از تشخیص گفتار پشتیبانی نمی‌کند. لطفاً از Google Chrome استفاده کنید.', 'عدم پشتیبانی');
+                return;
+            }
+            const rec = new SR();
+            rec.lang = 'fa-IR';
+            rec.continuous = true;
+            rec.interimResults = true;
+            let finalText = (document.getElementById('missionVoiceTranscript')?.value || '').trim();
+            rec.onresult = function(e) {
+                let interim = '';
+                for (let i = e.resultIndex; i < e.results.length; i++) {
+                    const t = e.results[i][0].transcript;
+                    if (e.results[i].isFinal) finalText += ' ' + t;
+                    else interim += t;
+                }
+                const ta = document.getElementById('missionVoiceTranscript');
+                if (ta) ta.value = (finalText + ' ' + interim).trim();
+            };
+            rec.onerror = function(e) {
+                if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
+                    showCustomAlert('دسترسی به میکروفن داده نشد. لطفاً اجازه دسترسی بدهید.', 'خطای میکروفن');
+                    window.stopMissionVoiceSilently();
+                }
+            };
+            rec.onend = function() {
+                if (window.missionVoiceIsRecording) {
+                    try { rec.start(); } catch (e) { window.stopMissionVoiceSilently(); }
+                }
+            };
+            window.missionVoiceRecognition = rec;
+            try {
+                rec.start();
+                window.missionVoiceIsRecording = true;
+                updateMissionVoiceUI(true);
+            } catch (e) {
+                showCustomAlert('شروع ضبط صدا ممکن نشد: ' + e.message);
+            }
+        }
+
+        window.handleMissionVoiceFill = async function() {
+            window.stopMissionVoiceSilently();
+            const text = (document.getElementById('missionVoiceTranscript')?.value || '').trim();
+            if (!text) {
+                showCustomAlert('ابتدا روی میکروفن بزنید و شرح مأموریت را بگویید.', 'متن صوتی خالی است');
+                return;
+            }
+            const fillBtn = document.getElementById('missionVoiceFillBtn');
+            const oldHtml = fillBtn ? fillBtn.innerHTML : '';
+            if (fillBtn) { fillBtn.disabled = true; fillBtn.innerHTML = 'در حال پر کردن...'; }
+            try {
+                const parsed = await parseMissionTextWithGemini(text);
+                applyParsedMissionToForm(parsed);
+                document.getElementById('missionVoicePanel')?.classList.add('hidden');
+                showCustomAlert('فرم با هوش مصنوعی ابری پر شد. بازبینی و ذخیره کنید.', 'پر کردن صوتی موفق');
+            } catch (err) {
+                console.error("Mission Voice Fill Error:", err);
+                showCustomAlert('خطا در پر کردن صوتی فرم: ' + err.message);
+            } finally {
+                if (fillBtn) { fillBtn.disabled = false; fillBtn.innerHTML = oldHtml; }
             }
         };
     </script>
@@ -3868,6 +4016,9 @@
         }
 
         function closeExpenseModal() {
+            if (window.stopMissionVoiceSilently) { try { window.stopMissionVoiceSilently(); } catch (e) {} }
+            const _mvp = document.getElementById('missionVoicePanel');
+            if (_mvp) _mvp.classList.add('hidden');
             document.getElementById('expenseModal').classList.add('hidden');
         }
 
