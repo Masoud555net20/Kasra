@@ -2641,6 +2641,8 @@
                 return { ok: false, message: e.message || String(e) };
             }
 
+            return { ok: true };
+        };
 
         window.exportSystemBackup = function() {
             const backupData = {
@@ -3087,7 +3089,7 @@
             /* احراز هویت فقط از طریق جدول users دیتابیس کلادفلر انجام می‌شود.
                هیچ fallback محلی وجود ندارد تا ورود با هر دستگاه همیشه به دیتابیس مرکزی متکی باشد. */
             try {
-                const result = await apiRequest('/auth/login', {
+                const result = await window.apiRequest('/auth/login', {
                     method: 'POST',
                     body: JSON.stringify({ username: usernameInput, password: passwordInput })
                 });
