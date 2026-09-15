@@ -622,7 +622,7 @@
                 <i class="fa-solid fa-xmark text-lg"></i>
             </button>
 
-            <div class="flex items-center justify-between gap-3 mb-5">
+            <div class="flex items-center gap-3 mb-5 pl-10">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
                         <i class="fa-solid fa-pen-to-square text-lg"></i>
@@ -632,10 +632,6 @@
                         <p class="text-xs text-slate-400">اطلاعات رفت و آمد و پروژه مربوطه را وارد نمایید</p>
                     </div>
                 </div>
-                <button type="button" onclick="toggleMissionVoiceFill()" id="missionVoiceBtn" title="ثبت صوتی با هوش مصنوعی ابری — صحبت کنید تا فرم پر شود" class="btn-touch shrink-0 w-11 h-11 rounded-2xl bg-gradient-to-tr from-teal-600 to-emerald-500 hover:from-teal-500 hover:to-emerald-400 text-white flex items-center justify-center shadow-lg shadow-teal-600/40 transition relative">
-                    <i id="missionVoiceBtnIcon" class="fa-solid fa-microphone-lines text-base"></i>
-                    <span id="missionVoiceBtnRing" class="absolute inset-0 rounded-2xl border-2 border-teal-300 hidden animate-ping opacity-60"></span>
-                </button>
             </div>
 
             <div id="missionVoicePanel" class="hidden mb-4 p-3 rounded-2xl bg-teal-950/40 border border-teal-500/30 space-y-2">
@@ -800,6 +796,16 @@
                     <button type="submit" class="btn-touch px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-xs transition flex items-center gap-1.5 shadow-lg shadow-emerald-600/30">
                         <i class="fa-solid fa-check"></i>
                         <span>ذخیره مأموریت</span>
+                    </button>
+                </div>
+
+                <div class="pt-3 mt-1 border-t border-dashed border-slate-700/70">
+                    <button type="button" onclick="toggleMissionVoiceFill()" id="missionVoiceBtn" title="ثبت صوتی با هوش مصنوعی ابری — صحبت کنید تا فرم پر شود" class="btn-touch w-full px-4 py-3 rounded-2xl bg-gradient-to-l from-teal-600 via-emerald-600 to-teal-600 hover:from-teal-500 hover:to-emerald-500 text-white font-bold text-sm transition flex items-center justify-center gap-2.5 shadow-lg shadow-teal-600/30 relative overflow-hidden">
+                        <span class="relative flex items-center justify-center w-8 h-8 rounded-xl bg-white/20 shrink-0">
+                            <i id="missionVoiceBtnIcon" class="fa-solid fa-microphone-lines text-base"></i>
+                        </span>
+                        <span id="missionVoiceBtnText">ثبت صوتی با هوش مصنوعی — بزنید و شرح مأموریت را بگویید</span>
+                        <span id="missionVoiceBtnRing" class="absolute inset-0 rounded-2xl border-2 border-teal-300 hidden animate-ping opacity-60 pointer-events-none"></span>
                     </button>
                 </div>
             </form>
@@ -2208,17 +2214,21 @@
             const icon = document.getElementById('missionVoiceBtnIcon');
             const ring = document.getElementById('missionVoiceBtnRing');
             const status = document.getElementById('missionVoiceStatus');
+            const label = document.getElementById('missionVoiceBtnText');
             if (!btn || !icon) return;
+            const base = 'btn-touch w-full px-4 py-3 rounded-2xl text-white font-bold text-sm transition flex items-center justify-center gap-2.5 shadow-lg relative overflow-hidden ';
             if (recording) {
-                btn.className = 'btn-touch shrink-0 w-11 h-11 rounded-2xl bg-red-600 text-white flex items-center justify-center shadow-lg relative';
+                btn.className = base + 'bg-gradient-to-l from-red-600 via-rose-600 to-red-600 shadow-red-600/40';
                 icon.className = 'fa-solid fa-stop text-base';
                 if (ring) ring.classList.remove('hidden');
+                if (label) label.textContent = 'در حال شنیدن... دوباره بزنید تا ضبط تمام شود';
                 if (status) status.innerHTML = '<span>در حال شنیدن... دوباره بزنید تا تمام شود</span>';
             } else {
-                btn.className = 'btn-touch shrink-0 w-11 h-11 rounded-2xl bg-gradient-to-tr from-teal-600 to-emerald-500 text-white flex items-center justify-center shadow-lg relative';
+                btn.className = base + 'bg-gradient-to-l from-teal-600 via-emerald-600 to-teal-600 shadow-teal-600/30';
                 icon.className = 'fa-solid fa-microphone-lines text-base';
                 if (ring) ring.classList.add('hidden');
-                if (status) status.innerHTML = '<span>روی میکروفن بزنید و شرح مأموریت را بگویید...</span>';
+                if (label) label.textContent = 'ثبت صوتی با هوش مصنوعی — بزنید و شرح مأموریت را بگویید';
+                if (status) status.innerHTML = '<span>روی دکمه صوتی بزنید و شرح مأموریت را بگویید...</span>';
             }
         }
 
@@ -2253,7 +2263,10 @@
         window.toggleMissionVoiceFill = function() {
             const panel = document.getElementById('missionVoicePanel');
             const opening = panel ? panel.classList.contains('hidden') : true;
-            if (panel) panel.classList.remove('hidden');
+            if (panel) {
+                panel.classList.remove('hidden');
+                try { panel.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (e) {}
+            }
             if (window.missionVoiceIsRecording) { window.stopMissionVoiceSilently(); return; }
             if (opening) startMissionVoiceRecording();
         };
