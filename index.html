@@ -946,8 +946,8 @@
                 </div>
             </div>
 
-            <form onsubmit="handleCreateProject(event)" class="bg-slate-900/60 p-3.5 rounded-xl border border-slate-800 mb-5 space-y-3">
-                <h4 class="text-xs font-bold text-sky-400">تعریف پروژه جدید</h4>
+            <form id="projectForm" onsubmit="handleCreateProject(event)" class="bg-slate-900/60 p-3.5 rounded-xl border border-slate-800 mb-5 space-y-3">
+                <h4 id="projectFormTitle" class="text-xs font-bold text-sky-400">تعریف پروژه جدید</h4>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                     <div>
                         <label class="block text-[11px] text-slate-400 mb-1">عنوان پروژه</label>
@@ -958,8 +958,11 @@
                         <input type="text" id="newProjectAddress" placeholder="مثال: تهران، خیابان به آفرین، پلاک ۱۲" class="glass-input w-full px-2.5 py-1.5 rounded-lg">
                     </div>
                 </div>
-                <div class="text-left pt-1">
-                    <button type="submit" class="btn-touch px-4 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-500 text-white font-medium text-xs transition">
+                <div class="text-left pt-1 flex items-center gap-2 justify-end">
+                    <button type="button" id="cancelProjectEditBtn" onclick="cancelProjectEdit()" class="hidden btn-touch px-4 py-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 text-white font-medium text-xs transition">
+                        انصراف
+                    </button>
+                    <button type="submit" id="projectSubmitBtn" class="btn-touch px-4 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-500 text-white font-medium text-xs transition">
                         <i class="fa-solid fa-plus ml-1"></i>افزودن پروژه
                     </button>
                 </div>
@@ -3619,22 +3622,40 @@
         };
 
         function openProjectsModal() {
+            if (typeof cancelProjectEdit === 'function') cancelProjectEdit();
             document.getElementById('projectsModal').classList.remove('hidden');
             renderProjectsTable();
         }
 
         function closeProjectsModal() {
+            if (typeof cancelProjectEdit === 'function') cancelProjectEdit();
             document.getElementById('projectsModal').classList.add('hidden');
         }
 
+        let editingProjectId = null;
+
         async function handleCreateProject(e) {
             e.preventDefault();
-            const newPrj = {
-                id: 'p_' + Date.now(),
-                title: document.getElementById('newProjectTitle').value.trim(),
-                address: document.getElementById('newProjectAddress').value.trim(),
-                createdBy: window.currentUser ? window.currentUser.id : null
-            };
+            const title = document.getElementById('newProjectTitle').value.trim();
+            const address = document.getElementById('newProjectAddress').value.trim();
+            if (!title) { showCustomAlert('عنوان پروژه الزامی است.'); return; }
+            let newPrj;
+            if (editingProjectId) {
+                const existing = (window.projectsData || []).find(x => x.id === editingProjectId);
+                newPrj = {
+                    id: editingProjectId,
+                    title: title,
+                    address: address,
+                    createdBy: existing && existing.createdBy ? existing.createdBy : (window.currentUser ? window.currentUser.id : null)
+                };
+            } else {
+                newPrj = {
+                    id: 'p_' + Date.now(),
+                    title: title,
+                    address: address,
+                    createdBy: window.currentUser ? window.currentUser.id : null
+                };
+            }
 
             const res = await window.saveProjectData(newPrj);
             applyFilters();
@@ -3642,7 +3663,36 @@
                 return; // فرم باز می‌ماند؛ پیام خطا در saveProjectData نمایش داده شده است
             }
             e.target.reset();
-            showCustomAlert('پروژه جدید با موفقیت در دیتابیس کلادفلر ثبت شد.');
+            const wasEditing = !!editingProjectId;
+            cancelProjectEdit();
+            showCustomAlert(wasEditing ? 'پروژه با موفقیت ویرایش شد.' : 'پروژه جدید با موفقیت در دیتابیس کلادفلر ثبت شد.');
+        }
+
+        function startEditProject(id) {
+            const p = (window.projectsData || []).find(x => String(x.id) === String(id));
+            if (!p) return;
+            editingProjectId = p.id;
+            document.getElementById('newProjectTitle').value = p.title || '';
+            document.getElementById('newProjectAddress').value = p.address || '';
+            const titleEl = document.getElementById('projectFormTitle');
+            if (titleEl) titleEl.textContent = 'ویرایش پروژه';
+            const submitBtn = document.getElementById('projectSubmitBtn');
+            if (submitBtn) submitBtn.innerHTML = '<i class="fa-solid fa-pen ml-1"></i>ذخیره ویرایش';
+            const cancelBtn = document.getElementById('cancelProjectEditBtn');
+            if (cancelBtn) cancelBtn.classList.remove('hidden');
+            document.getElementById('newProjectTitle').focus();
+        }
+
+        function cancelProjectEdit() {
+            editingProjectId = null;
+            const form = document.getElementById('projectForm');
+            if (form) form.reset();
+            const titleEl = document.getElementById('projectFormTitle');
+            if (titleEl) titleEl.textContent = 'تعریف پروژه جدید';
+            const submitBtn = document.getElementById('projectSubmitBtn');
+            if (submitBtn) submitBtn.innerHTML = '<i class="fa-solid fa-plus ml-1"></i>افزودن پروژه';
+            const cancelBtn = document.getElementById('cancelProjectEditBtn');
+            if (cancelBtn) cancelBtn.classList.add('hidden');
         }
 
         function deleteProject(id) {
@@ -3666,9 +3716,14 @@
                     <td class="p-2.5 font-bold text-white">${p.title}</td>
                     <td class="p-2.5 text-slate-400 max-w-[280px] truncate" title="${p.address || ''}">${p.address || '-'}</td>
                     <td class="p-2.5 text-center">
-                        <button onclick="deleteProject('${p.id}')" class="btn-touch text-red-400 hover:text-red-300 transition" title="حذف پروژه">
-                            <i class="fa-solid fa-trash"></i>
-                        </button>
+                        <div class="flex items-center justify-center gap-3">
+                            <button onclick="startEditProject('${p.id}')" class="btn-touch text-sky-400 hover:text-sky-300 transition" title="ویرایش پروژه">
+                                <i class="fa-solid fa-pen"></i>
+                            </button>
+                            <button onclick="deleteProject('${p.id}')" class="btn-touch text-red-400 hover:text-red-300 transition" title="حذف پروژه">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
                     </td>
                 `;
                 tbody.appendChild(tr);
