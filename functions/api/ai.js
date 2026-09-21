@@ -7,12 +7,12 @@ import { json, parseJsonBody } from './_helpers.js';
    ۳) پاسخ‌ها در قالب استاندارد Gemini نرمال‌سازی می‌شوند تا منطق فرانت‌اند تغییر نکند */
 
 const TEXT_MODELS = [
-  /* مدل‌های تأییدشده روی همین اکانت (npx wrangler ai models) — به ترتیب کیفیت فارسی:
-     DeepSeek-V4-Flash (جدیدترین، فارسی و JSON عالی) → Llama 3.3 70B (امتحان‌شده) → Qwen3-30B → Mistral-Small-3.1 → Llama 3.1 */
-  '@cf/deepseek-ai/deepseek-v4-flash-0731',
+  /* مدل‌های تأییدشده روی همین اکانت (npx wrangler ai models) — به ترتیب اعتمادپذیری:
+     Llama 3.3 70B (تست لایو ✓ سریع و فارسی عالی) → Qwen3-30B → Mistral-Small-3.1 → DeepSeek-V4-Flash (partner؛ روی برخی اکانت‌ها gate است) → Llama 3.1 */
   '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
   '@cf/qwen/qwen3-30b-a3b-fp8',
   '@cf/mistralai/mistral-small-3.1-24b-instruct',
+  '@cf/deepseek-ai/deepseek-v4-flash-0731',
   '@cf/meta/llama-3.1-8b-instruct-fp8'
 ];
 
