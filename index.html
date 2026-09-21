@@ -646,7 +646,7 @@
                 </div>
                 <textarea id="missionVoiceTranscript" rows="2" placeholder="متن گفتار شما اینجا نمایش داده می‌شود... (مثلا: امروز رفتم بهداشت درمان نفت با اسنپ ۶۰ هزار تومن، برگشتم شخصی، از ۸ تا ۱۲)" class="glass-input w-full p-2.5 rounded-xl text-xs leading-relaxed"></textarea>
                 <div class="flex items-center justify-between gap-2">
-                    <span class="text-[10px] text-slate-400">با موتور ابری کلادفلر (Cloudflare AI) پر می‌شود</span>
+                    <span class="text-[10px] text-slate-400">تبدیل گفتار به متن (Whisper) و پر کردن فرم با موتور ابری کلادفلر — بدون تکرار متن در موبایل</span>
                     <div class="flex items-center gap-2">
                         <button type="button" onclick="clearMissionVoiceTranscript()" class="btn-touch px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] transition border border-slate-700">
                             <i class="fa-solid fa-eraser ml-1"></i>پاک کردن
@@ -2119,8 +2119,22 @@
         };
 
         /* ===== VOICE MISSION ENTRY (ثبت صوتی مأموریت) ===== */
-        window.voiceRecognition = null;
+        window.voiceMediaRecorder = null;
+        window.voiceAudioStream = null;
+        window.__voiceSttPromise = null;
         window.voiceIsRecording = false;
+
+        /* تبدیل صوت ضبط‌شده به متن با موتور ابری کلادفلر (Whisper) — رایگان و بدون کلید */
+        window.cloudSpeechToText = async function(blob, mimeType) {
+            const b64 = await new Promise(function(resolve, reject) {
+                const r = new FileReader();
+                r.onload = function() { resolve(String(r.result).split(',')[1] || ''); };
+                r.onerror = function() { reject(new Error('خواندن فایل صوتی ناموفق بود.')); };
+                r.readAsDataURL(blob);
+            });
+            const out = await cloudAiFetch('stt', { audio: b64, mimeType: mimeType || 'audio/webm' });
+            return String((out && out.text) || '').trim();
+        };
 
         function updateVoiceUI(recording) {
             const btn = document.getElementById('voiceRecordBtn');
@@ -2152,64 +2166,84 @@
                 stopVoiceRecordingSilently();
                 return;
             }
+            startVoiceCloudRecording();
+        };
 
-            const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-            if (!SR) {
-                showCustomAlert('مرورگر شما از تشخیص گفتار پشتیبانی نمی‌کند. لطفاً از Google Chrome استفاده کنید.', 'عدم پشتیبانی');
+        /* ضبط صدا با MediaRecorder و تبدیل به متن با موتور ابری کلادفلر (Whisper)
+           — بدون تکیه بر سرویس گوگل مرورگر؛ مشکل تکرار متن در موبایل ریشه‌ای حل می‌شود */
+        function startVoiceCloudRecording() {
+            if (!navigator.mediaDevices || !window.MediaRecorder) {
+                showCustomAlert('مرورگر شما از ضبط صدا پشتیبانی نمی‌کند. لطفاً از Google Chrome استفاده کنید.', 'عدم پشتیبانی');
                 return;
             }
-
-            const rec = new SR();
-            rec.lang = 'fa-IR';
-            rec.continuous = true;
-            rec.interimResults = true;
-
-            let finalText = (document.getElementById('voiceTranscript')?.value || '').trim();
-
-            rec.onresult = function(e) {
-                let interim = '';
-                for (let i = e.resultIndex; i < e.results.length; i++) {
-                    const t = e.results[i][0].transcript;
-                    if (e.results[i].isFinal) finalText += ' ' + t;
-                    else interim += t;
+            navigator.mediaDevices.getUserMedia({ audio: true }).then(function(stream) {
+                window.voiceAudioStream = stream;
+                const chunks = [];
+                let mimeType = '';
+                if (MediaRecorder.isTypeSupported('audio/webm')) mimeType = 'audio/webm';
+                else if (MediaRecorder.isTypeSupported('audio/mp4')) mimeType = 'audio/mp4';
+                const rec = mimeType ? new MediaRecorder(stream, { mimeType: mimeType }) : new MediaRecorder(stream);
+                window.voiceMediaRecorder = rec;
+                rec.ondataavailable = function(e) { if (e.data && e.data.size) chunks.push(e.data); };
+                rec.onstop = async function() {
+                    try { stream.getTracks().forEach(function(t) { t.stop(); }); } catch (e) {}
+                    window.voiceAudioStream = null;
+                    window.voiceMediaRecorder = null;
+                    updateVoiceUI(false);
+                    const blob = new Blob(chunks, { type: rec.mimeType || 'audio/webm' });
+                    const status = document.getElementById('voiceStatusText');
+                    if (blob.size < 1500) {
+                        if (status) { status.innerText = 'صدایی ضبط نشد — دوباره بزنید و واضح‌تر صحبت کنید'; status.className = 'text-[11px] text-amber-300 font-bold'; }
+                        return;
+                    }
+                    if (status) { status.innerText = 'در حال تبدیل گفتار به متن با موتور ابری کلادفلر...'; status.className = 'text-[11px] text-amber-300 font-bold animate-pulse'; }
+                    const p = (async function() {
+                        try {
+                            const text = await window.cloudSpeechToText(blob, rec.mimeType || 'audio/webm');
+                            const ta = document.getElementById('voiceTranscript');
+                            if (ta && text) ta.value = ((ta.value || '').trim() + ' ' + text).trim();
+                            if (!text) showCustomAlert('متنی تشخیص داده نشد. نزدیک‌تر به میکروفن و واضح‌تر صحبت کنید.', 'متن تشخیص داده نشد');
+                        } catch (err) {
+                            console.error('Cloud STT Error:', err);
+                            showCustomAlert('خطا در تبدیل صوت به متن: ' + err.message);
+                        } finally {
+                            if (status) { status.innerText = 'برای شروع ضبط، دکمه را بزنید'; status.className = 'text-[11px] text-slate-400 font-medium'; }
+                        }
+                    })();
+                    window.__voiceSttPromise = p;
+                    try { await p; } catch (e) {}
+                    window.__voiceSttPromise = null;
+                };
+                try {
+                    rec.start(1000);
+                    window.voiceIsRecording = true;
+                    updateVoiceUI(true);
+                } catch (e) {
+                    showCustomAlert('شروع ضبط صدا ممکن نشد: ' + e.message);
+                    try { stream.getTracks().forEach(function(t) { t.stop(); }); } catch (e2) {}
                 }
-                const ta = document.getElementById('voiceTranscript');
-                if (ta) ta.value = (finalText + ' ' + interim).trim();
-            };
-
-            rec.onerror = function(e) {
-                if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
-                    showCustomAlert('دسترسی به میکروفن داده نشد. لطفاً از تنظیمات مرورگر اجازه دسترسی بدهید.', 'خطای میکروفن');
-                    stopVoiceRecordingSilently();
-                }
-            };
-
-            rec.onend = function() {
-                if (window.voiceIsRecording) {
-                    try { rec.start(); } catch (e) { stopVoiceRecordingSilently(); }
-                }
-            };
-
-            window.voiceRecognition = rec;
-            try {
-                rec.start();
-                window.voiceIsRecording = true;
-                updateVoiceUI(true);
-            } catch (e) {
-                showCustomAlert('شروع ضبط صدا ممکن نشد: ' + e.message);
-            }
-        };
+            }).catch(function(err) {
+                showCustomAlert('دسترسی به میکروفن داده نشد. لطفاً اجازه دسترسی بدهید.' + (err && err.message ? ' (' + err.message + ')' : ''), 'خطای میکروفن');
+            });
+        }
 
         window.stopVoiceRecordingSilently = function() {
             window.voiceIsRecording = false;
-            if (window.voiceRecognition) {
-                try { window.voiceRecognition.stop(); } catch (e) {}
-                window.voiceRecognition = null;
+            if (window.voiceMediaRecorder && window.voiceMediaRecorder.state !== 'inactive') {
+                try { window.voiceMediaRecorder.stop(); } catch (e) {}
+            } else {
+                updateVoiceUI(false);
             }
-            updateVoiceUI(false);
+            window.voiceMediaRecorder = null;
+            if (window.voiceAudioStream) {
+                try { window.voiceAudioStream.getTracks().forEach(function(t) { t.stop(); }); } catch (e) {}
+                window.voiceAudioStream = null;
+            }
         };
 
-        window.missionVoiceRecognition = null;
+        window.missionMediaRecorder = null;
+        window.missionAudioStream = null;
+        window.__missionSttPromise = null;
         window.missionVoiceIsRecording = false;
 
         function updateMissionVoiceUI(recording) {
@@ -2244,11 +2278,16 @@
 
         window.stopMissionVoiceSilently = function() {
             window.missionVoiceIsRecording = false;
-            if (window.missionVoiceRecognition) {
-                try { window.missionVoiceRecognition.stop(); } catch (e) {}
-                window.missionVoiceRecognition = null;
+            if (window.missionMediaRecorder && window.missionMediaRecorder.state !== 'inactive') {
+                try { window.missionMediaRecorder.stop(); } catch (e) {}
+            } else {
+                updateMissionVoiceUI(false);
             }
-            updateMissionVoiceUI(false);
+            window.missionMediaRecorder = null;
+            if (window.missionAudioStream) {
+                try { window.missionAudioStream.getTracks().forEach(function(t) { t.stop(); }); } catch (e) {}
+                window.missionAudioStream = null;
+            }
         };
 
         window.clearMissionVoiceTranscript = function() {
@@ -2275,7 +2314,8 @@
         };
 
         window.handleVoiceMissionSubmit = async function() {
-            stopVoiceRecordingSilently();
+            if (window.voiceIsRecording) stopVoiceRecordingSilently();
+            if (window.__voiceSttPromise) { try { await window.__voiceSttPromise; } catch (e) {} }
 
             const text = (document.getElementById('voiceTranscript')?.value || '').trim();
             if (!text) {
@@ -2302,50 +2342,70 @@
             }
         };
 
+        /* ضبط صدا با MediaRecorder و تبدیل به متن با موتور ابری کلادفلر (Whisper)
+           — بدون سرویس گوگل مرورگر؛ مشکل تکرار متن روی موبایل ریشه‌ای حل می‌شود */
         function startMissionVoiceRecording() {
-            const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-            if (!SR) {
-                showCustomAlert('مرورگر شما از تشخیص گفتار پشتیبانی نمی‌کند. لطفاً از Google Chrome استفاده کنید.', 'عدم پشتیبانی');
+            if (!navigator.mediaDevices || !window.MediaRecorder) {
+                showCustomAlert('مرورگر شما از ضبط صدا پشتیبانی نمی‌کند. لطفاً از Google Chrome استفاده کنید.', 'عدم پشتیبانی');
                 return;
             }
-            const rec = new SR();
-            rec.lang = 'fa-IR';
-            rec.continuous = true;
-            rec.interimResults = true;
-            let finalText = (document.getElementById('missionVoiceTranscript')?.value || '').trim();
-            rec.onresult = function(e) {
-                let interim = '';
-                for (let i = e.resultIndex; i < e.results.length; i++) {
-                    const t = e.results[i][0].transcript;
-                    if (e.results[i].isFinal) finalText += ' ' + t;
-                    else interim += t;
+            navigator.mediaDevices.getUserMedia({ audio: true }).then(function(stream) {
+                window.missionAudioStream = stream;
+                const chunks = [];
+                let mimeType = '';
+                if (MediaRecorder.isTypeSupported('audio/webm')) mimeType = 'audio/webm';
+                else if (MediaRecorder.isTypeSupported('audio/mp4')) mimeType = 'audio/mp4';
+                const rec = mimeType ? new MediaRecorder(stream, { mimeType: mimeType }) : new MediaRecorder(stream);
+                window.missionMediaRecorder = rec;
+                rec.ondataavailable = function(e) { if (e.data && e.data.size) chunks.push(e.data); };
+                rec.onstop = async function() {
+                    try { stream.getTracks().forEach(function(t) { t.stop(); }); } catch (e) {}
+                    window.missionAudioStream = null;
+                    window.missionMediaRecorder = null;
+                    updateMissionVoiceUI(false);
+                    const blob = new Blob(chunks, { type: rec.mimeType || 'audio/webm' });
+                    const status = document.getElementById('missionVoiceStatus');
+                    const btn = document.getElementById('missionVoiceBtn');
+                    if (blob.size < 1500) {
+                        if (status) status.innerHTML = '<span>صدایی ضبط نشد — دوباره بزنید و واضح‌تر صحبت کنید</span>';
+                        return;
+                    }
+                    if (status) status.innerHTML = '<span>در حال تبدیل گفتار به متن با موتور ابری کلادفلر (Whisper)...</span>';
+                    if (btn) btn.disabled = true;
+                    const p = (async function() {
+                        try {
+                            const text = await window.cloudSpeechToText(blob, rec.mimeType || 'audio/webm');
+                            const ta = document.getElementById('missionVoiceTranscript');
+                            if (ta && text) ta.value = ((ta.value || '').trim() + ' ' + text).trim();
+                            if (!text && status) status.innerHTML = '<span>متنی تشخیص داده نشد — دوباره و واضح‌تر صحبت کنید</span>';
+                        } catch (err) {
+                            console.error('Cloud STT Error:', err);
+                            if (status) status.innerHTML = '<span>خطا در تبدیل صوت: ' + (err && err.message ? err.message : '') + '</span>';
+                        } finally {
+                            if (btn) btn.disabled = false;
+                            updateMissionVoiceUI(false);
+                        }
+                    })();
+                    window.__missionSttPromise = p;
+                    try { await p; } catch (e) {}
+                    window.__missionSttPromise = null;
+                };
+                try {
+                    rec.start(1000);
+                    window.missionVoiceIsRecording = true;
+                    updateMissionVoiceUI(true);
+                } catch (e) {
+                    showCustomAlert('شروع ضبط صدا ممکن نشد: ' + e.message);
+                    try { stream.getTracks().forEach(function(t) { t.stop(); }); } catch (e2) {}
                 }
-                const ta = document.getElementById('missionVoiceTranscript');
-                if (ta) ta.value = (finalText + ' ' + interim).trim();
-            };
-            rec.onerror = function(e) {
-                if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
-                    showCustomAlert('دسترسی به میکروفن داده نشد. لطفاً اجازه دسترسی بدهید.', 'خطای میکروفن');
-                    window.stopMissionVoiceSilently();
-                }
-            };
-            rec.onend = function() {
-                if (window.missionVoiceIsRecording) {
-                    try { rec.start(); } catch (e) { window.stopMissionVoiceSilently(); }
-                }
-            };
-            window.missionVoiceRecognition = rec;
-            try {
-                rec.start();
-                window.missionVoiceIsRecording = true;
-                updateMissionVoiceUI(true);
-            } catch (e) {
-                showCustomAlert('شروع ضبط صدا ممکن نشد: ' + e.message);
-            }
+            }).catch(function(err) {
+                showCustomAlert('دسترسی به میکروفن داده نشد. لطفاً اجازه دسترسی بدهید.' + (err && err.message ? ' (' + err.message + ')' : ''), 'خطای میکروفن');
+            });
         }
 
         window.handleMissionVoiceFill = async function() {
-            window.stopMissionVoiceSilently();
+            if (window.missionVoiceIsRecording) window.stopMissionVoiceSilently();
+            if (window.__missionSttPromise) { try { await window.__missionSttPromise; } catch (e) {} }
             const text = (document.getElementById('missionVoiceTranscript')?.value || '').trim();
             if (!text) {
                 showCustomAlert('ابتدا روی میکروفن بزنید و شرح مأموریت را بگویید.', 'متن صوتی خالی است');

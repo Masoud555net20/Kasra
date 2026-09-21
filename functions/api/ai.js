@@ -7,6 +7,8 @@ import { json, parseJsonBody } from './_helpers.js';
    ۳) پاسخ‌ها در قالب استاندارد Gemini نرمال‌سازی می‌شوند تا منطق فرانت‌اند تغییر نکند */
 
 const TEXT_MODELS = [
+  /* Gemma 3 12B — مدل متن‌باز گوگل (خانواده جمینای): بهترین کیفیت فارسی در میان مدل‌های رایگان کلادفلر */
+  '@cf/google/gemma-3-12b-it',
   '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
   '@cf/meta/llama-3.1-8b-instruct-fp8',
   '@cf/meta/llama-3.2-3b-instruct'
@@ -20,6 +22,13 @@ const IMAGE_MODELS = [
   '@cf/black-forest-labs/flux-1-schnell',
   '@cf/stabilityai/stable-diffusion-xl-base-9.0'
 ];
+
+const STT_MODELS = [
+  '@cf/openai/whisper-large-v3-turbo',
+  '@cf/openai/whisper'
+];
+
+const MAX_STT_AUDIO_BYTES = 8 * 1024 * 1024; // سقف ~۸ مگابایت برای هر فایل صوتی
 
 const MAX_INPUT_CHARS = 40000;
 
@@ -282,6 +291,37 @@ async function handleImagen(ai, payload) {
   throw new Error('مدل‌های تولید تصویر پاسخ ندادند. ' + errors.slice(0, 3).join(' | '));
 }
 
+/* تبدیل گفتار به متن (Speech-to-Text) با Whisper کلادفلر — برای ثبت صوتی روی موبایل.
+   ورودی: payload.audio (base64 فایل صوتی webm/mp4/wav) — خروجی: { text } */
+async function handleStt(ai, payload) {
+  const b64 = payload && payload.audio ? String(payload.audio) : '';
+  if (!b64) throw new Error('فایل صوتی (audio) ارسال نشده است.');
+  const bytes = base64ToUint8(b64);
+  if (!bytes.length) throw new Error('فایل صوتی خالی است.');
+  if (bytes.length > MAX_STT_AUDIO_BYTES) {
+    throw new Error('حجم فایل صوتی بیش از حد مجاز است (حداکثر ۸ مگابایت).');
+  }
+
+  const errors = [];
+  for (const model of STT_MODELS) {
+    const variants = [
+      { audio: Array.from(bytes), task: 'transcribe', language: 'fa' },
+      { audio: Array.from(bytes), task: 'transcribe' },
+      { audio: Array.from(bytes) }
+    ];
+    for (const inputs of variants) {
+      try {
+        const out = await ai.run(model, inputs);
+        const text = out && typeof out.text === 'string' ? out.text.trim() : '';
+        return { model, data: { text } }; // متن خالی هم موفق است (سکوت/نویز)
+      } catch (err) {
+        errors.push(model + ': ' + String((err && err.message) || err).slice(0, 100));
+      }
+    }
+  }
+  throw new Error('تبدیل گفتار به متن (Whisper) پاسخ نداد. ' + errors.slice(0, 3).join(' | '));
+}
+
 export async function onRequest(context) {
   const { request, env } = context;
 
@@ -294,7 +334,7 @@ export async function onRequest(context) {
       ok: true,
       service: 'cloudflare-workers-ai',
       hasAiBinding: !!(env && env.AI),
-      models: { text: TEXT_MODELS, vision: VISION_MODELS, image: IMAGE_MODELS }
+      models: { text: TEXT_MODELS, vision: VISION_MODELS, image: IMAGE_MODELS, stt: STT_MODELS }
     });
   }
 
@@ -317,6 +357,8 @@ export async function onRequest(context) {
       result = await handleImagen(ai, payload);
     } else if (kind === 'text' || kind === 'vision') {
       result = await handleText(ai, payload);
+    } else if (kind === 'stt') {
+      result = await handleStt(ai, payload);
     } else if (kind === 'tts') {
       return json({ ok: false, message: 'قرائت صوتی اکنون مستقیماً در مرورگر انجام می‌شود و به سرور نیازی ندارد.' }, 400);
     } else {
