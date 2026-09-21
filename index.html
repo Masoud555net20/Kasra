@@ -668,7 +668,12 @@
                             تاریخ شمسی <span class="text-emerald-400">*</span>
                             <span class="text-[10px] text-emerald-400 mr-2" id="autoDayBadge"></span>
                         </label>
-                        <input type="text" id="formDate" placeholder="۱۴۰۵/۰۳/۰۳" required class="glass-input w-full px-3 py-2 rounded-xl" oninput="handleDateInput(this.value)">
+                        <div class="relative">
+                            <input type="text" id="formDate" placeholder="۱۴۰۵/۰۳/۰۳" required class="glass-input w-full px-3 py-2 pl-10 rounded-xl cursor-pointer" oninput="handleDateInput(this.value)" onclick="openJalaliPicker(this)" onfocus="openJalaliPicker(this)">
+                            <button type="button" onclick="openJalaliPicker(document.getElementById('formDate'))" class="absolute left-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-lg bg-teal-500/10 hover:bg-teal-500/20 text-teal-300 flex items-center justify-center border border-teal-500/25" title="انتخاب از تقویم شمسی">
+                                <i class="fa-solid fa-calendar-days text-xs"></i>
+                            </button>
+                        </div>
                     </div>
 
                     <div>
@@ -717,7 +722,7 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
                             <label class="block text-xs text-slate-400 mb-1">وسیله رفت</label>
-                            <select id="formOutboundVehicle" onchange="updateReceiptHints()" class="glass-input w-full px-3 py-2 rounded-xl">
+                            <select id="formOutboundVehicle" class="glass-input w-full px-3 py-2 rounded-xl">
                                 <option value="شخصی">شخصی</option>
                                 <option value="اسنپ/تپسی">اسنپ / تپسی</option>
                                 <option value="آژانس">آژانس</option>
@@ -730,21 +735,6 @@
                             <input type="text" inputmode="numeric" id="formOutboundCost" placeholder="0" oninput="handleRialInput(this)" class="glass-input w-full px-3 py-2 rounded-xl font-mono">
                         </div>
                     </div>
-                    <div>
-                        <label id="formOutboundReceiptLabel" class="block text-xs text-slate-400 mb-1">
-                            تصویر رسید رفت <span id="formOutboundReceiptStar" class="hidden text-red-400 font-bold">*</span>
-                            <span class="text-[10px] text-slate-500">(برای اسنپ/تپسی و آژانس اجباری)</span>
-                        </label>
-                        <div class="flex items-center gap-2">
-                            <input type="file" id="formOutboundReceiptFile" accept="image/*" capture="environment" onchange="previewMissionReceipt(event,'Outbound')" class="glass-input w-full px-2 py-1.5 rounded-lg text-[10px] text-slate-300">
-                            <button type="button" onclick="clearMissionReceipt('Outbound')" id="formOutboundReceiptClear" class="btn-touch hidden shrink-0 w-8 h-8 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 flex items-center justify-center border border-red-500/20" title="حذف تصویر رسید">
-                                <i class="fa-solid fa-trash text-xs"></i>
-                            </button>
-                        </div>
-                        <div id="formOutboundReceiptPreviewContainer" class="hidden mt-2 text-center p-2 bg-slate-950/60 rounded-xl border border-slate-800">
-                            <img id="formOutboundReceiptPreview" src="" alt="رسید رفت" class="max-h-32 mx-auto rounded-lg object-contain border border-slate-700 cursor-pointer" onclick="openReceiptViewer(this.src,'رسید رفت')">
-                        </div>
-                    </div>
                 </div>
 
                 <div class="p-3.5 rounded-xl bg-slate-900/60 border border-slate-700/50 space-y-2.5">
@@ -754,7 +744,7 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
                             <label class="block text-xs text-slate-400 mb-1">وسیله برگشت</label>
-                            <select id="formInboundVehicle" onchange="updateReceiptHints()" class="glass-input w-full px-3 py-2 rounded-xl">
+                            <select id="formInboundVehicle" class="glass-input w-full px-3 py-2 rounded-xl">
                                 <option value="شخصی">شخصی</option>
                                 <option value="اسنپ/تپسی">اسنپ / تپسی</option>
                                 <option value="آژانس">آژانس</option>
@@ -765,21 +755,6 @@
                         <div>
                             <label class="block text-xs text-slate-400 mb-1">مبلغ برگشت (ریال)</label>
                             <input type="text" inputmode="numeric" id="formInboundCost" placeholder="0" oninput="handleRialInput(this)" class="glass-input w-full px-3 py-2 rounded-xl font-mono">
-                        </div>
-                    </div>
-                    <div>
-                        <label id="formInboundReceiptLabel" class="block text-xs text-slate-400 mb-1">
-                            تصویر رسید برگشت <span id="formInboundReceiptStar" class="hidden text-red-400 font-bold">*</span>
-                            <span class="text-[10px] text-slate-500">(اختیاری)</span>
-                        </label>
-                        <div class="flex items-center gap-2">
-                            <input type="file" id="formInboundReceiptFile" accept="image/*" capture="environment" onchange="previewMissionReceipt(event,'Inbound')" class="glass-input w-full px-2 py-1.5 rounded-lg text-[10px] text-slate-300">
-                            <button type="button" onclick="clearMissionReceipt('Inbound')" id="formInboundReceiptClear" class="btn-touch hidden shrink-0 w-8 h-8 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 flex items-center justify-center border border-red-500/20" title="حذف تصویر رسید">
-                                <i class="fa-solid fa-trash text-xs"></i>
-                            </button>
-                        </div>
-                        <div id="formInboundReceiptPreviewContainer" class="hidden mt-2 text-center p-2 bg-slate-950/60 rounded-xl border border-slate-800">
-                            <img id="formInboundReceiptPreview" src="" alt="رسید برگشت" class="max-h-32 mx-auto rounded-lg object-contain border border-slate-700 cursor-pointer" onclick="openReceiptViewer(this.src,'رسید برگشت')">
                         </div>
                     </div>
                 </div>
@@ -1241,7 +1216,51 @@
         </div>
     </div>
 
-    <!-- RECEIPT IMAGE VIEWER -->
+    <!-- PERSIAN JALALI DATE PICKER (تقویم شمسی زیبا — قابل استفاده در هر فیلد تاریخ با کلاس jalali-date-input) -->
+<style>
+    #jalaliDatePicker { position: fixed; z-index: 130; width: 302px; }
+    .jdp-btn { width: 30px; height: 30px; border-radius: 10px; display: flex; align-items: center; justify-content: center; background: rgba(15, 23, 42, 0.75); color: #5eead4; border: 1px solid rgba(20, 184, 166, 0.25); font-size: 11px; transition: background 0.15s; flex-shrink: 0; }
+    .jdp-btn:hover { background: rgba(20, 184, 166, 0.22); }
+    .jdp-select { background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(71, 85, 105, 0.6); border-radius: 10px; color: #e2e8f0; font-size: 12px; padding: 4px 8px; font-weight: 700; outline: none; cursor: pointer; }
+    .jdp-select:focus { border-color: rgba(45, 212, 191, 0.5); }
+    .jdp-select option { background: #0f172a; color: #e2e8f0; }
+    .jdp-wd { font-size: 10.5px; color: #64748b; font-weight: 700; height: 24px; display: flex; align-items: center; justify-content: center; }
+    .jdp-day { height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 12.5px; color: #cbd5e1; cursor: pointer; transition: all 0.12s; border: 1px solid transparent; }
+    .jdp-day:hover { background: rgba(20, 184, 166, 0.16); color: #5eead4; }
+    .jdp-day.jdp-today { border-color: rgba(45, 212, 191, 0.55); color: #5eead4; font-weight: 800; }
+    .jdp-day.jdp-selected { background: linear-gradient(135deg, #0d9488, #059669); color: #fff; font-weight: 800; box-shadow: 0 4px 14px rgba(13, 148, 136, 0.45); }
+    .jdp-day.jdp-empty { visibility: hidden; }
+    .jdp-btn-text { font-size: 11.5px; font-weight: 700; padding: 5px 12px; border-radius: 10px; background: rgba(15, 23, 42, 0.75); color: #94a3b8; transition: background 0.15s; border: 1px solid rgba(71, 85, 105, 0.4); }
+    .jdp-btn-text:hover { background: rgba(51, 65, 85, 0.9); color: #e2e8f0; }
+    .jdp-btn-text.jdp-accent { color: #5eead4; border-color: rgba(20, 184, 166, 0.3); }
+    body.light-theme #jalaliDatePicker { background: rgba(255, 255, 255, 0.98); border-color: rgba(13, 148, 136, 0.35); box-shadow: 0 20px 50px rgba(15, 23, 42, 0.25); }
+    body.light-theme .jdp-select { background: #f8fafc; color: #0f172a; }
+    body.light-theme .jdp-select option { background: #fff; color: #0f172a; }
+    body.light-theme .jdp-day { color: #334155; }
+    body.light-theme .jdp-day:hover { background: rgba(13, 148, 136, 0.12); color: #0d9488; }
+    body.light-theme .jdp-day.jdp-selected { color: #fff; }
+    body.light-theme .jdp-btn-text { background: #f1f5f9; color: #0f172a; }
+</style>
+<div id="jalaliDatePicker" class="hidden rounded-2xl border border-teal-500/30 bg-slate-900/95 backdrop-blur-xl shadow-2xl shadow-black/50 p-3 select-none" dir="rtl">
+    <div class="flex items-center justify-between gap-1.5 mb-2">
+        <button type="button" data-jdp-nav="prev" class="jdp-btn" title="ماه قبل"><i class="fa-solid fa-chevron-right"></i></button>
+        <div class="flex items-center gap-1.5">
+            <select id="jdpMonthSel" class="jdp-select" title="ماه"></select>
+            <select id="jdpYearSel" class="jdp-select" title="سال"></select>
+        </div>
+        <button type="button" data-jdp-nav="next" class="jdp-btn" title="ماه بعد"><i class="fa-solid fa-chevron-left"></i></button>
+    </div>
+    <div class="grid grid-cols-7 gap-1 mb-0.5">
+        <div class="jdp-wd">ش</div><div class="jdp-wd">ی</div><div class="jdp-wd">د</div><div class="jdp-wd">س</div><div class="jdp-wd">چ</div><div class="jdp-wd">پ</div><div class="jdp-wd">ج</div>
+    </div>
+    <div id="jdpDaysGrid" class="grid grid-cols-7 gap-1"></div>
+    <div class="flex items-center justify-between gap-2 mt-2 pt-2 border-t border-slate-700/60">
+        <button type="button" id="jdpTodayBtn" class="jdp-btn-text jdp-accent"><i class="fa-solid fa-crosshairs ml-1"></i>امروز</button>
+        <button type="button" id="jdpCloseBtn" class="jdp-btn-text"><i class="fa-solid fa-xmark ml-1"></i>بستن</button>
+    </div>
+</div>
+
+<!-- RECEIPT IMAGE VIEWER -->
     <div id="receiptViewerModal" class="fixed inset-0 bg-slate-950/90 backdrop-blur-sm z-[105] hidden flex items-center justify-center p-4">
         <div class="max-w-2xl w-full text-center space-y-3">
             <div class="flex items-center justify-between">
@@ -2013,7 +2032,6 @@
             }
 
             calculateTotalFormSum();
-            updateReceiptHints();
         };
 
         window.handleAiTextSubmit = async function() {
@@ -2091,7 +2109,6 @@
                     setRialValue(document.getElementById('formOutboundCost'), ocrResult.amount);
 
                     calculateTotalFormSum();
-                    updateReceiptHints();
                     showCustomAlert('اطلاعات رسید تصویر توسط هوش مصنوعی ابری استخراج و در فرم درج گردید.', 'هوش مصنوعی ابری');
                 } catch (err) {
                     loader.classList.add('hidden');
@@ -3089,6 +3106,129 @@
             }
         }
 
+        /* ===== تقویم شمسی زیبا (Jalali Date Picker) =====
+           هر فیلدی که کلاس jalali-date-input داشته باشد با کلیک/فوکوس این تقویم را باز می‌کند */
+        const JDP_MONTHS = ['فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور', 'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند'];
+        window.jdpState = { input: null, jy: 0, jm: 0, selected: null };
+
+        function jdpIsLeap(jy) { const m = jy % 33; return [1, 5, 9, 13, 17, 22, 26, 30].indexOf(m) > -1; }
+        function jdpMonthLen(jy, jm) { if (jm <= 6) return 31; if (jm <= 11) return 30; return jdpIsLeap(jy) ? 30 : 29; }
+        function jdpTodayJalali() {
+            const now = new Date();
+            const p = gregorianToJalali(now.getFullYear(), now.getMonth() + 1, now.getDate());
+            return { jy: p[0], jm: p[1], jd: p[2] };
+        }
+        function jdpPad(n) { return String(n).padStart(2, '0'); }
+        function jdpFormatDate(jy, jm, jd) { return toPersianDigits(jy + '/' + jdpPad(jm) + '/' + jdpPad(jd)); }
+        function jdpParseInputDate(str) {
+            const s = toEnDigits(String(str || '')).replace(/-/g, '/').trim();
+            const parts = s.split('/').map(Number);
+            if (parts.length !== 3 || isNaN(parts[0]) || isNaN(parts[1]) || isNaN(parts[2])) return null;
+            const jy = parts[0], jm = parts[1], jd = parts[2];
+            if (jy < 1200 || jy > 1500 || jm < 1 || jm > 12 || jd < 1 || jd > jdpMonthLen(jy, jm)) return null;
+            return { jy: jy, jm: jm, jd: jd };
+        }
+        function jdpPick(jy, jm, jd) {
+            const s = window.jdpState;
+            s.selected = { jy: jy, jm: jm, jd: jd };
+            if (s.input) {
+                s.input.value = jdpFormatDate(jy, jm, jd);
+                if (typeof handleDateInput === 'function') handleDateInput(s.input.value);
+            }
+            jdpRender();
+            setTimeout(jdpClose, 140);
+        }
+        function jdpRender() {
+            const s = window.jdpState;
+            const picker = document.getElementById('jalaliDatePicker');
+            if (!picker) return;
+            const mSel = document.getElementById('jdpMonthSel');
+            if (!mSel.options.length) JDP_MONTHS.forEach(function(name, i) { const o = document.createElement('option'); o.value = i + 1; o.textContent = name; mSel.appendChild(o); });
+            mSel.value = String(s.jm);
+            const ySel = document.getElementById('jdpYearSel');
+            if (!ySel.options.length) { const t = jdpTodayJalali().jy; for (let y = t - 15; y <= t + 10; y++) { const o = document.createElement('option'); o.value = y; o.textContent = toPersianDigits(y); ySel.appendChild(o); } }
+            if (!ySel.querySelector('option[value="' + s.jy + '"]')) { const o = document.createElement('option'); o.value = s.jy; o.textContent = toPersianDigits(s.jy); ySel.appendChild(o); }
+            ySel.value = String(s.jy);
+            const grid = document.getElementById('jdpDaysGrid');
+            const firstDow = (jalaliToGregorian(s.jy, s.jm, 1).getDay() + 1) % 7;
+            const len = jdpMonthLen(s.jy, s.jm);
+            const today = jdpTodayJalali();
+            let html = '';
+            for (let i = 0; i < firstDow; i++) html += '<div class="jdp-day jdp-empty"></div>';
+            for (let d = 1; d <= len; d++) {
+                const isToday = today.jy === s.jy && today.jm === s.jm && today.jd === d;
+                const isSel = s.selected && s.selected.jy === s.jy && s.selected.jm === s.jm && s.selected.jd === d;
+                html += '<div class="jdp-day' + (isToday ? ' jdp-today' : '') + (isSel ? ' jdp-selected' : '') + '" data-d="' + d + '">' + toPersianDigits(d) + '</div>';
+            }
+            grid.innerHTML = html;
+        }
+        function jdpPosition() {
+            const picker = document.getElementById('jalaliDatePicker');
+            const s = window.jdpState;
+            if (!picker || picker.classList.contains('hidden') || !s.input) return;
+            const r = s.input.getBoundingClientRect();
+            const pw = picker.offsetWidth, ph = picker.offsetHeight;
+            let top = r.bottom + 8;
+            if (top + ph > window.innerHeight - 8) top = Math.max(8, r.top - ph - 8);
+            const left = Math.max(8, Math.min(r.left, window.innerWidth - pw - 8));
+            picker.style.top = top + 'px';
+            picker.style.left = left + 'px';
+        }
+        function jdpNav(delta) {
+            const s = window.jdpState;
+            let m = s.jm + delta, y = s.jy;
+            if (m > 12) { m = 1; y++; } else if (m < 1) { m = 12; y--; }
+            s.jy = y; s.jm = m;
+            jdpRender();
+        }
+        window.openJalaliPicker = function(input) {
+            if (!input) return;
+            const s = window.jdpState;
+            s.input = input;
+            s.selected = jdpParseInputDate(input.value);
+            const today = jdpTodayJalali();
+            if (s.selected) { s.jy = s.selected.jy; s.jm = s.selected.jm; } else { s.jy = today.jy; s.jm = today.jm; }
+            jdpRender();
+            const picker = document.getElementById('jalaliDatePicker');
+            picker.classList.remove('hidden');
+            jdpPosition();
+        };
+        function jdpClose() {
+            const picker = document.getElementById('jalaliDatePicker');
+            if (picker) picker.classList.add('hidden');
+        }
+        document.addEventListener('DOMContentLoaded', function() {
+            const picker = document.getElementById('jalaliDatePicker');
+            if (!picker) return;
+            picker.addEventListener('click', function(e) { e.stopPropagation(); });
+            picker.querySelectorAll('[data-jdp-nav]').forEach(function(b) {
+                b.addEventListener('click', function() { jdpNav(b.getAttribute('data-jdp-nav') === 'next' ? 1 : -1); });
+            });
+            document.getElementById('jdpMonthSel').addEventListener('change', function() { window.jdpState.jm = Number(this.value); jdpRender(); });
+            document.getElementById('jdpYearSel').addEventListener('change', function() { window.jdpState.jy = Number(this.value); jdpRender(); });
+            document.getElementById('jdpTodayBtn').addEventListener('click', function() { const t = jdpTodayJalali(); jdpPick(t.jy, t.jm, t.jd); });
+            document.getElementById('jdpCloseBtn').addEventListener('click', jdpClose);
+            document.getElementById('jdpDaysGrid').addEventListener('click', function(e) {
+                const cell = e.target.closest('.jdp-day[data-d]');
+                if (!cell) return;
+                const s = window.jdpState;
+                jdpPick(s.jy, s.jm, Number(cell.getAttribute('data-d')));
+            });
+            document.querySelectorAll('.jalali-date-input').forEach(function(inp) {
+                inp.addEventListener('focus', function() { openJalaliPicker(inp); });
+                inp.addEventListener('click', function(e) { e.stopPropagation(); openJalaliPicker(inp); });
+            });
+            document.addEventListener('mousedown', function(e) {
+                const picker = document.getElementById('jalaliDatePicker');
+                if (picker.classList.contains('hidden')) return;
+                const inp = window.jdpState.input;
+                if (!picker.contains(e.target) && !(inp && (e.target === inp || inp.contains(e.target)))) jdpClose();
+            });
+            document.addEventListener('keydown', function(e) { if (e.key === 'Escape') jdpClose(); });
+            window.addEventListener('resize', jdpPosition);
+            document.addEventListener('scroll', jdpPosition, true);
+        });
+
         function formatNum(val) {
             if (val === null || val === undefined || isNaN(val)) return '۰';
             return Number(val).toLocaleString('fa-IR');
@@ -3128,105 +3268,6 @@
             m = s.match(/\b(\d{1,2})\b/);
             if (m && +m[1] <= 23) return pad2(+m[1]) + ':00';
             return '';
-        }
-
-        function needsReceiptVehicle(v) {
-            const val = String(v || '');
-            return val.indexOf('اسنپ') > -1 || val.indexOf('آژانس') > -1;
-        }
-
-        window.updateReceiptHints = function() {
-            // رفت: برای اسنپ/تپسی و آژانس رسید اجباری است — برگشت: همیشه اختیاری
-            const outSel = document.getElementById('formOutboundVehicle');
-            const outFile = document.getElementById('formOutboundReceiptFile');
-            const outStar = document.getElementById('formOutboundReceiptStar');
-            const outNeed = needsReceiptVehicle(outSel ? outSel.value : '');
-            if (outFile) outFile.required = outNeed;
-            if (outStar) outStar.classList.toggle('hidden', !outNeed);
-            const inFile = document.getElementById('formInboundReceiptFile');
-            const inStar = document.getElementById('formInboundReceiptStar');
-            if (inFile) inFile.required = false;
-            if (inStar) inStar.classList.add('hidden');
-        };
-
-        function compressReceiptImage(file, callback) {
-            const reader = new FileReader();
-            reader.onload = function(evt) {
-                const img = new Image();
-                img.onload = function() {
-                    const canvas = document.createElement('canvas');
-                    const maxDim = 720;
-                    let width = img.width;
-                    let height = img.height;
-
-                    if (width > maxDim || height > maxDim) {
-                        const ratio = Math.min(maxDim / width, maxDim / height);
-                        width = Math.round(width * ratio);
-                        height = Math.round(height * ratio);
-                    }
-
-                    canvas.width = width;
-                    canvas.height = height;
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0, width, height);
-                    callback(canvas.toDataURL('image/jpeg', 0.68));
-                };
-                img.onerror = function() { callback(null); };
-                img.src = evt.target.result;
-            };
-            reader.readAsDataURL(file);
-        }
-
-        window.previewMissionReceipt = function(event, dir) {
-            const input = event.target;
-            const prevContainer = document.getElementById('form' + dir + 'ReceiptPreviewContainer');
-            const prevImg = document.getElementById('form' + dir + 'ReceiptPreview');
-            const clearBtn = document.getElementById('form' + dir + 'ReceiptClear');
-            const file = input.files[0];
-
-            if (!file) return;
-
-            compressReceiptImage(file, function(dataUrl) {
-                if (!dataUrl) {
-                    showCustomAlert('فایل انتخاب‌شده تصویر معتبری نیست.');
-                    clearMissionReceipt(dir);
-                    return;
-                }
-                window['form' + dir + 'ReceiptData'] = dataUrl;
-                prevImg.src = dataUrl;
-                prevContainer.classList.remove('hidden');
-                clearBtn.classList.remove('hidden');
-            });
-        };
-
-        window.clearMissionReceipt = function(dir) {
-            window['form' + dir + 'ReceiptData'] = null;
-            const fileInput = document.getElementById('form' + dir + 'ReceiptFile');
-            const prevContainer = document.getElementById('form' + dir + 'ReceiptPreviewContainer');
-            const clearBtn = document.getElementById('form' + dir + 'ReceiptClear');
-            if (fileInput) fileInput.value = '';
-            if (prevContainer) prevContainer.classList.add('hidden');
-            if (clearBtn) clearBtn.classList.add('hidden');
-            const prevImg = document.getElementById('form' + dir + 'ReceiptPreview');
-            if (prevImg) prevImg.src = '';
-        };
-
-        function setMissionReceipt(dir, dataUrl) {
-            const prevContainer = document.getElementById('form' + dir + 'ReceiptPreviewContainer');
-            const prevImg = document.getElementById('form' + dir + 'ReceiptPreview');
-            const clearBtn = document.getElementById('form' + dir + 'ReceiptClear');
-            window['form' + dir + 'ReceiptData'] = dataUrl || null;
-            if (dataUrl) {
-                prevImg.src = dataUrl;
-                prevContainer.classList.remove('hidden');
-                clearBtn.classList.remove('hidden');
-            } else {
-                const fileInput = document.getElementById('form' + dir + 'ReceiptFile');
-                if (fileInput) fileInput.value = '';
-                prevContainer.classList.add('hidden');
-                clearBtn.classList.add('hidden');
-                prevImg.src = '';
-            }
         }
 
         window.openReceiptViewer = function(src, title) {
@@ -4147,18 +4188,13 @@
                     setRialValue(document.getElementById('formOutboundCost'), item.outboundCost);
                     document.getElementById('formInboundVehicle').value = item.inboundVehicle || 'شخصی';
                     setRialValue(document.getElementById('formInboundCost'), item.inboundCost);
-                    setMissionReceipt('Outbound', item.outboundReceipt || '');
-                    setMissionReceipt('Inbound', item.inboundReceipt || '');
                     calculateTotalFormSum();
                     handleDateInput(item.date || '');
-                    updateReceiptHints();
                 }
             } else {
                 document.getElementById('modalTitle').innerText = 'ثبت هزینه مأموریت جدید';
                 form.reset();
                 document.getElementById('editId').value = '';
-                setMissionReceipt('Outbound', '');
-                setMissionReceipt('Inbound', '');
 
                 const currentShamsiDate = getCurrentJalaliDateStr();
                 const currentTime = getCurrentTimeStr();
@@ -4170,7 +4206,6 @@
                 handleFormProjectChange();
                 calculateTotalFormSum();
                 handleDateInput(currentShamsiDate);
-                updateReceiptHints();
             }
         }
 
@@ -4220,14 +4255,9 @@
 
             const existingItem = editId ? window.normalizeMissionRecord((window.expensesData || []).find(x => x.id === editId)) : null;
 
-            const outboundReceiptImg = (window.formOutboundReceiptData || existingItem?.outboundReceipt || '').trim();
-            const inboundReceiptImg = (window.formInboundReceiptData || existingItem?.inboundReceipt || '').trim();
-
-            if (needsReceiptVehicle(outboundVehicle) && !outboundReceiptImg) {
-                showCustomAlert(`انتخاب «${outboundVehicle}» برای مسیر رفت، پیوست تصویر رسید را الزامی می‌کند.`, 'رسید اجباری');
-                return;
-            }
-            // مسیر برگشت: وسیله و رسید همیشه اختیاری است (بدون اعتبارسنجی)
+            // فیلد تصویر رسید از فرم حذف شد — در ویرایش، رسیدهای ثبت‌شده قبلی رکورد حفظ می‌شود
+            const outboundReceiptImg = (existingItem?.outboundReceipt || '').trim();
+            const inboundReceiptImg = (existingItem?.inboundReceipt || '').trim();
 
             const newEntry = {
                 id: id,
@@ -4256,8 +4286,6 @@
                 return; // فرم باز می‌ماند؛ پیام خطا در saveExpenseData نمایش داده شده است
             }
             closeExpenseModal();
-            setMissionReceipt('Outbound', '');
-            setMissionReceipt('Inbound', '');
             showCustomAlert('اطلاعات مأموریت با موفقیت در دیتابیس ذخیره شد.');
         }
 

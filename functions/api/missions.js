@@ -56,14 +56,6 @@ export async function onRequest(context) {
         }
       }
 
-      const needsReceipt = (v) => v.includes('اسنپ') || v.includes('آژانس');
-      if (needsReceipt(outboundVehicle) && !outboundReceipt) {
-        return json({ ok: false, message: `برای وسیله «${outboundVehicle}» پیوست تصویر رسید رفت الزامی است.` }, 400);
-      }
-      if (needsReceipt(inboundVehicle) && !inboundReceipt) {
-        return json({ ok: false, message: `برای وسیله «${inboundVehicle}» پیوست تصویر رسید برگشت الزامی است.` }, 400);
-      }
-
       const existingUser = userId ? await db.prepare('SELECT * FROM users WHERE id = ?').bind(userId).first() : null;
       if (!existingUser && username) {
         const fullName = String(item.fullName || item.full_name || username).trim() || username;
