@@ -7,15 +7,18 @@ import { json, parseJsonBody } from './_helpers.js';
    ۳) پاسخ‌ها در قالب استاندارد Gemini نرمال‌سازی می‌شوند تا منطق فرانت‌اند تغییر نکند */
 
 const TEXT_MODELS = [
-  /* Gemma 3 12B — مدل متن‌باز گوگل (خانواده جمینای): بهترین کیفیت فارسی در میان مدل‌های رایگان کلادفلر */
-  '@cf/google/gemma-3-12b-it',
+  /* مدل‌های تأییدشده روی همین اکانت (npx wrangler ai models) — به ترتیب کیفیت فارسی:
+     DeepSeek-V4-Flash (جدیدترین، فارسی و JSON عالی) → Llama 3.3 70B (امتحان‌شده) → Qwen3-30B → Mistral-Small-3.1 → Llama 3.1 */
+  '@cf/deepseek-ai/deepseek-v4-flash-0731',
   '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
-  '@cf/meta/llama-3.1-8b-instruct-fp8',
-  '@cf/meta/llama-3.2-3b-instruct'
+  '@cf/qwen/qwen3-30b-a3b-fp8',
+  '@cf/mistralai/mistral-small-3.1-24b-instruct',
+  '@cf/meta/llama-3.1-8b-instruct-fp8'
 ];
 
 const VISION_MODELS = [
-  '@cf/meta/llama-3.2-11b-vision-instruct'
+  '@cf/meta/llama-3.2-11b-vision-instruct',
+  '@cf/mistralai/mistral-small-3.1-24b-instruct'
 ];
 
 const IMAGE_MODELS = [
@@ -24,8 +27,9 @@ const IMAGE_MODELS = [
 ];
 
 const STT_MODELS = [
-  '@cf/openai/whisper-large-v3-turbo',
-  '@cf/openai/whisper'
+  /* whisper (small) روی این اکانت تست لایو شد و پاسخ داد — اول قرار می‌گیرد تا تلاش ناموفق turbo وقت نگیرد */
+  '@cf/openai/whisper',
+  '@cf/openai/whisper-large-v3-turbo'
 ];
 
 const MAX_STT_AUDIO_BYTES = 8 * 1024 * 1024; // سقف ~۸ مگابایت برای هر فایل صوتی
@@ -157,15 +161,23 @@ function buildMessages(payload) {
   return messages;
 }
 
+/* مدل‌های استدلالی (DeepSeek/Qwen) ممکن است بلوک «تفکر» برگردانند — حذف می‌شود */
+function stripThink(text) {
+  return String(text || '')
+    .replace(/<think>[\s\S]*?(?:<\/think>|$)/gi, '')
+    .replace(/<\|begin_of_thought\|>[\s\S]*?(?:<\|end_of_thought\|>|$)/g, '')
+    .trim();
+}
+
 function coerceModelText(out) {
-  if (typeof out === 'string') return out;
+  if (typeof out === 'string') return stripThink(out);
   if (!out || typeof out !== 'object') return out == null ? '' : String(out);
   const v = out.response ?? out.result ?? out.description ?? out.text ?? out.content ?? out.message;
-  if (typeof v === 'string') return v;
+  if (typeof v === 'string') return stripThink(v);
   if (v && typeof v === 'object') {
-    if (typeof v.text === 'string') return v.text;
-    if (typeof v.content === 'string') return v.content;
-    if (typeof v.response === 'string') return v.response;
+    if (typeof v.text === 'string') return stripThink(v.text);
+    if (typeof v.content === 'string') return stripThink(v.content);
+    if (typeof v.response === 'string') return stripThink(v.response);
     return ''; // ساختار ناشناخته → فرصت به مدل بعدی داده می‌شود
   }
   return v == null ? '' : String(v);
